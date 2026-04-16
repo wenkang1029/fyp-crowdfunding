@@ -39,6 +39,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Dashboard Routes
     Route::get('/dashboard/ngo', [\App\Http\Controllers\DashboardController::class, 'ngoDashboard']);
     Route::get('/dashboard/admin', [\App\Http\Controllers\DashboardController::class, 'adminDashboard']);
+    Route::get('/dashboard/ngo/disbursements', [\App\Http\Controllers\DashboardController::class, 'ngoDisbursementDashboard']); // UC018
 
     // Admin Account Management Routes
     Route::get('/admin/users', [\App\Http\Controllers\AdminUserController::class, 'index']);

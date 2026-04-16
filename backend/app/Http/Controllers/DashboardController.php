@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\Donation;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\Disbursement;
 
 class DashboardController extends Controller
 {
@@ -85,6 +86,51 @@ class DashboardController extends Controller
                     'total_funds_raised' => $totalPlatformFunds
                 ]
             ]
+        ], 200);
+    }
+
+    // UC018: View Disbursement Dashboard (NGO Specific)
+    public function ngoDisbursementDashboard(Request $request)
+    {
+        // 1. Security Check
+        if ($request->user()->role !== 'ngo') {
+            return response()->json(['message' => 'Unauthorized. Only NGOs can view this dashboard.'], 403);
+        }
+
+        $userId = $request->user()->id;
+
+        // 2. Get total raised vs total disbursed for this NGO
+        $totalRaised = Campaign::where('user_id', $userId)->sum('current_amount');
+        
+        $totalDisbursed = Disbursement::whereHas('campaign', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })->sum('amount');
+
+        // 3. Group disbursements by purpose (Perfect for Frontend Pie Charts!)
+        $disbursementBreakdown = Disbursement::whereHas('campaign', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })
+        ->selectRaw('purpose, SUM(amount) as total_amount')
+        ->groupBy('purpose')
+        ->get();
+
+        // 4. Get a detailed log of the 5 most recent expenses
+        $recentDisbursements = Disbursement::with('campaign:id,title')
+            ->whereHas('campaign', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        return response()->json([
+            'metrics' => [
+                'total_funds_raised' => $totalRaised,
+                'total_funds_disbursed' => $totalDisbursed,
+                'remaining_balance' => $totalRaised - $totalDisbursed,
+            ],
+            'chart_data' => $disbursementBreakdown,
+            'recent_activity' => $recentDisbursements
         ], 200);
     }
 }
