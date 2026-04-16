@@ -35,4 +35,15 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/campaigns/{campaign_id}/allocations', [\App\Http\Controllers\AllocationController::class, 'store']); 
     Route::post('/campaigns/{campaign_id}/allocations', [\App\Http\Controllers\AllocationController::class, 'store']); 
     Route::patch('/campaigns/{campaign_id}/allocations/{id}', [\App\Http\Controllers\AllocationController::class, 'update']);
+
+    // Dashboard Routes
+    Route::get('/dashboard/ngo', [\App\Http\Controllers\DashboardController::class, 'ngoDashboard']);
+    Route::get('/dashboard/admin', [\App\Http\Controllers\DashboardController::class, 'adminDashboard']);
+
+    // Admin Account Management Routes
+    Route::get('/admin/users', [\App\Http\Controllers\AdminUserController::class, 'index']);
+    Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminUserController::class, 'destroy']);
+
+    // Disbursement Routes
+    Route::post('/campaigns/{campaign_id}/disbursements', [\App\Http\Controllers\DisbursementController::class, 'store']);
 });

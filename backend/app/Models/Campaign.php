@@ -23,4 +23,10 @@ class Campaign extends Model
     {
         return $this->hasMany(Allocation::class);
     }
+
+    // A campaign has many disbursements (expenses)
+    public function disbursements()
+    {
+        return $this->hasMany(Disbursement::class);
+    }
 }
