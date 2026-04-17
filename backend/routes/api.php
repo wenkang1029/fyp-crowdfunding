@@ -58,4 +58,12 @@ Route::middleware('auth:sanctum')->group(function () {
     // Report Routes
     Route::get('/campaigns/{campaign_id}/reports/allocations', [\App\Http\Controllers\ReportController::class, 'allocationReport']);
     Route::get('/campaigns/{campaign_id}/reports/disbursements', [\App\Http\Controllers\ReportController::class, 'disbursementReport']);
+    
+    // Notification Routes (Available to ALL logged-in users)
+    Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index']);
+    Route::patch('/notifications/{id}/read', [\App\Http\Controllers\NotificationController::class, 'markAsRead']);
+    Route::patch('/notifications/read-all', [\App\Http\Controllers\NotificationController::class, 'markAllAsRead']);
 });
+
+// AI Chatbot Webhook (Public, so external bot servers can reach it)
+Route::post('/chatbot/webhook', [\App\Http\Controllers\ChatbotController::class, 'handleWebhook']);

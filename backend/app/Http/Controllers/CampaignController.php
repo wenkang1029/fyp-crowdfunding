@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use Illuminate\Http\Request;
+use App\Notifications\CampaignApprovedNotification;
 
 class CampaignController extends Controller
 {
@@ -69,6 +70,19 @@ class CampaignController extends Controller
         // 4. Update and save
         $campaign->status = $validated['status'];
         $campaign->save();
+
+        // ---------------------------------------------------------
+        // 5. NEW: SEND NOTIFICATION IF APPROVED
+        // ---------------------------------------------------------
+        if ($campaign->status === 'active') {
+            // Find the NGO user who owns this campaign
+            $ngoUser = \App\Models\User::find($campaign->user_id);
+
+            // Trigger the notification
+            if ($ngoUser) {
+                $ngoUser->notify(new CampaignApprovedNotification($campaign->title));
+            }
+        }
 
         return response()->json([
             'message' => 'Campaign status updated successfully',
