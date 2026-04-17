@@ -54,4 +54,8 @@ Route::middleware('auth:sanctum')->group(function () {
     // System Settings (Admin Only)
     Route::get('/admin/settings', [\App\Http\Controllers\SettingController::class, 'index']);
     Route::post('/admin/settings', [\App\Http\Controllers\SettingController::class, 'store']);
+
+    // Report Routes
+    Route::get('/campaigns/{campaign_id}/reports/allocations', [\App\Http\Controllers\ReportController::class, 'allocationReport']);
+    Route::get('/campaigns/{campaign_id}/reports/disbursements', [\App\Http\Controllers\ReportController::class, 'disbursementReport']);
 });
