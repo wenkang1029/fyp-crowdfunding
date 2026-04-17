@@ -11,43 +11,48 @@ class DonationController extends Controller
 {
     public function store(Request $request)
     {
-        // 1. Security Check: Only donors can make donations
         if ($request->user()->role !== 'donor') {
             return response()->json(['message' => 'Only donors can make donations'], 403);
         }
 
-        // 2. Validate input
+        // 1. Update validation to accept the optional allocation_id
         $validated = $request->validate([
             'campaign_id' => 'required|exists:campaigns,id',
             'amount' => 'required|numeric|min:1',
-            // In a real app, we'd get a payment token here from Stripe/ToyyibPay
+            'allocation_id' => 'nullable|exists:allocations,id' // Must exist in the allocations table
         ]);
 
         $campaign = Campaign::findOrFail($validated['campaign_id']);
 
-        // 3. Ensure the campaign is actually active
         if ($campaign->status !== 'active') {
             return response()->json(['message' => 'You can only donate to active campaigns'], 400);
         }
 
+        // 2. Security Check: If they chose an allocation, does it actually belong to THIS campaign?
+        if (isset($validated['allocation_id'])) {
+            $allocationBelongsToCampaign = $campaign->allocations()->where('id', $validated['allocation_id'])->exists();
+            
+            if (!$allocationBelongsToCampaign) {
+                return response()->json(['message' => 'Invalid allocation preference for this campaign.'], 400);
+            }
+        }
+
         try {
-            // 4. Start the Database Transaction
             DB::beginTransaction();
 
-            // Step A: Create the donation record
+            // 3. Save the donation with the preference
             $donation = Donation::create([
                 'user_id' => $request->user()->id,
                 'campaign_id' => $campaign->id,
+                'allocation_id' => $validated['allocation_id'] ?? null, // Save it if it exists
                 'amount' => $validated['amount'],
-                'status' => 'success', // We mock success for now until Week 3 payment integration
+                'status' => 'success',
                 'transaction_id' => 'TXN_' . uniqid(), 
             ]);
 
-            // Step B: Add the donation amount to the campaign's current total
             $campaign->current_amount += $validated['amount'];
             $campaign->save();
 
-            // 5. If both steps succeed, COMMIT the changes to the database
             DB::commit();
 
             return response()->json([
@@ -57,13 +62,8 @@ class DonationController extends Controller
             ], 201);
 
         } catch (\Exception $e) {
-            // 6. If anything fails, ROLLBACK (undo) everything
             DB::rollBack();
-            
-            return response()->json([
-                'message' => 'Donation failed. Please try again.',
-                'error' => $e->getMessage()
-            ], 500);
+            return response()->json(['message' => 'Donation failed.', 'error' => $e->getMessage()], 500);
         }
     }
 

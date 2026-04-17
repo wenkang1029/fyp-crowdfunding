@@ -12,6 +12,7 @@ class Donation extends Model
     protected $fillable = [
         'user_id',
         'campaign_id',
+        'allocation_id',
         'amount',
         'status',
         'transaction_id'
@@ -27,5 +28,11 @@ class Donation extends Model
     public function campaign()
     {
         return $this->belongsTo(Campaign::class);
+    }
+
+    // A donation CAN belong to a specific allocation (sub-goal)
+    public function allocation()
+    {
+        return $this->belongsTo(Allocation::class);
     }
 }

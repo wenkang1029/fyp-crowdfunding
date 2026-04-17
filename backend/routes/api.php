@@ -47,4 +47,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Disbursement Routes
     Route::post('/campaigns/{campaign_id}/disbursements', [\App\Http\Controllers\DisbursementController::class, 'store']);
+
+    // Profile Management
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
+
+    // System Settings (Admin Only)
+    Route::get('/admin/settings', [\App\Http\Controllers\SettingController::class, 'index']);
+    Route::post('/admin/settings', [\App\Http\Controllers\SettingController::class, 'store']);
 });
