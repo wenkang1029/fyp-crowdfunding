@@ -67,21 +67,39 @@ class DonationController extends Controller
         }
     }
 
-    // View a user's personal donation history
+    // View donation history (Handles BOTH Donors and NGOs)
     public function index(Request $request)
     {
-        // 1. Security Check
-        if ($request->user()->role !== 'donor') {
-            return response()->json(['message' => 'Only donors can view their donation history.'], 403);
+        $user = $request->user();
+
+        // SCENARIO 1: The user is a Donor viewing their personal history
+        if ($user->role === 'donor') {
+            $donations = Donation::with(['campaign:id,title,status', 'allocation:id,title']) 
+                ->where('user_id', $user->id)
+                ->orderBy('created_at', 'desc')
+                ->get();
+
+            return response()->json($donations, 200);
         }
 
-        // 2. Fetch donations AND eager load the related campaign details
-        // We only select id, title, and status from the campaign to keep the payload lightweight
-        $donations = Donation::with('campaign:id,title,status')
-            ->where('user_id', $request->user()->id)
-            ->orderBy('created_at', 'desc') // Show newest first
-            ->get();
+        // SCENARIO 2: The user is an NGO viewing their campaign ledger
+        if ($user->role === 'ngo') {
+            // We use 'whereHas' to only get donations linked to campaigns owned by this NGO
+            $donations = Donation::with([
+                    'campaign:id,title', 
+                    'user:id,name,email', // Eager load the donor's details!
+                    'allocation:id,title'
+                ])
+                ->whereHas('campaign', function ($query) use ($user) {
+                    $query->where('user_id', $user->id);
+                })
+                ->orderBy('created_at', 'desc')
+                ->get();
 
-        return response()->json($donations, 200);
+            return response()->json($donations, 200);
+        }
+
+        // If an Admin or someone else tries to access it
+        return response()->json(['message' => 'Unauthorized to view this ledger.'], 403);
     }
 }

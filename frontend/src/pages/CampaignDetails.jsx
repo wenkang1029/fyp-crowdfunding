@@ -5,6 +5,7 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
+import Navbar from '../components/layout/Navbar'
 
 const CampaignDetails = () => {
     const { id } = useParams();
@@ -90,11 +91,7 @@ const CampaignDetails = () => {
 
     return (
         <div className="min-h-screen bg-aidwise-light font-sans">
-            <nav className="bg-white border-b border-aidwise-border px-8 py-4">
-                <Link to="/" className="text-aidwise-blue hover:underline font-semibold flex items-center gap-2">
-                    ← Back to Gallery
-                </Link>
-            </nav>
+            <Navbar />
 
             <main className="max-w-6xl mx-auto px-8 py-12">
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-12">

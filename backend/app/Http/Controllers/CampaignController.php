@@ -142,29 +142,32 @@ class CampaignController extends Controller
     // Process a donation (Public Route)
     public function donate(\Illuminate\Http\Request $request, $id)
     {
-        // 1. Validate the input (prevent negative numbers or letters)
         $request->validate([
             'amount' => 'required|numeric|min:1'
         ]);
 
-        // 2. Find the campaign
         $campaign = \App\Models\Campaign::findOrFail($id);
 
-        // 3. Security: Only allow donations to active campaigns
         if ($campaign->status !== 'active') {
             return response()->json(['message' => 'This campaign is not accepting donations.'], 403);
         }
 
-        // 4. Update the total securely
-        // We use ?? 0 in case current_amount is null in the database
+        // 1. Create the permanent ledger record using your exact model structure
+        \App\Models\Donation::create([
+            'campaign_id' => $campaign->id,
+            // If the donor is logged in, grab their ID. If it's a guest, this stays null.
+            'user_id' => auth('sanctum')->id(), 
+            'amount' => $request->amount,
+            'status' => 'success',
+            // allocation_id and transaction_id will naturally remain null as per standard database defaults
+        ]);
+
+        // 2. Update the campaign's total
         $campaign->current_amount = ($campaign->current_amount ?? 0) + $request->amount;
         $campaign->save();
-
-        // FIX: Reload the user relationship so the NGO name doesn't disappear in React!
-        $campaign->load('user');
         
-        // Note: In an enterprise app, we would also create a record in a 'Donations' table here
-        // linking the donor's info to the campaign for receipts. For now, we update the total!
+        // Reload the user to keep the NGO name visible on the frontend
+        $campaign->load('user');
 
         return response()->json([
             'message' => 'Thank you! Your donation was successful.', 

@@ -6,6 +6,7 @@ import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { Target, DollarSign, Users, TrendingUp } from 'lucide-react';
 import axiosInstance from '../api/axios';
+import DonationLedger from '../components/ui/DonationLedger';
 
 import {
   Chart as ChartJS,
@@ -151,6 +152,8 @@ const NgoDashboard = () => {
                     </Card>
 
                 </div>
+                {/* Place this below your existing charts and metric cards */}
+            <DonationLedger />
             </div>
         </DashboardLayout>
     );

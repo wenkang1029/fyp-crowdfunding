@@ -30,7 +30,6 @@ class Donation extends Model
         return $this->belongsTo(Campaign::class);
     }
 
-    // A donation CAN belong to a specific allocation (sub-goal)
     public function allocation()
     {
         return $this->belongsTo(Allocation::class);

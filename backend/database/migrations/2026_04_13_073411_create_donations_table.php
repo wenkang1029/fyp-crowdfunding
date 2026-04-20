@@ -13,11 +13,18 @@ return new class extends Migration
     {
         Schema::create('donations', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained()->cascadeOnDelete(); // Links to Donor
-            $table->foreignId('campaign_id')->constrained()->cascadeOnDelete(); // Links to Campaign
+            // FIX: Make user_id nullable for guest donations
+            $table->foreignId('user_id')->nullable()->constrained()->nullOnDelete(); 
+            $table->foreignId('campaign_id')->constrained()->cascadeOnDelete();
+            
+            // NEW: Capture the name of anonymous donors!
+            $table->string('donor_name')->default('Anonymous'); 
+            
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['pending', 'success', 'failed'])->default('pending');
-            $table->string('transaction_id')->nullable(); // We will use this later for the payment gateway
+            
+            // FIX: Default to 'success' for now since we haven't built the payment gateway yet
+            $table->enum('status', ['pending', 'success', 'failed'])->default('success'); 
+            $table->string('transaction_id')->nullable(); 
             $table->timestamps();
         });
     }

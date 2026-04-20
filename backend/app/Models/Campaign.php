@@ -35,4 +35,10 @@ class Campaign extends Model
     {
         return $this->hasMany(Disbursement::class);
     }
+
+    // A campaign has many donations
+    public function donations()
+    {
+        return $this->hasMany(Donation::class);
+    }
 }

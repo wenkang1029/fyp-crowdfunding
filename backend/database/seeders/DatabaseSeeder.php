@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use App\Models\User;
 
 class DatabaseSeeder extends Seeder
 {
@@ -12,11 +13,34 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // \App\Models\User::factory(10)->create();
+        // 1. Create the System Admin
+        User::updateOrCreate(
+            ['email' => 'admin2@example.com'], // Ensure no duplicates
+            [
+                'name' => 'System Admin',
+                'password' => Hash::make('password123'),
+                'role' => 'admin',
+            ]
+        );
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        // 2. Create a Test NGO
+        User::updateOrCreate(
+            ['email' => 'contact2@helpinghands.org'],
+            [
+                'name' => 'Water for All NGO',
+                'password' => Hash::make('password123'),
+                'role' => 'ngo',
+            ]
+        );
+        
+        // 3. Create a Test Donor (for future use)
+        User::updateOrCreate(
+            ['email' => 'donor@example.com'],
+            [
+                'name' => 'Generous Donor',
+                'password' => Hash::make('password123'),
+                'role' => 'donor',
+            ]
+        );
     }
 }

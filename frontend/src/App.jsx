@@ -8,6 +8,7 @@ import CreateCampaign from './pages/CreateCampaign';
 import AdminDashboard from './pages/AdminDashboard';
 import Home from './pages/Home';
 import CampaignDetails from './pages/CampaignDetails';
+import NgoDisbursements from './pages/NgoDisbursements';
 
 function App() {
   return (
@@ -50,7 +51,10 @@ function App() {
                   </ProtectedRoute>
               } 
           />
+
+          <Route path="/ngo/disbursements" element={<ProtectedRoute allowedRole="ngo"><NgoDisbursements /></ProtectedRoute>} />
         </Routes>
+
       </BrowserRouter>
     </AuthProvider>
   );

@@ -1,13 +1,21 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import axiosInstance from '../api/axios';
 import CampaignCard from '../components/ui/CampaignCard';
+import Avatar from '../components/ui/Avatar';
+import { LogOut, LayoutDashboard } from 'lucide-react';
+import Navbar from '../components/layout/Navbar'
 
 const Home = () => {
-    const { user } = useAuth();
+    const { user, logout } = useAuth();
     const [campaigns, setCampaigns] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/'); // Keep them on the home page after signing out
+    };
 
     useEffect(() => {
         const fetchPublicCampaigns = async () => {
@@ -29,23 +37,8 @@ const Home = () => {
 
     return (
         <div className="min-h-screen bg-aidwise-light font-sans">
-            {/* Minimalist Public Navigation Bar */}
-            <nav className="bg-white border-b border-aidwise-border px-8 py-4 flex justify-between items-center sticky top-0 z-50">
-                <div className="flex items-center gap-2">
-                    <span className="text-2xl font-extrabold text-aidwise-blue tracking-tight">AidWise</span>
-                </div>
-                <div>
-                    {user ? (
-                        <Link to={user.role === 'admin' ? '/admin/dashboard' : '/ngo/dashboard'} className="text-sm font-semibold text-aidwise-text hover:text-aidwise-blue transition-colors">
-                            Go to Dashboard →
-                        </Link>
-                    ) : (
-                        <Link to="/login" className="text-sm font-semibold px-4 py-2 bg-aidwise-blue text-white rounded-lg hover:bg-blue-700 transition-colors">
-                            Sign In
-                        </Link>
-                    )}
-                </div>
-            </nav>
+            {/* Smart Public Navigation Bar */}
+            <Navbar />
 
             {/* Hero Section */}
             <main className="max-w-7xl mx-auto px-8 py-16">
