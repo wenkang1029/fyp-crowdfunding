@@ -1,13 +1,9 @@
 import React, { useState } from 'react';
 
-const Input = ({ label, type = 'text', name, value, onChange, placeholder, required = false }) => {
-    // State to track if the password should be visible
+// NEW: Added 'error' to the props
+const Input = ({ label, type = 'text', name, value, onChange, placeholder, required = false, error }) => {
     const [showPassword, setShowPassword] = useState(false);
-    
-    // Determine if this specific input is a password field
     const isPasswordType = type === 'password';
-    
-    // Dynamically change the input type based on the toggle state
     const currentInputType = isPasswordType ? (showPassword ? 'text' : 'password') : type;
 
     return (
@@ -18,7 +14,6 @@ const Input = ({ label, type = 'text', name, value, onChange, placeholder, requi
                 </label>
             )}
             
-            {/* relative container allows us to position the toggle button absolutely inside it */}
             <div className="relative w-full">
                 <input
                     type={currentInputType}
@@ -27,10 +22,12 @@ const Input = ({ label, type = 'text', name, value, onChange, placeholder, requi
                     onChange={onChange}
                     placeholder={placeholder}
                     required={required}
-                    className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-aidwise-blue focus:bg-white transition-all duration-200 pr-12"
+                    // HCI: If there is an error, make the border red!
+                    className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg text-aidwise-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all duration-200 pr-12 ${
+                        error ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:ring-aidwise-blue'
+                    }`}
                 />
                 
-                {/* The HCI Password Toggle Button */}
                 {isPasswordType && (
                     <button
                         type="button"
@@ -41,6 +38,8 @@ const Input = ({ label, type = 'text', name, value, onChange, placeholder, requi
                     </button>
                 )}
             </div>
+            {/* HCI: Display the specific error message right below the input */}
+            {error && <p className="mt-1.5 text-sm text-red-500 font-medium">{error}</p>}
         </div>
     );
 };

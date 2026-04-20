@@ -10,46 +10,39 @@ import axiosInstance from '../api/axios';
 const CreateCampaign = () => {
     const navigate = useNavigate();
     
-    // State management for our form fields
     const [formData, setFormData] = useState({
         title: '',
         description: '',
         target_amount: ''
     });
     
-    // HCI: Loading and Error states
     const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState('');
+    // NEW: We now use an object to hold multiple specific errors
+    const [errors, setErrors] = useState({});
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
-        const handleChange = (e) => {
-        console.log("Input Name:", e.target.name);
-        console.log("Keystroke:", e.target.value);
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-        };
+        // HCI: Clear the specific error when the user starts typing again!
+        if (errors[e.target.name]) {
+            setErrors({ ...errors, [e.target.name]: null });
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setIsLoading(true);
-        setError('');
+        setErrors({}); // Clear previous errors
 
         try {
-            // Send the data to the Laravel backend
-            // Note: Your backend route might be /campaigns depending on your setup. 
-            // We use standard RESTful naming conventions here.
             await axiosInstance.post('/campaigns', formData);
-            
-            // On success, route back to the dashboard
             navigate('/ngo/dashboard');
         } catch (err) {
+            // Check if Laravel sent us structured validation errors
             if (err.response && err.response.data.errors) {
-                // Grab the first validation error from Laravel
-                const firstError = Object.values(err.response.data.errors)[0][0];
-                setError(firstError);
+                setErrors(err.response.data.errors);
             } else {
-                setError('Failed to create campaign. Please try again.');
+                // Fallback for global server errors
+                setErrors({ global: 'Failed to create campaign. Please try again.' });
             }
         } finally {
             setIsLoading(false);
@@ -59,7 +52,6 @@ const CreateCampaign = () => {
     return (
         <DashboardLayout>
             <div className="max-w-2xl mx-auto">
-                
                 <div className="mb-8">
                     <h1 className="text-3xl font-bold tracking-tight text-aidwise-text">Create Campaign</h1>
                     <p className="mt-1 text-gray-500">Launch a new fundraising initiative.</p>
@@ -68,15 +60,14 @@ const CreateCampaign = () => {
                 <Card>
                     <form onSubmit={handleSubmit}>
                         
-                        {/* Display Laravel Validation Errors */}
-                        {error && (
+                        {/* Global Error (e.g., 500 Server Error) */}
+                        {errors.global && (
                             <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
-                                {error}
+                                {errors.global}
                             </div>
                         )}
 
                         <div className="space-y-2">
-                            {/* We add 'name' attributes to map to our handleChange function */}
                             <Input 
                                 label="Campaign Title" 
                                 type="text" 
@@ -85,6 +76,7 @@ const CreateCampaign = () => {
                                 onChange={handleChange} 
                                 placeholder="e.g., Clean Water for Rural Schools"
                                 required 
+                                error={errors.title?.[0]} // Pass specific Laravel error
                             />
 
                             <Input 
@@ -93,8 +85,9 @@ const CreateCampaign = () => {
                                 name="target_amount"
                                 value={formData.target_amount} 
                                 onChange={handleChange} 
-                                placeholder="e.g., 15000"
+                                placeholder="Max amount: 1,000,000" // HCI Hint added!
                                 required 
+                                error={errors.target_amount?.[0]} // Pass specific Laravel error
                             />
 
                             <Textarea 
@@ -104,15 +97,16 @@ const CreateCampaign = () => {
                                 onChange={handleChange} 
                                 placeholder="Explain the purpose, impact, and timeline of this campaign..."
                                 required 
+                                error={errors.description?.[0]} // Pass specific Laravel error
                             />
                         </div>
 
-                        {/* Form Actions */}
                         <div className="mt-8 flex justify-end gap-3 border-t border-aidwise-border pt-6">
                             <Button 
                                 variant="secondary" 
                                 onClick={() => navigate('/ngo/dashboard')}
                                 disabled={isLoading}
+                                type="button" // Ensure this doesn't submit the form
                             >
                                 Cancel
                             </Button>
@@ -124,7 +118,6 @@ const CreateCampaign = () => {
                                 {isLoading ? 'Publishing...' : 'Publish Campaign'}
                             </Button>
                         </div>
-
                     </form>
                 </Card>
             </div>

@@ -23,6 +23,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::patch('/campaigns/{id}', [CampaignController::class, 'update']); // Edit campaign
     Route::delete('/campaigns/{id}', [CampaignController::class, 'destroy']); // Delete campaign
 
+    // Public Campaign Routes
+    Route::get('/campaigns/{id}', [App\Http\Controllers\CampaignController::class, 'show']);
+    Route::post('/campaigns/{id}/donate', [App\Http\Controllers\CampaignController::class, 'donate']);
+
     // Admin Routes
     Route::patch('/campaigns/{id}/status', [CampaignController::class, 'updateStatus']);
 

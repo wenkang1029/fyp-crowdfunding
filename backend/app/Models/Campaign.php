@@ -19,6 +19,12 @@ class Campaign extends Model
         'status',1
     ];
 
+    // This tells Laravel that every Campaign belongs to a User (NGO)
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function allocations()
     {
         return $this->hasMany(Allocation::class);

@@ -5,21 +5,9 @@ import ProtectedRoute from './components/ProtectedRoute';
 import DashboardLayout from './components/layout/DashboardLayout';
 import NgoDashboard from './pages/NgoDashboard';
 import CreateCampaign from './pages/CreateCampaign';
-
-const Home = () => (
-  <div className="p-8 text-center mt-10">
-    <h1 className="text-4xl font-bold text-aidwise-blue">AidWise Public Portal</h1>
-    <Link to="/login" className="mt-4 inline-block text-blue-600 hover:underline">Go to Login</Link>
-  </div>
-);
-
-// Placeholder for Admin Dashboard Content
-const AdminDashboard = () => (
-  <DashboardLayout>
-      <h1 className="text-3xl font-bold tracking-tight text-aidwise-text">System Admin Overview</h1>
-      <p className="mt-2 text-gray-500">Monitor the entire platform.</p>
-  </DashboardLayout>
-);
+import AdminDashboard from './pages/AdminDashboard';
+import Home from './pages/Home';
+import CampaignDetails from './pages/CampaignDetails';
 
 function App() {
   return (
@@ -28,6 +16,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/campaigns/:id" element={<CampaignDetails />} />
           
           {/* Automatically redirect the generic /dashboard to the correct one */}
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
