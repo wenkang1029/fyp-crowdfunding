@@ -15,7 +15,8 @@ class Donation extends Model
         'allocation_id',
         'amount',
         'status',
-        'transaction_id'
+        'transaction_id',
+        'payment_method' // NEW
     ];
 
     // A donation belongs to a user (the donor)

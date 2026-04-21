@@ -59,6 +59,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/admin/settings', [\App\Http\Controllers\SettingController::class, 'index']);
     Route::post('/admin/settings', [\App\Http\Controllers\SettingController::class, 'store']);
 
+    // Admin Disbursement Moderation
+    Route::get('/admin/disbursements', [\App\Http\Controllers\DisbursementController::class, 'indexAdmin']);
+    Route::patch('/admin/disbursements/{id}/status', [\App\Http\Controllers\DisbursementController::class, 'updateStatus']);
+
     // Report Routes
     Route::get('/campaigns/{campaign_id}/reports/allocations', [\App\Http\Controllers\ReportController::class, 'allocationReport']);
     Route::get('/campaigns/{campaign_id}/reports/disbursements', [\App\Http\Controllers\ReportController::class, 'disbursementReport']);

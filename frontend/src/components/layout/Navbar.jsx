@@ -33,7 +33,7 @@ const Navbar = () => {
                         </div>
 
                         <Link 
-                            to={user.role === 'admin' ? '/admin/dashboard' : '/ngo/dashboard'} 
+                            to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'ngo' ? '/ngo/dashboard' : '/donor/dashboard'} 
                             className="flex items-center gap-2 px-4 py-2 bg-aidwise-light text-aidwise-blue text-sm font-semibold rounded-xl hover:bg-blue-50 transition-colors"
                         >
                             <LayoutDashboard size={16} />

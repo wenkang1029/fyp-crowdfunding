@@ -11,15 +11,18 @@ class DonationController extends Controller
 {
     public function store(Request $request)
     {
-        if ($request->user()->role !== 'donor') {
-            return response()->json(['message' => 'Only donors can make donations'], 403);
+        // FIX: Allow Guests (null user), but if a user IS logged in, ensure they are a Donor.
+        if ($request->user() && $request->user()->role !== 'donor') {
+            return response()->json(['message' => 'Only donors and guests can make donations'], 403);
         }
 
-        // 1. Update validation to accept the optional allocation_id
+        // Validate incoming data, including our new mock payment fields
         $validated = $request->validate([
             'campaign_id' => 'required|exists:campaigns,id',
             'amount' => 'required|numeric|min:1',
-            'allocation_id' => 'nullable|exists:allocations,id' // Must exist in the allocations table
+            'allocation_id' => 'nullable|exists:allocations,id',
+            'transaction_id' => 'nullable|string',
+            'payment_method' => 'nullable|string'
         ]);
 
         $campaign = Campaign::findOrFail($validated['campaign_id']);
@@ -28,10 +31,8 @@ class DonationController extends Controller
             return response()->json(['message' => 'You can only donate to active campaigns'], 400);
         }
 
-        // 2. Security Check: If they chose an allocation, does it actually belong to THIS campaign?
         if (isset($validated['allocation_id'])) {
             $allocationBelongsToCampaign = $campaign->allocations()->where('id', $validated['allocation_id'])->exists();
-            
             if (!$allocationBelongsToCampaign) {
                 return response()->json(['message' => 'Invalid allocation preference for this campaign.'], 400);
             }
@@ -40,14 +41,15 @@ class DonationController extends Controller
         try {
             DB::beginTransaction();
 
-            // 3. Save the donation with the preference
             $donation = Donation::create([
-                'user_id' => $request->user()->id,
+                'user_id' => $request->user() ? $request->user()->id : null,
                 'campaign_id' => $campaign->id,
-                'allocation_id' => $validated['allocation_id'] ?? null, // Save it if it exists
+                'allocation_id' => $validated['allocation_id'] ?? null,
                 'amount' => $validated['amount'],
                 'status' => 'success',
-                'transaction_id' => 'TXN_' . uniqid(), 
+                // Use the gateway's receipt ID, or fallback to uniqid
+                'transaction_id' => $validated['transaction_id'] ?? ('TXN_' . uniqid()), 
+                'payment_method' => $validated['payment_method'] ?? null,
             ]);
 
             $campaign->current_amount += $validated['amount'];

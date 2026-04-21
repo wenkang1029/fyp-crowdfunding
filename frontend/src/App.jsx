@@ -9,6 +9,8 @@ import AdminDashboard from './pages/AdminDashboard';
 import Home from './pages/Home';
 import CampaignDetails from './pages/CampaignDetails';
 import NgoDisbursements from './pages/NgoDisbursements';
+import DonorDashboard from './pages/DonorDashboard';
+import AdminDisbursements from './pages/AdminDisbursements';
 
 function App() {
   return (
@@ -21,6 +23,9 @@ function App() {
           
           {/* Automatically redirect the generic /dashboard to the correct one */}
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+
+          {/* Donor Route */}
+          <Route path="/donor/dashboard" element={<ProtectedRoute allowedRole="donor"><DonorDashboard /></ProtectedRoute>} />
           
           {/* STRICT ADMIN ROUTE */}
           <Route 
@@ -31,6 +36,10 @@ function App() {
                   </ProtectedRoute>
               } 
           />
+
+          {/* Admin Routes */}
+          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/disbursements" element={<ProtectedRoute allowedRole="admin"><AdminDisbursements /></ProtectedRoute>} />
 
           {/* STRICT NGO ROUTE */}
           <Route 

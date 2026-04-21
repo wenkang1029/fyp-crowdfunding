@@ -50,7 +50,7 @@ const DashboardLayout = ({ children }) => {
                 {/* FIX 2: Added flex-1 to this nav so it pushes the bottom profile section down, but stays within the screen height */}
                 <nav className="flex-1 px-3 space-y-1 mt-2 overflow-y-auto overflow-x-hidden">
                     <Link 
-                        to={user?.role === 'admin' ? '/admin/dashboard' : '/ngo/dashboard'}
+                        to={user?.role === 'admin' ? '/admin/dashboard' : user?.role === 'ngo' ? '/ngo/dashboard' : '/donor/dashboard'}
                         className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
                             location.pathname.includes('/dashboard') 
                             ? 'bg-aidwise-blue text-white shadow-sm'
@@ -61,7 +61,22 @@ const DashboardLayout = ({ children }) => {
                         <LayoutDashboard size={20} className="shrink-0" />
                         {!isCollapsed && <span className="whitespace-nowrap">Dashboard</span>}
                     </Link>
-
+                    
+                    {user?.role === 'admin' && (
+                        <Link 
+                            to="/admin/disbursements" 
+                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
+                                location.pathname.includes('/admin/disbursements') 
+                                ? 'bg-aidwise-blue text-white shadow-sm'
+                                : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
+                            }`}
+                            title="Payout Requests"
+                        >
+                            <Wallet size={20} className="shrink-0" />
+                            {!isCollapsed && <span className="whitespace-nowrap">Payout Requests</span>}
+                        </Link>
+                    )}
+                    
                     {user?.role === 'ngo' && (
                         <>
                             <Link 

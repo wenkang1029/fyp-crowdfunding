@@ -8,10 +8,9 @@ use Illuminate\Http\Request;
 
 class DisbursementController extends Controller
 {
-    // UC017: Record a new disbursement (NGO only)
+    // Record a new disbursement (NGO only)
     public function store(Request $request, $campaign_id)
     {
-        // 1. Security check
         if ($request->user()->role !== 'ngo') {
             return response()->json(['message' => 'Only NGOs can manage disbursements.'], 403);
         }
@@ -27,12 +26,13 @@ class DisbursementController extends Controller
             'amount' => 'required|numeric|min:1'
         ]);
 
-        // 2. BUSINESS LOGIC: Prevent over-disbursement
-        // Calculate how much has already been spent
-        $alreadyDisbursed = $campaign->disbursements()->sum('amount');
+        // Prevent over-disbursement & exclude rejected funds from the calculation
+        $alreadyDisbursed = $campaign->disbursements()
+            ->where('status', '!=', 'rejected')
+            ->sum('amount');
+            
         $proposedTotal = $alreadyDisbursed + $validated['amount'];
 
-        // You cannot spend more money than you have currently raised!
         if ($proposedTotal > $campaign->current_amount) {
             return response()->json([
                 'message' => 'Disbursement failed.',
@@ -40,16 +40,57 @@ class DisbursementController extends Controller
             ], 400);
         }
 
-        // 3. Create the record
+        // Create the record with default pending status
         $disbursement = Disbursement::create([
             'campaign_id' => $campaign->id,
             'purpose' => $validated['purpose'],
-            'amount' => $validated['amount']
+            'amount' => $validated['amount'],
+            'status' => 'pending' 
         ]);
 
         return response()->json([
             'message' => 'Disbursement recorded successfully!',
             'disbursement' => $disbursement
         ], 201);
+    }
+
+    // Fetch all disbursements for the Admin Moderation Dashboard
+    public function indexAdmin(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
+        }
+
+        $disbursements = Disbursement::with(['campaign:id,title,user_id', 'campaign.user:id,name,email'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json($disbursements, 200);
+    }
+
+    // Approve or Reject a disbursement request
+    public function updateStatus(Request $request, $id)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized access.'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|string|in:approved,rejected'
+        ]);
+
+        $disbursement = Disbursement::findOrFail($id);
+        
+        if ($disbursement->status !== 'pending') {
+            return response()->json(['message' => 'This request has already been processed.'], 400);
+        }
+
+        $disbursement->status = $validated['status'];
+        $disbursement->save();
+
+        return response()->json([
+            'message' => 'Disbursement ' . $validated['status'] . ' successfully.',
+            'disbursement' => $disbursement
+        ]);
     }
 }
