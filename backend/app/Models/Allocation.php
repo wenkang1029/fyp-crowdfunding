@@ -20,4 +20,9 @@ class Allocation extends Model
     {
         return $this->belongsTo(Campaign::class);
     }
+
+    public function donations()
+    {
+        return $this->hasMany(Donation::class);
+    }
 }

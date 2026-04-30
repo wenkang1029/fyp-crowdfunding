@@ -16,7 +16,7 @@ class Campaign extends Model
         'description',
         'target_amount',
         'current_amount',
-        'status',1
+        'status',
     ];
 
     // This tells Laravel that every Campaign belongs to a User (NGO)

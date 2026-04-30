@@ -3,7 +3,7 @@ import Navbar from '../components/layout/Navbar'; // Replaced DashboardLayout wi
 import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
 import Badge from '../components/ui/Badge';
-import axiosInstance from '../api/axios';
+import { getDonations } from '../services/donationService';
 import { Heart, History, Award } from 'lucide-react';
 
 const DonorDashboard = () => {
@@ -14,10 +14,9 @@ const DonorDashboard = () => {
     useEffect(() => {
         const fetchMyDonations = async () => {
             try {
-                const response = await axiosInstance.get('/donations');
-                const data = response.data.data || response.data;
+                const data = await getDonations();
                 setDonations(data);
-            } catch (err) {
+            } catch {
                 setError('Failed to load your donation history.');
             } finally {
                 setIsLoading(false);

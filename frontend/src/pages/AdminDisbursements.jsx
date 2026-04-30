@@ -3,7 +3,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
-import axiosInstance from '../api/axios';
+import { getAdminDisbursements, updateDisbursementStatus } from '../services/disbursementService';
 import { Wallet, CheckCircle, XCircle, MessageSquareWarning} from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
@@ -23,9 +23,9 @@ const AdminDisbursements = () => {
 
     const fetchDisbursements = async () => {
         try {
-            const response = await axiosInstance.get('/admin/disbursements');
-            setDisbursements(response.data);
-        } catch (err) {
+            const data = await getAdminDisbursements();
+            setDisbursements(data);
+        } catch {
             setError('Failed to load payout requests.');
         } finally {
             setIsLoading(false);
@@ -35,7 +35,7 @@ const AdminDisbursements = () => {
     const handleUpdateStatus = async (id, newStatus, reason = null) => {
      setProcessingId(id);
      try {
-         await axiosInstance.patch(`/admin/disbursements/${id}/status`, { 
+         await updateDisbursementStatus(id, { 
              status: newStatus,
              rejection_reason: reason 
          });

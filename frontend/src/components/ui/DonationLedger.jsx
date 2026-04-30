@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import axiosInstance from '../../api/axios';
+import { getDonations } from '../../services/donationService';
 import Card from './Card';
 import Badge from './Badge'; // Reusing the badge we built earlier!
 import { Receipt } from 'lucide-react';
@@ -12,9 +12,7 @@ const DonationLedger = () => {
     useEffect(() => {
         const fetchDonations = async () => {
             try {
-                const response = await axiosInstance.get('/donations');
-                // Ensure we are setting an array
-                const data = response.data.data || response.data;
+                const data = await getDonations();
                 setDonations(data);
             } catch (err) {
                 console.error("Ledger error:", err);

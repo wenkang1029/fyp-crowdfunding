@@ -1,53 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Button from '../components/ui/Button';
-import axiosInstance from '../api/axios';
+import { useCreateCampaign } from '../hooks/useCreateCampaign';
 
 const CreateCampaign = () => {
-    const navigate = useNavigate();
-    
-    const [formData, setFormData] = useState({
-        title: '',
-        description: '',
-        target_amount: ''
-    });
-    
-    const [isLoading, setIsLoading] = useState(false);
-    // NEW: We now use an object to hold multiple specific errors
-    const [errors, setErrors] = useState({});
-
-    const handleChange = (e) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-        // HCI: Clear the specific error when the user starts typing again!
-        if (errors[e.target.name]) {
-            setErrors({ ...errors, [e.target.name]: null });
-        }
-    };
-
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setIsLoading(true);
-        setErrors({}); // Clear previous errors
-
-        try {
-            await axiosInstance.post('/campaigns', formData);
-            navigate('/ngo/dashboard');
-        } catch (err) {
-            // Check if Laravel sent us structured validation errors
-            if (err.response && err.response.data.errors) {
-                setErrors(err.response.data.errors);
-            } else {
-                // Fallback for global server errors
-                setErrors({ global: 'Failed to create campaign. Please try again.' });
-            }
-        } finally {
-            setIsLoading(false);
-        }
-    };
+    const { formData, isLoading, errors, handleChange, handleSubmit, handleCancel } = useCreateCampaign();
 
     return (
         <DashboardLayout>
@@ -104,7 +64,7 @@ const CreateCampaign = () => {
                         <div className="mt-8 flex justify-end gap-3 border-t border-aidwise-border pt-6">
                             <Button 
                                 variant="secondary" 
-                                onClick={() => navigate('/ngo/dashboard')}
+                                onClick={handleCancel}
                                 disabled={isLoading}
                                 type="button" // Ensure this doesn't submit the form
                             >

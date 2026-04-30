@@ -2,74 +2,76 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\User;
+use App\Services\AuthService;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
+    public function __construct(private readonly AuthService $authService)
+    {
+    }
+
     // --- REGISTER ---
     public function register(Request $request)
     {
-        // 1. Validate the user input
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'sometimes|in:admin,ngo,donor' 
+            'role' => 'sometimes|in:admin,ngo,donor'
         ]);
 
-        // 2. Create the user in the database
-        $user = User::create([
-            'name' => $validated['name'],
-            'email' => $validated['email'],
-            'password' => Hash::make($validated['password']), // Hash for security
-            'role' => $validated['role'] ?? 'donor', // Default to donor
-        ]);
+        $result = $this->authService->register($validated);
 
-        // 3. Generate the Sanctum Auth Token
-        $token = $user->createToken('auth_token')->plainTextToken;
-
-        // 4. Return success response with token
         return response()->json([
+            'success' => true,
+            'data' => $result,
             'message' => 'User registered successfully',
-            'user' => $user,
-            'token' => $token
         ], 201);
     }
 
     // --- LOGIN ---
     public function login(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'email' => 'required|email',
-            'password' => 'required'
+            'password' => 'required',
         ]);
 
-        $user = User::where('email', $request->email)->first();
+        $result = $this->authService->login($validated['email'], $validated['password']);
 
-        // Check if user exists and password is correct
-        if (!$user || !Hash::check($request->password, $user->password)) {
-            return response()->json(['message' => 'Invalid credentials'], 401);
+        if (!$result) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Invalid credentials',
+            ], 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
-
         return response()->json([
+            'success' => true,
+            'data' => $result,
             'message' => 'Login successful',
-            'user' => $user,
-            'token' => $token
+        ], 200);
+    }
+
+    public function user(Request $request)
+    {
+        return response()->json([
+            'success' => true,
+            'data' => $request->user(),
+            'message' => 'Authenticated user fetched successfully',
         ], 200);
     }
 
     // --- LOGOUT ---
     public function logout(Request $request)
     {
-        // Delete the user's current token
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user(), $request->user()->currentAccessToken());
 
         return response()->json([
-            'message' => 'Logged out successfully'
+            'success' => true,
+            'data' => null,
+            'message' => 'Logged out successfully',
         ], 200);
     }
 }

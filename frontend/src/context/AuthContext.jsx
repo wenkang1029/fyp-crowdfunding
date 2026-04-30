@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import axiosInstance from '../api/axios';
+import { getAuthenticatedUser, logoutUser } from '../services/authService';
 
 // Create the context
 const AuthContext = createContext();
@@ -19,10 +19,9 @@ export const AuthProvider = ({ children }) => {
             }
 
             try {
-                // Fetch the user's profile from the backend
-                const response = await axiosInstance.get('/user');
-                setUser(response.data);
-            } catch (error) {
+                const userData = await getAuthenticatedUser();
+                setUser(userData);
+            } catch {
                 // If token is invalid/expired, clean it up (Security Principle)
                 localStorage.removeItem('aidwise_token');
                 setUser(null);
@@ -41,8 +40,8 @@ export const AuthProvider = ({ children }) => {
 
     const logout = async () => {
         try {
-            await axiosInstance.post('/logout');
-        } catch (error) {
+            await logoutUser();
+        } catch {
             console.error("Server logout failed, clearing local session.");
         } finally {
             localStorage.removeItem('aidwise_token');
@@ -64,5 +63,5 @@ export const AuthProvider = ({ children }) => {
     );
 };
 
-// Custom hook to easily use this context in any file (DRY)
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => useContext(AuthContext);

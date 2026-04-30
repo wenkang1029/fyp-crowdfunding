@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
@@ -6,7 +6,7 @@ import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge'; // Required for HCI feedback
-import axiosInstance from '../api/axios';
+import { useNgoDisbursements } from '../hooks/useNgoDisbursements';
 import { Wallet, ArrowDownRight, ArrowUpRight, PieChart, ListOrdered, Plus } from 'lucide-react';
 
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
@@ -15,68 +15,20 @@ import { Doughnut } from 'react-chartjs-2';
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 const NgoDisbursements = () => {
-    const [dashboardData, setDashboardData] = useState({ metrics: {}, chart_data: [], recent_activity: [] });
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [campaigns, setCampaigns] = useState([]);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [formError, setFormError] = useState('');
-    const [formData, setFormData] = useState({ campaign_id: '', amount: '', purpose: '' });
-
-    const fetchDisbursementData = async () => {
-        try {
-            const response = await axiosInstance.get('/dashboard/ngo/disbursements');
-            setDashboardData(response.data);
-        } catch (err) {
-            setError('Failed to load financial data.');
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchDisbursementData();
-    }, []);
-
-    const handleOpenModal = async () => {
-        setIsModalOpen(true);
-        setFormError('');
-        try {
-            const response = await axiosInstance.get('/campaigns');
-            const data = response.data.data || response.data;
-            setCampaigns(data);
-            if (data.length > 0) {
-                setFormData({ ...formData, campaign_id: data[0].id });
-            }
-        } catch (err) {
-            console.error("Failed to load campaigns");
-        }
-    };
-
-    const handleSubmitRequest = async (e) => {
-        e.preventDefault();
-        setFormError('');
-        setIsSubmitting(true);
-
-        try {
-            await axiosInstance.post(`/campaigns/${formData.campaign_id}/disbursements`, {
-                amount: Number(formData.amount),
-                purpose: formData.purpose
-            });
-            
-            setIsModalOpen(false);
-            setFormData({ campaign_id: campaigns[0]?.id || '', amount: '', purpose: '' });
-            await fetchDisbursementData(); 
-            
-        } catch (err) {
-            const customError = err.response?.data?.details || err.response?.data?.message || 'Failed to submit request.';
-            setFormError(customError);
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+    const {
+        dashboardData,
+        isLoading,
+        error,
+        isModalOpen,
+        campaigns,
+        isSubmitting,
+        formError,
+        formData,
+        handleOpenModal,
+        closeModal,
+        handleFieldChange,
+        handleSubmitRequest,
+    } = useNgoDisbursements();
 
     if (isLoading) {
         return (
@@ -227,7 +179,7 @@ const NgoDisbursements = () => {
                 </div>
             </div>
 
-            <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Record Payout">
+            <Modal isOpen={isModalOpen} onClose={closeModal} title="Record Payout">
                 <form onSubmit={handleSubmitRequest}>
                     {formError && <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">{formError}</div>}
                     <div className="mb-4">
@@ -235,7 +187,7 @@ const NgoDisbursements = () => {
                         <select 
                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
                             value={formData.campaign_id}
-                            onChange={(e) => setFormData({ ...formData, campaign_id: e.target.value })}
+                            onChange={(e) => handleFieldChange('campaign_id', e.target.value)}
                             required
                         >
                             {campaigns.length === 0 && <option value="" disabled>No active campaigns available</option>}
@@ -246,11 +198,11 @@ const NgoDisbursements = () => {
                     </div>
                     <Input 
                         label="Amount to Withdraw (RM)" type="number" min="1" placeholder="e.g. 500"
-                        value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required
+                        value={formData.amount} onChange={(e) => handleFieldChange('amount', e.target.value)} required
                     />
                     <Input 
                         label="Purpose of Funds" type="text" placeholder="e.g., Water filtration equipment"
-                        value={formData.purpose} onChange={(e) => setFormData({ ...formData, purpose: e.target.value })} required
+                        value={formData.purpose} onChange={(e) => handleFieldChange('purpose', e.target.value)} required
                     />
                     <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSubmitting}>
                         {isSubmitting ? 'Recording...' : 'Record Payout'}

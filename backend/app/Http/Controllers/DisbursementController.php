@@ -4,93 +4,112 @@ namespace App\Http\Controllers;
 
 use App\Models\Campaign;
 use App\Models\Disbursement;
+use App\Services\DisbursementService;
 use Illuminate\Http\Request;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 
 class DisbursementController extends Controller
 {
+    public function __construct(private readonly DisbursementService $disbursementService)
+    {
+    }
+
     // Record a new disbursement (NGO only)
     public function store(Request $request, $campaign_id)
     {
         if ($request->user()->role !== 'ngo') {
-            return response()->json(['message' => 'Only NGOs can manage disbursements.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'Only NGOs can manage disbursements.',
+            ], 403);
         }
 
         $campaign = Campaign::findOrFail($campaign_id);
 
         if ($campaign->user_id !== $request->user()->id) {
-            return response()->json(['message' => 'You do not own this campaign.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not own this campaign.',
+            ], 403);
         }
 
         $validated = $request->validate([
             'purpose' => 'required|string|max:255',
-            'amount' => 'required|numeric|min:1'
+            'amount' => 'required|numeric|min:1',
         ]);
 
-        // Prevent over-disbursement & exclude rejected funds from the calculation
-        $alreadyDisbursed = $campaign->disbursements()
-            ->where('status', '!=', 'rejected')
-            ->sum('amount');
-            
-        $proposedTotal = $alreadyDisbursed + $validated['amount'];
+        try {
+            $disbursement = $this->disbursementService->create($campaign, $validated);
 
-        if ($proposedTotal > $campaign->current_amount) {
             return response()->json([
+                'success' => true,
+                'data' => $disbursement,
+                'message' => 'Disbursement recorded successfully!',
+            ], 201);
+        } catch (HttpExceptionInterface $e) {
+            return response()->json([
+                'success' => false,
                 'message' => 'Disbursement failed.',
-                'details' => "You have raised {$campaign->current_amount} and already disbursed {$alreadyDisbursed}. You do not have enough funds to disburse {$validated['amount']}."
-            ], 400);
+                'errors' => [
+                    'details' => $e->getMessage(),
+                ],
+            ], $e->getStatusCode());
         }
-
-        // Create the record with default pending status
-        $disbursement = Disbursement::create([
-            'campaign_id' => $campaign->id,
-            'purpose' => $validated['purpose'],
-            'amount' => $validated['amount'],
-            'status' => 'pending' 
-        ]);
-
-        return response()->json([
-            'message' => 'Disbursement recorded successfully!',
-            'disbursement' => $disbursement
-        ], 201);
     }
 
     // Fetch all disbursements for the Admin Moderation Dashboard
     public function indexAdmin(Request $request)
     {
         if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized access.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access.',
+            ], 403);
         }
 
-        $disbursements = Disbursement::with(['campaign:id,title,user_id', 'campaign.user:id,name,email'])
-            ->orderBy('created_at', 'desc')
-            ->get();
+        $disbursements = $this->disbursementService->adminList();
 
-        return response()->json($disbursements, 200);
+        return response()->json([
+            'success' => true,
+            'data' => $disbursements,
+            'message' => 'Disbursements fetched successfully',
+        ], 200);
     }
 
     // Approve or Reject a disbursement request
     public function updateStatus(Request $request, $id)
     {
         if ($request->user()->role !== 'admin') {
-            return response()->json(['message' => 'Unauthorized access.'], 403);
+            return response()->json([
+                'success' => false,
+                'message' => 'Unauthorized access.',
+            ], 403);
         }
 
         $validated = $request->validate([
-            'status' => 'required|string|in:approved,rejected'
+            'status' => 'required|string|in:approved,rejected',
+            'rejection_reason' => 'nullable|string|max:1000',
         ]);
 
         $disbursement = Disbursement::findOrFail($id);
-        
-        if ($disbursement->status !== 'pending') {
-            return response()->json(['message' => 'This request has already been processed.'], 400);
+
+        try {
+            $updatedDisbursement = $this->disbursementService->updateStatus(
+                $disbursement,
+                $validated['status'],
+                $validated['rejection_reason'] ?? null
+            );
+
+            return response()->json([
+                'success' => true,
+                'data' => $updatedDisbursement,
+                'message' => 'Disbursement ' . $validated['status'] . ' successfully.',
+            ]);
+        } catch (HttpExceptionInterface $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
         }
-
-        $disbursement->status = $validated['status'];
-        $disbursement->save();
-
-        return response()->json([
-            'message' => 'Disbursement ' . $validated['status'] . ' successfully.',
-            'disbursement' => $disbursement
-        ]);
     }
 }

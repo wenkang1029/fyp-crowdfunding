@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import axiosInstance from '../api/axios';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams } from 'react-router-dom';
+import { getCampaignById } from '../services/campaignService';
+import { useDonationFlow } from '../hooks/useDonationFlow';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -10,86 +11,38 @@ import CheckoutModal from '../components/ui/CheckoutModal';
 
 const CampaignDetails = () => {
     const { id } = useParams();
-    const navigate = useNavigate();
     
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState('');
-    
-    // Form & Message State
-    const [donationAmount, setDonationAmount] = useState('');
-    const [successMessage, setSuccessMessage] = useState('');
-    const [lastCompletedPayment, setLastCompletedPayment] = useState(null);
-    
-    // THE FIX: Finite State Machine for Modals (Prevents overlapping glitches)
-    // Can be: null | 'confirm' | 'checkout' | 'success'
-    const [activeModal, setActiveModal] = useState(null);
 
-    const fetchCampaign = async () => {
+    const fetchCampaign = useCallback(async () => {
         try {
-            const response = await axiosInstance.get(`/campaigns/${id}`);
-            setCampaign(response.data.data || response.data);
-        } catch (err) {
-            setError('Campaign not found.');
+            const campaignData = await getCampaignById(id);
+            setCampaign(campaignData);
+        } catch {
+            setCampaign(null);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [id]);
+
+    const {
+        donationAmount,
+        error,
+        successMessage,
+        lastCompletedPayment,
+        activeModal,
+        setDonationAmount,
+        setActiveModal,
+        handleInitialSubmit,
+        proceedToPaymentGateway,
+        executeDonation,
+        closeSuccessModal,
+    } = useDonationFlow(id, fetchCampaign);
 
     useEffect(() => {
         fetchCampaign();
-    }, [id]);
-
-    // FLOW STEP 1: Form Submit -> Open Confirm Modal
-    const handleInitialSubmit = (e) => {
-        e.preventDefault();
-        setSuccessMessage(''); // Clear any old messages
-        if (Number(donationAmount) > 0) {
-            setActiveModal('confirm');
-        }
-    };
-
-    // FLOW STEP 2: Confirm Clicked -> Switch to Checkout Modal
-    const proceedToPaymentGateway = () => {
-        setActiveModal('checkout');
-    };
-
-    // FLOW STEP 3: Checkout Finished -> Hit API -> Switch to Success Modal
-    const executeDonation = async (paymentDetails) => {
-        setError('');
-
-        try {
-            await axiosInstance.post('/donations', {
-                campaign_id: id,
-                amount: Number(donationAmount),
-                transaction_id: paymentDetails.transaction_id,
-                payment_method: paymentDetails.method
-            });
-            
-            // Save details for the inline message
-            setLastCompletedPayment({
-                amount: donationAmount,
-                method: paymentDetails.method
-            });
-
-            // Smooth transition to success modal
-            setActiveModal('success');
-            fetchCampaign(); // Refresh the progress bar instantly
-            
-        } catch (err) {
-            setError(err.response?.data?.message || 'Failed to process donation.');
-            setActiveModal(null); // Close everything so they see the error
-        }
-    };
-
-    // FLOW STEP 4: Close Success Modal -> Display Inline Message
-    const closeSuccessModal = () => {
-        setActiveModal(null);
-        if (lastCompletedPayment) {
-            setSuccessMessage(`Successful Donation: RM ${lastCompletedPayment.amount} via ${lastCompletedPayment.method?.toUpperCase()}. Thank you!`);
-        }
-        setDonationAmount(''); // Reset input field
-    };
+    }, [fetchCampaign]);
 
     if (isLoading) return <div className="min-h-screen flex items-center justify-center bg-aidwise-light"><div className="animate-spin rounded-full h-10 w-10 border-b-2 border-aidwise-blue"></div></div>;
     if (!campaign) return <div className="min-h-screen flex items-center justify-center bg-aidwise-light"><p className="text-xl text-gray-500">Campaign not found.</p></div>;

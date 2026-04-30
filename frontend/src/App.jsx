@@ -1,8 +1,7 @@
-import { BrowserRouter, Routes, Route, Link, Navigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import Login from './pages/Login';
 import ProtectedRoute from './components/ProtectedRoute';
-import DashboardLayout from './components/layout/DashboardLayout';
 import NgoDashboard from './pages/NgoDashboard';
 import CreateCampaign from './pages/CreateCampaign';
 import AdminDashboard from './pages/AdminDashboard';
@@ -25,7 +24,7 @@ function App() {
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
 
           {/* Donor Route */}
-          <Route path="/donor/dashboard" element={<ProtectedRoute allowedRole="donor"><DonorDashboard /></ProtectedRoute>} />
+          <Route path="/donor/dashboard" element={<ProtectedRoute allowedRoles={['donor']}><DonorDashboard /></ProtectedRoute>} />
           
           {/* STRICT ADMIN ROUTE */}
           <Route 
@@ -36,10 +35,8 @@ function App() {
                   </ProtectedRoute>
               } 
           />
-
           {/* Admin Routes */}
-          <Route path="/admin/dashboard" element={<ProtectedRoute allowedRole="admin"><AdminDashboard /></ProtectedRoute>} />
-          <Route path="/admin/disbursements" element={<ProtectedRoute allowedRole="admin"><AdminDisbursements /></ProtectedRoute>} />
+          <Route path="/admin/disbursements" element={<ProtectedRoute allowedRoles={['admin']}><AdminDisbursements /></ProtectedRoute>} />
 
           {/* STRICT NGO ROUTE */}
           <Route 
@@ -61,7 +58,7 @@ function App() {
               } 
           />
 
-          <Route path="/ngo/disbursements" element={<ProtectedRoute allowedRole="ngo"><NgoDisbursements /></ProtectedRoute>} />
+          <Route path="/ngo/disbursements" element={<ProtectedRoute allowedRoles={['ngo']}><NgoDisbursements /></ProtectedRoute>} />
         </Routes>
 
       </BrowserRouter>

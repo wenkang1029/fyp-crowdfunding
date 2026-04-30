@@ -10,27 +10,28 @@
 - 2026_04_17_032417_create_settings_table.php: creates settings
 - 2026_04_17_033254_add_allocation_id_to_donations_table.php: adds FK allocation_id -> allocations.id (null on delete)
 - 2026_04_17_065549_create_notifications_table.php: creates notifications (polymorphic notifiable)
+- 2026_04_23_120000_add_rejection_reason_to_disbursements_table.php: adds nullable rejection_reason to disbursements
 
 ## Models
-- User: no relationships defined; missing expected hasMany Campaign, Donation, Notification
+- User: hasMany Campaign, Donation added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
 - Donation: belongsTo User; belongsTo Campaign; belongsTo Allocation
-- Allocation: belongsTo Campaign; missing expected hasMany Donation
-- Disbursement: belongsTo Campaign
+- Allocation: belongsTo Campaign; hasMany Donation added
+- Disbursement: belongsTo Campaign; rejection_reason fillable added
 - Setting: no relationships
 
 ## Controllers
 - AdminUserController: index [done], destroy [done]
-- AllocationController: store [done], update [done]
-- AuthController: register [done], login [done], logout [done]
-- CampaignController: index [done], store [done], show [done], update [done], destroy [done], donate [done]
+- AllocationController: store [done], update [done] (service-backed)
+- AuthController: register [done], login [done], logout [done], user [done] (service-backed)
+- CampaignController: index [done], store [done], show [done], update [done], destroy [done], donate [done] (service-backed)
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
-- DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done]
-- DisbursementController: store [done], indexAdmin [done], updateStatus [done]
-- DonationController: store [done], index [done]
+- DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
+- DisbursementController: store [done], indexAdmin [done], updateStatus [done] (service-backed, rejection_reason handled)
+- DonationController: store [done], index [done] (service-backed)
 - NotificationController: index [done], markAsRead [done], markAllAsRead [done]
-- ProfileController: update [done]
+- ProfileController: update [done] (service-backed)
 - ReportController: allocationReport [done], disbursementReport [done]
 - SettingController: index [done], store [done]
 
@@ -75,8 +76,28 @@
 - ui/Textarea.jsx: styled textarea
 
 ## Services & Hooks
-- Laravel services: none found; Services/ folder missing
-- React hooks: useAuth (in AuthContext.jsx)
+- Laravel services:
+	- AuthService
+	- ProfileService
+	- CampaignService
+	- DonationService
+	- AllocationService
+	- DisbursementService
+	- DashboardService
+- React services:
+	- authService
+	- campaignService
+	- donationService
+	- allocationService
+	- disbursementService
+	- dashboardService
+- React hooks:
+	- useAuthForm
+	- useCreateCampaign
+	- useDonationFlow
+	- useNgoDisbursements
+	- useNgoDashboardData
+	- useAuth (existing in AuthContext.jsx)
 
 ## Missing — Not Started Yet
 - L1 Disbursement Approval Assistant with Quotation-Receipt Reconciliation
@@ -84,10 +105,4 @@
 - L3 Quotation-to-Allocation Generator
 
 ## Inconsistencies Found
-- Campaign model has a stray "1" in the $fillable array (syntax error risk)
-- DonationController eager loads allocation field "title" but allocations use "purpose"
-- Donations table has donor_name but Donation model fillable does not include it and controllers never set it
-- Disbursement rejection_reason is sent by frontend but no DB column or backend handling exists
-- ProtectedRoute expects allowedRoles but several routes pass allowedRole (role guard bypass)
-- App.jsx defines /admin/dashboard twice
-- Home.jsx uses navigate in handleLogout without calling useNavigate()
+- Previously found inconsistencies above have been resolved during service-layer refactor and frontend wiring.

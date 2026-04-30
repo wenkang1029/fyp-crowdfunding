@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
-import axiosInstance from '../api/axios';
+import { getCampaigns, updateCampaign } from '../services/campaignService';
 import { CheckCircle, XCircle, AlertCircle } from 'lucide-react';
 
 const AdminDashboard = () => {
@@ -16,10 +16,9 @@ const AdminDashboard = () => {
 
     const fetchCampaigns = async () => {
         try {
-            const response = await axiosInstance.get('/campaigns');
-            const data = response.data.data || response.data;
+            const data = await getCampaigns();
             setCampaigns(data);
-        } catch (err) {
+        } catch {
             setError('Failed to load campaigns.');
         } finally {
             setIsLoading(false);
@@ -28,13 +27,13 @@ const AdminDashboard = () => {
 
     const handleUpdateStatus = async (id, newStatus) => {
         try {
-            await axiosInstance.patch(`/campaigns/${id}`, { status: newStatus });
+            await updateCampaign(id, { status: newStatus });
             
             // Optimistic UI Update
             setCampaigns(campaigns.map(camp => 
                 camp.id === id ? { ...camp, status: newStatus } : camp
             ));
-        } catch (err) {
+        } catch {
             alert('Failed to update status. Please try again.');
         }
     };

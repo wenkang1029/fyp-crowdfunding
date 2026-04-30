@@ -11,29 +11,29 @@ Last updated: 2026-04-23
 ## Phase 1 — Core Modules
 
 ### 1. Auth & Profile
-- [~] Backend: AuthController register/login/logout and ProfileController update exist; no service layer; User model relationships missing
-- [~] Frontend: Login page + AuthContext + ProtectedRoute exist; no auth service layer
+- [x] Backend: AuthService and ProfileService added; AuthController/ProfileController now thin and service-backed; /user endpoint response standardized
+- [x] Frontend: authService + useAuthForm hook added; Login/AuthContext now use service/hook layers
 - Notes: Registration only covers name/email/password/role; no org details
 
 ### 2. Campaign Management
-- [~] Backend: CampaignController CRUD + donate exist; Campaign model relationships exist; no service layer
-- [~] Frontend: Home, CampaignDetails, CreateCampaign, AdminDashboard, NgoDashboard pages exist; no campaign service layer or hooks
+- [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed
+- [x] Frontend: campaignService + useCreateCampaign hook added; Home/CampaignDetails/CreateCampaign/AdminDashboard/NgoDashboard integrated with service/hook
 - Notes: Campaign deadline not present in schema
 
 ### 3. Donation Flow
-- [~] Backend: DonationController store/index and CampaignController donate exist; no service layer; Stripe and PDF receipt not implemented
-- [~] Frontend: Home, CampaignDetails, DonorDashboard pages exist with mock payment modal; no donation service layer or hooks
-- Notes: Donations table has donor_name but controllers/models do not set it
+- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated
+- [x] Frontend: donationService + useDonationFlow hook added; CampaignDetails/DonorDashboard/DonationLedger now use service/hook layer
+- Notes: Stripe and PDF receipt still not implemented
 
 ### 4. Fund Allocation & Disbursement
-- [~] Backend: AllocationController store/update, DisbursementController store/indexAdmin/updateStatus, ReportController PDF endpoints exist; no service layer
-- [~] Frontend: NgoDisbursements page exists; allocation CRUD UI not present; no service layer or hooks
-- Notes: Frontend sends rejection_reason but backend has no field
+- [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added
+- [~] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook
+- Notes: Allocation CRUD UI pages are still not implemented
 
 ### 5. Live Dashboard
-- [~] Backend: DashboardController NGO/Admin/Disbursement metrics endpoints exist; no service layer
-- [~] Frontend: NgoDashboard, DonorDashboard, AdminDashboard, NgoDisbursements pages exist; no dashboard service layer or hooks
-- Notes: NgoDashboard uses hardcoded Total Donors
+- [x] Backend: DashboardService added and DashboardController now thin/service-backed
+- [x] Frontend: dashboardService + useNgoDashboardData hook added and wired into NgoDashboard
+- Notes: NgoDashboard hardcoded donors removed (computed from donation data)
 
 ### 6. AI Chatbot
 - [~] Backend: ChatbotController webhook exists; no service layer
@@ -62,10 +62,10 @@ Last updated: 2026-04-23
 ## Open Decisions
 - Payment gateway: Stripe is listed in architecture but not implemented
 - Notifications delivery: Firebase Cloud Messaging is deferred
-- Services layer structure: app/Services not yet created
-- React hooks/services folders: hooks/ and services/ not yet created
+- Services layer structure: app/Services initialized and active across core modules
+- React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
 ## Next 3 Tasks
-- Add backend service layer for Auth/Campaign/Donation/Allocation/Disbursement/Dashboard and wire controllers to services
-- Add frontend API service modules and hooks to remove inline axios usage in pages
+- Implement Stripe payment integration and wire real payment intent flow into donation UX
+- Implement PDF donation receipt generation and expose receipt download flow
 - Build missing frontend modules for Chatbot widget and Notifications UI

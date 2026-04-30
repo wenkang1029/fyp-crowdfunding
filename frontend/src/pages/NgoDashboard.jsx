@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import StatCard from '../components/ui/StatCard';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
 import { Target, DollarSign, Users, TrendingUp } from 'lucide-react';
-import axiosInstance from '../api/axios';
 import DonationLedger from '../components/ui/DonationLedger';
+import { useNgoDashboardData } from '../hooks/useNgoDashboardData';
 
 import {
   Chart as ChartJS,
@@ -24,35 +24,14 @@ ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend)
 const NgoDashboard = () => {
     const { user } = useAuth();
     const navigate = useNavigate();
-
-    // Data States
-    const [campaigns, setCampaigns] = useState([]);
-    const [isLoading, setIsLoading] = useState(true);
-
-    // Fetch real data from Laravel on load
-    useEffect(() => {
-        const fetchDashboardData = async () => {
-            try {
-                const response = await axiosInstance.get('/campaigns');
-                // Laravel often wraps data in a 'data' object if using Resources or Pagination
-                const campaignData = response.data.data || response.data;
-                setCampaigns(campaignData);
-            } catch (error) {
-                console.error("Failed to fetch campaigns:", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
-
-        fetchDashboardData();
-    }, []);
-
-    // --- Dynamic Calculations (DRY Principle) ---
-    // Note: We use Number() to ensure math works even if Laravel sends strings
-    const activeCampaigns = campaigns.length; 
-    const totalTarget = campaigns.reduce((sum, camp) => sum + Number(camp.target_amount), 0);
-    const totalRaised = campaigns.reduce((sum, camp) => sum + Number(camp.current_amount || 0), 0);
-    const completionRate = totalTarget > 0 ? Math.round((totalRaised / totalTarget) * 100) : 0;
+    const {
+        campaigns,
+        donorCount,
+        isLoading,
+        activeCampaigns,
+        totalRaised,
+        completionRate,
+    } = useNgoDashboardData();
 
     // --- Dynamic Chart Configuration ---
     const chartOptions = {
@@ -110,7 +89,7 @@ const NgoDashboard = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard title="Total Raised" value={`$${totalRaised.toLocaleString()}`} icon={DollarSign} />
                     <StatCard title="Total Campaigns" value={activeCampaigns} icon={Target} />
-                    <StatCard title="Total Donors" value="0" icon={Users} /> {/* Hardcoded until we build the Donors API */}
+                    <StatCard title="Total Donors" value={donorCount.toString()} icon={Users} />
                     <StatCard title="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} />
                 </div>
 

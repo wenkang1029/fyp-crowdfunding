@@ -1,29 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../context/AuthContext';
-import axiosInstance from '../api/axios';
+import { getCampaigns } from '../services/campaignService';
 import CampaignCard from '../components/ui/CampaignCard';
-import Avatar from '../components/ui/Avatar';
-import { LogOut, LayoutDashboard } from 'lucide-react';
 import Navbar from '../components/layout/Navbar'
 
 const Home = () => {
-    const { user, logout } = useAuth();
     const [campaigns, setCampaigns] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
-
-    const handleLogout = async () => {
-        await logout();
-        navigate('/'); // Keep them on the home page after signing out
-    };
 
     useEffect(() => {
         const fetchPublicCampaigns = async () => {
             try {
-                // Anyone can hit this route! Our Laravel backend securely 
-                // returns only 'active' campaigns for guests.
-                const response = await axiosInstance.get('/campaigns');
-                const data = response.data.data || response.data;
+                const data = await getCampaigns();
                 setCampaigns(data);
             } catch (err) {
                 console.error("Failed to load campaigns", err);
