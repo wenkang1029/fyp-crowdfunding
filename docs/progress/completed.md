@@ -24,7 +24,7 @@
 - AdminUserController: index [done], destroy [done]
 - AllocationController: store [done], update [done] (service-backed)
 - AuthController: register [done], login [done], logout [done], user [done] (service-backed)
-- CampaignController: index [done], store [done], show [done], update [done], destroy [done], donate [done] (service-backed)
+- CampaignController: index [done], store [done], show [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support)
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
@@ -53,6 +53,7 @@
 - Login.jsx: login form and role-based redirect [done]
 - CampaignDetails.jsx: campaign details with donation flow and modals [done]
 - CreateCampaign.jsx: NGO campaign creation form [done]
+- NgoCampaigns.jsx: NGO campaigns list with edit modal, status controls, and payout modal [done]
 - DonorDashboard.jsx: donor impact stats and donation history [done]
 - NgoDashboard.jsx: NGO overview metrics and charts [partial]
 - NgoDisbursements.jsx: NGO disbursement dashboard and request modal [done]
@@ -64,7 +65,7 @@
 - layout/DashboardLayout.jsx: sidebar dashboard shell
 - layout/Navbar.jsx: top navigation bar
 - ui/Avatar.jsx: initials avatar
-- ui/Badge.jsx: status badge
+- ui/Badge.jsx: status badge (includes completed styling)
 - ui/Button.jsx: styled button
 - ui/Card.jsx: card container
 - ui/CampaignCard.jsx: campaign summary card
@@ -79,7 +80,7 @@
 - Laravel services:
 	- AuthService
 	- ProfileService
-	- CampaignService
+	- CampaignService (NGO status toggle support)
 	- DonationService
 	- AllocationService
 	- DisbursementService
@@ -95,6 +96,7 @@
 	- useAuthForm
 	- useCreateCampaign
 	- useDonationFlow
+	- useNgoCampaigns
 	- useNgoDisbursements
 	- useNgoDashboardData
 	- useAuth (existing in AuthContext.jsx)

@@ -50,7 +50,7 @@ export const useCreateCampaign = () => {
     };
 
     const handleCancel = () => {
-        navigate('/ngo/dashboard');
+        navigate('/ngo/campaigns');
     };
 
     return {

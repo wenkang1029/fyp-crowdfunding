@@ -97,7 +97,32 @@ class CampaignController extends Controller
                 'title' => 'sometimes|required|string|max:255',
                 'description' => 'sometimes|required|string',
                 'target_amount' => 'sometimes|required|numeric|min:1',
+                'status' => 'sometimes|required|in:active,completed',
             ]);
+
+            if ($request->has('status')) {
+                if ($request->hasAny(['title', 'description', 'target_amount'])) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Status updates must be sent separately from campaign edits.',
+                    ], 422);
+                }
+
+                if (!in_array($campaign->status, ['active', 'completed'], true)) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Only active campaigns can be paused or resumed.',
+                    ], 422);
+                }
+
+                $updatedCampaign = $this->campaignService->updateStatusForNgo($campaign, $validatedData['status']);
+
+                return response()->json([
+                    'success' => true,
+                    'data' => $updatedCampaign,
+                    'message' => 'Campaign status updated successfully',
+                ]);
+            }
 
             $updatedCampaign = $this->campaignService->updateForNgo($campaign, $validatedData);
 

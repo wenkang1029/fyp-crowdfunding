@@ -80,16 +80,16 @@ const DashboardLayout = ({ children }) => {
                     {user?.role === 'ngo' && (
                         <>
                             <Link 
-                                to="/ngo/campaigns/create" 
+                                to="/ngo/campaigns" 
                                 className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
-                                    location.pathname.includes('/campaigns/create') 
+                                    location.pathname.startsWith('/ngo/campaigns') 
                                     ? 'bg-aidwise-blue text-white shadow-sm'
                                     : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
                                 }`}
-                                title="Create Campaign"
+                                title="Campaign"
                             >
                                 <Megaphone size={20} className="shrink-0" />
-                                {!isCollapsed && <span className="whitespace-nowrap">Create Campaign</span>}
+                                {!isCollapsed && <span className="whitespace-nowrap">Campaign</span>}
                             </Link>
 
                             {/* THE MISSING LINK WE ARE RESTORING! */}

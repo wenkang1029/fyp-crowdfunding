@@ -60,6 +60,7 @@
 |   |   |   |-- CampaignApprovedNotification.php  # NGO campaign approval notification
 |   |   |-- Providers/
 |   |   |   |-- AppServiceProvider.php  # Application service bindings
+|   |       |-- NgoCampaigns.jsx  # NGO campaigns list and edit modal
 |   |   |   |-- AuthServiceProvider.php  # Authorization policies
 |   |   |   |-- BroadcastServiceProvider.php  # Broadcast channel registration
 |   |   |   |-- EventServiceProvider.php  # Event listeners registration
@@ -181,6 +182,8 @@
 |   |   |       |-- Textarea.jsx  # Styled textarea
 |   |   |-- context/
 |   |   |   |-- AuthContext.jsx  # Auth state provider and hook
+|   |   |-- hooks/
+|   |   |   |-- useNgoCampaigns.js  # NGO campaigns list logic and status/payout actions
 |   |   |-- pages/
 |   |       |-- AdminDashboard.jsx  # Admin campaign moderation UI
 |   |       |-- AdminDisbursements.jsx  # Admin payout moderation UI
@@ -189,6 +192,7 @@
 |   |       |-- DonorDashboard.jsx  # Donor impact dashboard
 |   |       |-- Home.jsx  # Public campaign gallery
 |   |       |-- Login.jsx  # Login form
+|   |       |-- NgoCampaigns.jsx  # NGO campaigns list and edit modal
 |   |       |-- NgoDashboard.jsx  # NGO overview dashboard
 |   |       |-- NgoDisbursements.jsx  # NGO disbursement dashboard
 ```

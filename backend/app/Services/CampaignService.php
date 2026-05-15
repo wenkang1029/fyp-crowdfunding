@@ -64,6 +64,13 @@ class CampaignService
         return $campaign;
     }
 
+    public function updateStatusForNgo(Campaign $campaign, string $status): Campaign
+    {
+        $campaign->update(['status' => $status]);
+
+        return $campaign->fresh();
+    }
+
     public function delete(Campaign $campaign): void
     {
         $campaign->delete();
