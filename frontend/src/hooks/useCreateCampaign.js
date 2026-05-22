@@ -5,7 +5,7 @@ import { createCampaign } from '../services/campaignService';
 const initialFormData = {
     title: '',
     description: '',
-    target_amount: '',
+    allocations: [{ purpose: '', amount: '' }],
 };
 
 export const useCreateCampaign = () => {
@@ -17,10 +17,27 @@ export const useCreateCampaign = () => {
     const handleChange = (event) => {
         const { name, value } = event.target;
 
-        setFormData((prev) => ({
-            ...prev,
-            [name]: value,
-        }));
+        setFormData((prev) => {
+            const nextData = {
+                ...prev,
+                [name]: value,
+            };
+
+            if (
+                name === 'title'
+                && prev.allocations.length === 1
+                && prev.allocations[0].purpose.trim() === ''
+            ) {
+                nextData.allocations = [
+                    {
+                        ...prev.allocations[0],
+                        purpose: value,
+                    },
+                ];
+            }
+
+            return nextData;
+        });
 
         if (errors[name]) {
             setErrors((prev) => ({
@@ -28,7 +45,62 @@ export const useCreateCampaign = () => {
                 [name]: null,
             }));
         }
+
+        if (errors.allocations) {
+            setErrors((prev) => ({
+                ...prev,
+                allocations: null,
+            }));
+        }
     };
+
+    const addAllocation = () => {
+        setFormData((prev) => ({
+            ...prev,
+            allocations: [...prev.allocations, { purpose: '', amount: '' }],
+        }));
+    };
+
+    const updateAllocation = (index, field, value) => {
+        setFormData((prev) => {
+            const nextAllocations = prev.allocations.map((allocation, allocationIndex) => {
+                if (allocationIndex !== index) {
+                    return allocation;
+                }
+
+                return {
+                    ...allocation,
+                    [field]: value,
+                };
+            });
+
+            return {
+                ...prev,
+                allocations: nextAllocations,
+            };
+        });
+
+        if (errors.allocations) {
+            setErrors((prev) => ({
+                ...prev,
+                allocations: null,
+            }));
+        }
+    };
+
+    const removeAllocation = (index) => {
+        setFormData((prev) => {
+            if (prev.allocations.length <= 1) {
+                return prev;
+            }
+
+            return {
+                ...prev,
+                allocations: prev.allocations.filter((_, allocationIndex) => allocationIndex !== index),
+            };
+        });
+    };
+
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -36,7 +108,27 @@ export const useCreateCampaign = () => {
         setErrors({});
 
         try {
-            await createCampaign(formData);
+            const allocationValidation = getAllocationValidation(formData.allocations);
+
+            if (!allocationValidation.isValid) {
+                setErrors({ allocations: allocationValidation.message });
+                setIsLoading(false);
+                return;
+            }
+
+            const totalAllocated = getAllocationTotal(formData.allocations);
+
+            const payload = {
+                title: formData.title,
+                description: formData.description,
+                target_amount: totalAllocated,
+                allocations: formData.allocations.map((allocation) => ({
+                    purpose: allocation.purpose.trim(),
+                    amount: parseFloat(allocation.amount),
+                })),
+            };
+
+            await createCampaign(payload);
             navigate('/ngo/dashboard');
         } catch (err) {
             if (err?.response?.data?.errors) {
@@ -53,12 +145,55 @@ export const useCreateCampaign = () => {
         navigate('/ngo/campaigns');
     };
 
+    const allocationTotal = formData.allocations.reduce(
+        (sum, allocation) => sum + (parseFloat(allocation.amount) || 0),
+        0
+    );
+
+    const allocationValidation = getAllocationValidation(formData.allocations);
+    const isFormValid = Boolean(formData.title.trim() && formData.description.trim())
+        && allocationValidation.isValid;
+    const isSubmitDisabled = isLoading || !isFormValid;
+
     return {
         formData,
         isLoading,
         errors,
         handleChange,
+        allocationTotal,
+        allocationValidation,
+        isSubmitDisabled,
+        addAllocation,
+        updateAllocation,
+        removeAllocation,
         handleSubmit,
         handleCancel,
     };
+};
+
+const getAllocationTotal = (allocations) => allocations.reduce(
+    (sum, allocation) => sum + (parseFloat(allocation.amount) || 0),
+    0
+);
+
+const getAllocationValidation = (allocations) => {
+    if (!allocations.length) {
+        return { isValid: false, message: 'Add at least one allocation.' };
+    }
+
+    const invalidAllocation = allocations.some(
+        (allocation) => !allocation.purpose?.trim() || !Number(allocation.amount)
+    );
+
+    if (invalidAllocation) {
+        return { isValid: false, message: 'Each allocation needs a purpose and amount.' };
+    }
+
+    const totalAllocated = getAllocationTotal(allocations);
+
+    if (totalAllocated <= 0) {
+        return { isValid: false, message: 'Allocation total must be greater than zero.' };
+    }
+
+    return { isValid: true, message: '' };
 };

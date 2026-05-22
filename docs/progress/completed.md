@@ -16,7 +16,7 @@
 - User: hasMany Campaign, Donation added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
 - Donation: belongsTo User; belongsTo Campaign; belongsTo Allocation
-- Allocation: belongsTo Campaign; hasMany Donation added
+- Allocation: belongsTo Campaign; hasMany Donation added; current_amount accessor with overall-donation redistribution
 - Disbursement: belongsTo Campaign; rejection_reason fillable added
 - Setting: no relationships
 
@@ -51,7 +51,7 @@
 ## Frontend Pages
 - Home.jsx: public campaign gallery and hero layout [done]
 - Login.jsx: login form and role-based redirect [done]
-- CampaignDetails.jsx: campaign details with donation flow and modals [done]
+- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, and equal-split labeling [done]
 - CreateCampaign.jsx: NGO campaign creation form [done]
 - NgoCampaigns.jsx: NGO campaigns list with edit modal, status controls, and payout modal [done]
 - DonorDashboard.jsx: donor impact stats and donation history [done]

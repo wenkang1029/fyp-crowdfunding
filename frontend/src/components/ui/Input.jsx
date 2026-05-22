@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 
 // NEW: Added 'error' to the props
-const Input = ({ label, type = 'text', name, value, onChange, placeholder, required = false, error }) => {
+const Input = ({ label, type = 'text', name, value, onChange, placeholder, required = false, error, ...rest }) => {
     const [showPassword, setShowPassword] = useState(false);
     const isPasswordType = type === 'password';
     const currentInputType = isPasswordType ? (showPassword ? 'text' : 'password') : type;
@@ -22,6 +22,7 @@ const Input = ({ label, type = 'text', name, value, onChange, placeholder, requi
                     onChange={onChange}
                     placeholder={placeholder}
                     required={required}
+                    {...rest}
                     // HCI: If there is an error, make the border red!
                     className={`w-full px-4 py-2.5 bg-gray-50 border rounded-lg text-aidwise-text placeholder-gray-400 focus:outline-none focus:ring-2 focus:bg-white transition-all duration-200 pr-12 ${
                         error ? 'border-red-400 focus:ring-red-400' : 'border-gray-200 focus:ring-aidwise-blue'

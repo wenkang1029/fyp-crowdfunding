@@ -21,13 +21,13 @@ Last updated: 2026-04-23
 - Notes: Campaign deadline not present in schema
 
 ### 3. Donation Flow
-- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated
+- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations
 - [x] Frontend: donationService + useDonationFlow hook added; CampaignDetails/DonorDashboard/DonationLedger now use service/hook layer
 - Notes: Stripe and PDF receipt still not implemented
 
 ### 4. Fund Allocation & Disbursement
 - [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added
-- [~] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook
+- [~] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; CampaignDetails shows sub-goal donut progress
 - Notes: Allocation CRUD UI pages are still not implemented
 
 ### 5. Live Dashboard
@@ -65,8 +65,7 @@ Last updated: 2026-04-23
 - Services layer structure: app/Services initialized and active across core modules
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
-## Next 5 Tasks
-- [x] Create a page Campaign page for ngo. In the page the ngo can view a list of campaign that created himself, it shoukd be in table. There should be action button for ngo to edit, when press on the edit button it should pop up a modal for ngo to edit the description and name of campaign. Update the side bar from create campaign to Campaign
+## Next 4 Tasks
 - Implement Fund Allocation & Disbursement where when creating a campaign can set allocation for the Total amount
 - Implement Stripe payment integration and wire real payment intent flow into donation UX
 - Implement PDF donation receipt generation and expose receipt download flow

@@ -42,6 +42,9 @@ class CampaignController extends Controller
             'title' => 'required|string|max:255',
             'description' => 'required|string',
             'target_amount' => 'required|numeric|min:1|max:1000000',
+            'allocations' => 'sometimes|array',
+            'allocations.*.purpose' => 'required_with:allocations|string|max:255',
+            'allocations.*.amount' => 'required_with:allocations|numeric|min:1',
         ]);
 
         $campaign = $this->campaignService->createForNgo($request->user(), $validated);

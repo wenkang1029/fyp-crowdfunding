@@ -4,9 +4,16 @@ namespace App\Services;
 
 use App\Models\Campaign;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class CampaignService
 {
+    public function __construct(
+        private readonly AllocationService $allocationService
+    ) {
+    }
+
     public function listByRole(?User $user)
     {
         if ($user && $user->role === 'admin') {
@@ -27,18 +34,47 @@ class CampaignService
 
     public function createForNgo(User $user, array $data): Campaign
     {
-        return Campaign::create([
-            'user_id' => $user->id,
-            'title' => $data['title'],
-            'description' => $data['description'],
-            'target_amount' => $data['target_amount'],
-            'status' => 'pending',
-        ]);
+        return DB::transaction(function () use ($user, $data) {
+            $campaign = Campaign::create([
+                'user_id' => $user->id,
+                'title' => $data['title'],
+                'description' => $data['description'],
+                'target_amount' => $data['target_amount'],
+                'status' => 'pending',
+            ]);
+
+            $allocations = $data['allocations'] ?? [];
+
+            if (!is_array($allocations) || count($allocations) === 0) {
+                $this->allocationService->create($campaign, [
+                    'purpose' => $data['title'],
+                    'amount' => $data['target_amount'],
+                ]);
+
+                return $campaign->load(['allocations', 'user']);
+            }
+
+            $totalAllocated = array_reduce(
+                $allocations,
+                fn ($sum, $allocation) => $sum + (float) ($allocation['amount'] ?? 0),
+                0.0
+            );
+
+            if (round($totalAllocated, 2) !== round((float) $data['target_amount'], 2)) {
+                throw new HttpException(422, 'Allocation total must equal the target amount.');
+            }
+
+            foreach ($allocations as $allocation) {
+                $this->allocationService->create($campaign, $allocation);
+            }
+
+            return $campaign->load(['allocations', 'user']);
+        });
     }
 
     public function getById(int $id): Campaign
     {
-        return Campaign::with('user')->findOrFail($id);
+        return Campaign::with(['user', 'allocations'])->findOrFail($id);
     }
 
     public function updateStatus(Campaign $campaign, string $status): Campaign

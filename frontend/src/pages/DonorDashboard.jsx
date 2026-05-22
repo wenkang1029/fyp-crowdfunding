@@ -85,6 +85,7 @@ const DonorDashboard = () => {
                                 <tr>
                                     <th className="px-6 py-4">Date & Time</th>
                                     <th className="px-6 py-4">Campaign Title</th>
+                                    <th className="px-6 py-4">Sub-goal</th>
                                     <th className="px-6 py-4">Amount</th>
                                     <th className="px-6 py-4 text-right">Status</th>
                                 </tr>
@@ -92,7 +93,7 @@ const DonorDashboard = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {donations.length === 0 ? (
                                     <tr>
-                                        <td colSpan="4" className="px-6 py-8 text-center text-gray-400">
+                                        <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
                                             You haven't made any donations yet. Visit the gallery to find a cause!
                                         </td>
                                     </tr>
@@ -104,6 +105,9 @@ const DonorDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4 font-semibold text-aidwise-text">
                                                 {donation.campaign?.title || 'Unknown Campaign'}
+                                            </td>
+                                            <td className="px-6 py-4 text-gray-500">
+                                                {donation.allocation?.purpose || 'Overall campaign'}
                                             </td>
                                             <td className="px-6 py-4 font-bold text-green-600 whitespace-nowrap">
                                                 {formatRM(donation.amount)}

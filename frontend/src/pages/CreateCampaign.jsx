@@ -7,7 +7,20 @@ import Button from '../components/ui/Button';
 import { useCreateCampaign } from '../hooks/useCreateCampaign';
 
 const CreateCampaign = () => {
-    const { formData, isLoading, errors, handleChange, handleSubmit, handleCancel } = useCreateCampaign();
+    const {
+        formData,
+        isLoading,
+        errors,
+        handleChange,
+        allocationTotal,
+        allocationValidation,
+        isSubmitDisabled,
+        addAllocation,
+        updateAllocation,
+        removeAllocation,
+        handleSubmit,
+        handleCancel,
+    } = useCreateCampaign();
 
     return (
         <DashboardLayout>
@@ -39,17 +52,6 @@ const CreateCampaign = () => {
                                 error={errors.title?.[0]} // Pass specific Laravel error
                             />
 
-                            <Input 
-                                label="Target Funding Amount ($)" 
-                                type="number" 
-                                name="target_amount"
-                                value={formData.target_amount} 
-                                onChange={handleChange} 
-                                placeholder="Max amount: 1,000,000" // HCI Hint added!
-                                required 
-                                error={errors.target_amount?.[0]} // Pass specific Laravel error
-                            />
-
                             <Textarea 
                                 label="Campaign Description" 
                                 name="description"
@@ -59,6 +61,110 @@ const CreateCampaign = () => {
                                 required 
                                 error={errors.description?.[0]} // Pass specific Laravel error
                             />
+
+                        </div>
+
+                        <div className="mt-8 border-t border-aidwise-border pt-6">
+                            <div>
+                                <h2 className="text-lg font-semibold text-aidwise-text">Funding Goal</h2>
+                                <p className="text-sm text-gray-500">
+                                    Enter the amount you want to raise. Add more rows if you want to split it by purpose.
+                                </p>
+                            </div>
+
+                            {errors.allocations && (
+                                <div className="mt-4 rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
+                                    {errors.allocations}
+                                </div>
+                            )}
+
+                            <div className="mt-4 space-y-4">
+                                <div className="flex flex-col gap-4 rounded-xl border border-aidwise-border p-4 sm:flex-row sm:items-end">
+                                    <div className="flex-1">
+                                        <Input
+                                            label="Default purpose"
+                                            type="text"
+                                            value={formData.allocations[0]?.purpose || ''}
+                                            onChange={(event) =>
+                                                updateAllocation(0, 'purpose', event.target.value)
+                                            }
+                                            placeholder="e.g., Campaign allocation"
+                                        />
+                                    </div>
+                                    <div className="w-full sm:w-52">
+                                        <Input
+                                            label="Amount ($)"
+                                            type="number"
+                                            value={formData.allocations[0]?.amount || ''}
+                                            onChange={(event) =>
+                                                updateAllocation(0, 'amount', event.target.value)
+                                            }
+                                            placeholder="e.g., 5000"
+                                        />
+                                    </div>
+                                </div>
+
+                                {formData.allocations.slice(1).map((allocation, index) => {
+                                    const allocationIndex = index + 1;
+
+                                    return (
+                                        <div
+                                            key={`allocation-${allocationIndex}`}
+                                            className="flex flex-col gap-4 rounded-xl border border-aidwise-border p-4 sm:flex-row sm:items-end"
+                                        >
+                                            <div className="flex-1">
+                                                <Input
+                                                    label={`Purpose ${allocationIndex + 1}`}
+                                                    type="text"
+                                                    value={allocation.purpose}
+                                                    onChange={(event) =>
+                                                        updateAllocation(allocationIndex, 'purpose', event.target.value)
+                                                    }
+                                                    placeholder="e.g., Medical supplies"
+                                                />
+                                            </div>
+                                            <div className="w-full sm:w-52">
+                                                <Input
+                                                    label="Amount ($)"
+                                                    type="number"
+                                                    value={allocation.amount}
+                                                    onChange={(event) =>
+                                                        updateAllocation(allocationIndex, 'amount', event.target.value)
+                                                    }
+                                                    placeholder="e.g., 2500"
+                                                />
+                                            </div>
+                                            <div className="sm:pb-1">
+                                                <Button
+                                                    type="button"
+                                                    variant="danger"
+                                                    onClick={() => removeAllocation(allocationIndex)}
+                                                    disabled={isLoading}
+                                                >
+                                                    Remove
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                                <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-gray-500">
+                                    <span>Total funding goal: ${allocationTotal.toLocaleString()}</span>
+                                    <button
+                                        type="button"
+                                        onClick={addAllocation}
+                                        disabled={isLoading}
+                                        className="font-semibold text-aidwise-blue hover:text-blue-700"
+                                    >
+                                        Add another allocation
+                                    </button>
+                                </div>
+                            </div>
+
+                            {!allocationValidation.isValid && (
+                                <div className="mt-2 text-sm text-amber-600">
+                                    {allocationValidation.message}
+                                </div>
+                            )}
                         </div>
 
                         <div className="mt-8 flex justify-end gap-3 border-t border-aidwise-border pt-6">
@@ -73,7 +179,7 @@ const CreateCampaign = () => {
                             <Button 
                                 type="submit" 
                                 variant="primary"
-                                disabled={isLoading}
+                                disabled={isSubmitDisabled}
                             >
                                 {isLoading ? 'Publishing...' : 'Publish Campaign'}
                             </Button>

@@ -3,6 +3,7 @@ import { createDonation } from '../services/donationService';
 
 export const useDonationFlow = (campaignId, onDonationSuccess) => {
     const [donationAmount, setDonationAmount] = useState('');
+    const [allocationId, setAllocationId] = useState('');
     const [error, setError] = useState('');
     const [successMessage, setSuccessMessage] = useState('');
     const [lastCompletedPayment, setLastCompletedPayment] = useState(null);
@@ -28,6 +29,7 @@ export const useDonationFlow = (campaignId, onDonationSuccess) => {
             await createDonation({
                 campaign_id: Number(campaignId),
                 amount: Number(donationAmount),
+                allocation_id: allocationId ? Number(allocationId) : undefined,
                 transaction_id: paymentDetails.transaction_id,
                 payment_method: paymentDetails.method,
             });
@@ -58,15 +60,18 @@ export const useDonationFlow = (campaignId, onDonationSuccess) => {
         }
 
         setDonationAmount('');
+        setAllocationId('');
     };
 
     return {
         donationAmount,
+        allocationId,
         error,
         successMessage,
         lastCompletedPayment,
         activeModal,
         setDonationAmount,
+        setAllocationId,
         setActiveModal,
         handleInitialSubmit,
         proceedToPaymentGateway,

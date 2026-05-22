@@ -50,7 +50,7 @@
 |   |   |       |-- ValidateSignature.php  # Signed URL validation
 |   |   |       |-- VerifyCsrfToken.php  # CSRF protection
 |   |   |-- Models/
-|   |   |   |-- Allocation.php  # Allocation model
+|   |   |   |-- Allocation.php  # Allocation model (current_amount accessor w/ redistribution)
 |   |   |   |-- Campaign.php  # Campaign model
 |   |   |   |-- Disbursement.php  # Disbursement model
 |   |   |   |-- Donation.php  # Donation model
@@ -187,7 +187,7 @@
 |   |   |-- pages/
 |   |       |-- AdminDashboard.jsx  # Admin campaign moderation UI
 |   |       |-- AdminDisbursements.jsx  # Admin payout moderation UI
-|   |       |-- CampaignDetails.jsx  # Campaign details and donation flow
+|   |       |-- CampaignDetails.jsx  # Campaign details, donation flow, sub-goal donut progress
 |   |       |-- CreateCampaign.jsx  # NGO campaign creation form
 |   |       |-- DonorDashboard.jsx  # Donor impact dashboard
 |   |       |-- Home.jsx  # Public campaign gallery

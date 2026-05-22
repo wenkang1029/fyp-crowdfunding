@@ -47,6 +47,7 @@ const DonationLedger = () => {
                         <tr>
                             <th className="px-6 py-4">Date</th>
                             <th className="px-6 py-4">Campaign</th>
+                            <th className="px-6 py-4">Sub-goal</th>
                             <th className="px-6 py-4">Donor Name</th>
                             <th className="px-6 py-4">Amount (RM)</th>
                             <th className="px-6 py-4 text-right">Status</th>
@@ -55,11 +56,11 @@ const DonationLedger = () => {
                     <tbody className="divide-y divide-aidwise-border">
                         {isLoading ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-8 text-center text-gray-400">Loading ledger data...</td>
+                                <td colSpan="6" className="px-6 py-8 text-center text-gray-400">Loading ledger data...</td>
                             </tr>
                         ) : donations.length === 0 ? (
                             <tr>
-                                <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
+                                <td colSpan="6" className="px-6 py-8 text-center text-gray-400">
                                     No donations received yet. Share your campaigns to get started!
                                 </td>
                             </tr>
@@ -71,6 +72,9 @@ const DonationLedger = () => {
                                     </td>
                                     <td className="px-6 py-4 font-semibold text-aidwise-text">
                                         {donation.campaign?.title || 'Unknown Campaign'}
+                                    </td>
+                                    <td className="px-6 py-4 text-gray-500">
+                                        {donation.allocation?.purpose || 'Overall campaign'}
                                     </td>
                                     <td className="px-6 py-4">
                                         {/* Fallback chain: Registered User -> Guest Name -> Anonymous */}
