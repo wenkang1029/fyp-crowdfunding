@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CreditCard, Building2, QrCode, Loader2, CheckCircle, X } from 'lucide-react';
 import Button from './Button';
 import Input from './Input';
@@ -11,6 +11,18 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
     // Mock Form States
     const [cardNumber, setCardNumber] = useState('');
     const [bank, setBank] = useState('');
+
+    useEffect(() => {
+        if (!isOpen) {
+            return;
+        }
+
+        setActiveTab('card');
+        setIsProcessing(false);
+        setIsSuccess(false);
+        setCardNumber('');
+        setBank('');
+    }, [isOpen]);
 
     if (!isOpen) return null;
 

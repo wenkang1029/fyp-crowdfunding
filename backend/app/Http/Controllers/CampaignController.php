@@ -68,6 +68,26 @@ class CampaignController extends Controller
         ], 200);
     }
 
+    public function showNgo(Request $request, $id)
+    {
+        $user = $request->user('sanctum');
+
+        if ($user->role !== 'ngo') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only NGOs can view this campaign details page.',
+            ], 403);
+        }
+
+        $campaign = $this->campaignService->getNgoDetails($user, (int) $id);
+
+        return response()->json([
+            'success' => true,
+            'data' => $campaign,
+            'message' => 'Campaign details fetched successfully',
+        ]);
+    }
+
     // 5. Edit Campaign (NGO Only, Must Own Campaign)
     public function update(Request $request, $id)
     {

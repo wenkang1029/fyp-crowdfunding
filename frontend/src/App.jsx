@@ -5,6 +5,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import NgoDashboard from './pages/NgoDashboard';
 import CreateCampaign from './pages/CreateCampaign';
 import NgoCampaigns from './pages/NgoCampaigns';
+import NgoCampaignDetails from './pages/NgoCampaignDetails';
 import AdminDashboard from './pages/AdminDashboard';
 import Home from './pages/Home';
 import CampaignDetails from './pages/CampaignDetails';
@@ -64,6 +65,15 @@ function App() {
               element={
                 <ProtectedRoute allowedRoles={['ngo']}>
                   <NgoCampaigns />
+                </ProtectedRoute>
+              } 
+            />
+
+            <Route 
+              path="/ngo/campaigns/:id" 
+              element={
+                <ProtectedRoute allowedRoles={['ngo']}>
+                  <NgoCampaignDetails />
                 </ProtectedRoute>
               } 
             />

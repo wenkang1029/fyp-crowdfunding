@@ -18,6 +18,11 @@ export const getCampaignById = async (campaignId) => {
     return extractData(response);
 };
 
+export const getNgoCampaignDetails = async (campaignId) => {
+    const response = await axiosInstance.get(`/ngo/campaigns/${campaignId}`);
+    return extractData(response);
+};
+
 export const createCampaign = async (payload) => {
     const response = await axiosInstance.post('/campaigns', payload);
     return extractData(response);

@@ -38,6 +38,7 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::put('/campaigns/{id}', [CampaignController::class, 'update']);
     Route::patch('/campaigns/{id}', [CampaignController::class, 'update']);
     Route::delete('/campaigns/{id}', [CampaignController::class, 'destroy']);
+    Route::get('/ngo/campaigns/{id}', [CampaignController::class, 'showNgo']);
 
     // Donation Routes
     Route::post('/donations', [\App\Http\Controllers\DonationController::class, 'store']); 

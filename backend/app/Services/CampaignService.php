@@ -22,6 +22,11 @@ class CampaignService
 
         if ($user && $user->role === 'ngo') {
             return Campaign::where('user_id', $user->id)
+                ->withSum([
+                    'disbursements as disbursed_amount' => function ($query) {
+                        $query->where('status', 'approved');
+                    },
+                ], 'amount')
                 ->orderBy('created_at', 'desc')
                 ->get();
         }
@@ -75,6 +80,24 @@ class CampaignService
     public function getById(int $id): Campaign
     {
         return Campaign::with(['user', 'allocations'])->findOrFail($id);
+    }
+
+    public function getNgoDetails(User $user, int $id): Campaign
+    {
+        return Campaign::where('user_id', $user->id)
+            ->with([
+                'user:id,name,email',
+                'allocations',
+                'donations' => function ($query) {
+                    $query->where('status', 'success')
+                        ->with(['user:id,name,email', 'allocation:id,purpose'])
+                        ->orderBy('created_at', 'desc');
+                },
+                'disbursements' => function ($query) {
+                    $query->orderBy('created_at', 'desc');
+                },
+            ])
+            ->findOrFail($id);
     }
 
     public function updateStatus(Campaign $campaign, string $status): Campaign

@@ -8,7 +8,7 @@ import Textarea from '../components/ui/Textarea';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
 import { useNgoCampaigns } from '../hooks/useNgoCampaigns';
-import { ListOrdered, Plus } from 'lucide-react';
+import { ListOrdered, Plus, Wallet, PauseCircle, PlayCircle, Pencil, Eye } from 'lucide-react';
 
 const NgoCampaigns = () => {
     const [statusModal, setStatusModal] = useState({ isOpen: false, campaign: null, nextStatus: null });
@@ -125,25 +125,47 @@ const NgoCampaigns = () => {
                                                     {campaign.description || 'No description yet.'}
                                                 </p>
                                                 <div className="mt-3">
-                                                    <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                                                        <span>
-                                                            {formatRM(campaign.current_amount)} raised
-                                                        </span>
-                                                        <span>
-                                                            {formatRM(campaign.target_amount)} goal
-                                                        </span>
-                                                    </div>
-                                                    <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
-                                                        <div
-                                                            className="h-full bg-aidwise-blue"
-                                                            style={{
-                                                                width: `${Math.min(
-                                                                    (Number(campaign.current_amount || 0) / Math.max(Number(campaign.target_amount || 0), 1)) * 100,
-                                                                    100
-                                                                )}%`,
-                                                            }}
-                                                        ></div>
-                                                    </div>
+                                                    {(() => {
+                                                        const raisedAmount = Number(campaign.current_amount || 0);
+                                                        const goalAmount = Math.max(Number(campaign.target_amount || 0), 1);
+                                                        const disbursedAmount = Number(campaign.disbursed_amount || 0);
+                                                        const raisedPercent = Math.min((raisedAmount / goalAmount) * 100, 100);
+                                                        const disbursedPercent = Math.min((disbursedAmount / goalAmount) * 100, 100);
+                                                        const availablePercent = Math.max(raisedPercent - disbursedPercent, 0);
+
+                                                        return (
+                                                            <>
+                                                                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
+                                                                    <span>
+                                                                        {formatRM(raisedAmount)} raised
+                                                                    </span>
+                                                                    <span>
+                                                                        {formatRM(campaign.target_amount)} goal
+                                                                    </span>
+                                                                </div>
+                                                                <div className="h-2 rounded-full bg-gray-100 overflow-hidden">
+                                                                    <div className="h-full flex">
+                                                                        <div
+                                                                            className="h-full bg-emerald-500"
+                                                                            style={{ width: `${disbursedPercent}%` }}
+                                                                        ></div>
+                                                                        <div
+                                                                            className="h-full bg-aidwise-blue"
+                                                                            style={{ width: `${availablePercent}%` }}
+                                                                        ></div>
+                                                                    </div>
+                                                                </div>
+                                                                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
+                                                                    <span>
+                                                                        {formatRM(disbursedAmount)} withdrawn
+                                                                    </span>
+                                                                    <span className="text-gray-400">
+                                                                        Approved payouts
+                                                                    </span>
+                                                                </div>
+                                                            </>
+                                                        );
+                                                    })()}
                                                 </div>
                                             </td>
                                             <td className="px-5 py-4">
@@ -159,37 +181,56 @@ const NgoCampaigns = () => {
                                             </td>
                                             <td className="px-5 py-4 text-right">
                                                 <div className="flex flex-wrap justify-end gap-2">
+                                                    <Link to={`/ngo/campaigns/${campaign.id}`}>
+                                                        <Button
+                                                            variant="secondary"
+                                                            className="px-3 py-2 text-xs flex items-center"
+                                                            title="View campaign"
+                                                            aria-label="View campaign"
+                                                        >
+                                                            <Eye size={14} />
+                                                        </Button>
+                                                    </Link>
                                                     {campaign.status === 'active' && (
                                                         <Button
                                                             variant="secondary"
-                                                            className="px-3 py-2 text-xs"
+                                                            className="px-3 py-2 text-xs flex items-center"
                                                             onClick={() => openPayoutModal(campaign)}
+                                                            title="Record payout"
+                                                            aria-label="Record payout"
                                                         >
-                                                            Record Payout
+                                                            <Wallet size={14} />
                                                         </Button>
                                                     )}
+                                                    {(() => {
+                                                        const statusTooltip = ['pending', 'rejected'].includes(campaign.status)
+                                                            ? 'Only active campaigns can be paused or resumed.'
+                                                            : getStatusActionLabel(campaign.status, statusUpdateId === campaign.id);
+
+                                                        return (
                                                     <Button
                                                         variant={campaign.status === 'active' ? 'danger' : 'secondary'}
-                                                        className="px-3 py-2 text-xs"
+                                                        className="px-3 py-2 text-xs flex items-center"
                                                         onClick={() => openStatusModal(campaign)}
                                                         disabled={
                                                             !['active', 'completed'].includes(campaign.status) ||
                                                             statusUpdateId === campaign.id
                                                         }
-                                                        title={
-                                                            ['pending', 'rejected'].includes(campaign.status)
-                                                                ? 'This action is available only for active campaigns.'
-                                                                : undefined
-                                                        }
+                                                        title={statusTooltip}
+                                                        aria-label={statusTooltip}
                                                     >
-                                                        {getStatusActionLabel(campaign.status, statusUpdateId === campaign.id)}
+                                                        {campaign.status === 'active' ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
                                                     </Button>
+                                                        );
+                                                    })()}
                                                     <Button
                                                         variant="secondary"
-                                                        className="px-3 py-2 text-xs"
+                                                        className="px-3 py-2 text-xs flex items-center"
                                                         onClick={() => openEditModal(campaign)}
+                                                        title="Edit campaign"
+                                                        aria-label="Edit campaign"
                                                     >
-                                                        Edit
+                                                        <Pencil size={14} />
                                                     </Button>
                                                 </div>
                                             </td>

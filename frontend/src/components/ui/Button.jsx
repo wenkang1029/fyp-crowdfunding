@@ -6,7 +6,8 @@ const Button = ({
     type = 'button', 
     variant = 'primary', // default to our AidWise blue
     className = '',
-    disabled = false
+    disabled = false,
+    ...rest
 }) => {
     // These styles apply to ALL buttons (Apple vibe: rounded-xl, soft shadow, scale-down click effect)
     const baseStyle = "px-6 py-2.5 rounded-xl font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-aidwise-blue shadow-apple active:scale-95 flex items-center justify-center";
@@ -25,6 +26,7 @@ const Button = ({
             className={`${baseStyle} ${variants[variant]} ${disabled ? 'opacity-60 cursor-not-allowed' : ''} ${className}`}
             disabled={disabled}
             aria-disabled={disabled}
+            {...rest}
         >
             {children}
         </button>

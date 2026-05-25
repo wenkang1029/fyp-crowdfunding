@@ -65,8 +65,7 @@ Last updated: 2026-04-23
 - Services layer structure: app/Services initialized and active across core modules
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
-## Next 4 Tasks
-- Implement Fund Allocation & Disbursement where when creating a campaign can set allocation for the Total amount
-- Implement Stripe payment integration and wire real payment intent flow into donation UX
+## Next 3 Tasks
 - Implement PDF donation receipt generation and expose receipt download flow
 - Build missing frontend modules for Chatbot widget and Notifications UI
+- Implement Stripe payment integration and wire real payment intent flow into donation UX
