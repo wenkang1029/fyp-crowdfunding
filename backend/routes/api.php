@@ -43,6 +43,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Donation Routes
     Route::post('/donations', [\App\Http\Controllers\DonationController::class, 'store']); 
     Route::get('/donations', [\App\Http\Controllers\DonationController::class, 'index']);
+    Route::get('/donations/{id}/receipt', [\App\Http\Controllers\DonationController::class, 'receipt']);
 
     // Allocation & Disbursement Routes
     Route::post('/campaigns/{campaign_id}/allocations', [\App\Http\Controllers\AllocationController::class, 'store']); 

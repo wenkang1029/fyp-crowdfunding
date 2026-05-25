@@ -115,6 +115,7 @@
 |   |   |   |-- welcome.blade.php  # Default Laravel welcome page
 |   |   |   |-- reports/
 |   |   |       |-- allocation.blade.php  # Allocation PDF report template
+|   |   |       |-- donation-receipt.blade.php  # Donation receipt PDF template
 |   |   |       |-- disbursement.blade.php  # Disbursement PDF report template
 |   |-- routes/
 |   |   |-- api.php  # API route definitions
@@ -184,6 +185,8 @@
 |   |   |   |-- AuthContext.jsx  # Auth state provider and hook
 |   |   |-- hooks/
 |   |   |   |-- useNgoCampaigns.js  # NGO campaigns list logic and status/payout actions
+|   |   |   |-- useNgoCampaignDetails.js  # NGO campaign details data loader
+|   |   |   |-- useDonationReceipt.js  # Donation receipt download logic
 |   |   |-- pages/
 |   |       |-- AdminDashboard.jsx  # Admin campaign moderation UI
 |   |       |-- AdminDisbursements.jsx  # Admin payout moderation UI
@@ -193,6 +196,7 @@
 |   |       |-- Home.jsx  # Public campaign gallery
 |   |       |-- Login.jsx  # Login form
 |   |       |-- NgoCampaigns.jsx  # NGO campaigns list and edit modal
+|   |       |-- NgoCampaignDetails.jsx  # NGO campaign details view
 |   |       |-- NgoDashboard.jsx  # NGO overview dashboard
 |   |       |-- NgoDisbursements.jsx  # NGO disbursement dashboard
 ```

@@ -16,14 +16,14 @@ Last updated: 2026-04-23
 - Notes: Registration only covers name/email/password/role; no org details
 
 ### 2. Campaign Management
-- [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed
-- [x] Frontend: campaignService + useCreateCampaign hook added; Home/CampaignDetails/CreateCampaign/AdminDashboard/NgoDashboard integrated with service/hook
+- [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed; NGO campaign details endpoint added
+- [x] Frontend: campaignService + useCreateCampaign hook added; Home/CampaignDetails/CreateCampaign/AdminDashboard/NgoDashboard integrated with service/hook; NGO campaign details page added
 - Notes: Campaign deadline not present in schema
 
 ### 3. Donation Flow
-- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations
-- [x] Frontend: donationService + useDonationFlow hook added; CampaignDetails/DonorDashboard/DonationLedger now use service/hook layer
-- Notes: Stripe and PDF receipt still not implemented
+- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations; PDF receipt download added
+- [x] Frontend: donationService + useDonationFlow hook added; CampaignDetails/DonorDashboard/DonationLedger now use service/hook layer; receipt download wired into donor history
+- Notes: Stripe still not implemented
 
 ### 4. Fund Allocation & Disbursement
 - [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added
@@ -66,6 +66,5 @@ Last updated: 2026-04-23
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
 ## Next 3 Tasks
-- Implement PDF donation receipt generation and expose receipt download flow
 - Build missing frontend modules for Chatbot widget and Notifications UI
 - Implement Stripe payment integration and wire real payment intent flow into donation UX

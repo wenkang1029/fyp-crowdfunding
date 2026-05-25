@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\User;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
@@ -95,5 +96,32 @@ class DonationService
         }
 
         throw new HttpException(403, 'Unauthorized to view this ledger.');
+    }
+
+    public function generateReceipt(User $user, int $donationId): array
+    {
+        if ($user->role !== 'donor') {
+            throw new HttpException(403, 'Only donors can download donation receipts.');
+        }
+
+        $donation = Donation::with([
+            'campaign:id,title,user_id',
+            'campaign.user:id,name',
+            'allocation:id,purpose',
+            'user:id,name,email',
+        ])->findOrFail($donationId);
+
+        if (!$donation->user_id || $donation->user_id !== $user->id) {
+            throw new HttpException(403, 'You can only download your own donation receipts.');
+        }
+
+        $pdf = Pdf::loadView('reports.donation-receipt', [
+            'donation' => $donation,
+        ]);
+
+        return [
+            'pdf' => $pdf,
+            'filename' => 'donation_receipt_' . $donation->id . '.pdf',
+        ];
     }
 }

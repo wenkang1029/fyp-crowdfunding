@@ -76,4 +76,23 @@ class DonationController extends Controller
             ], 403);
         }
     }
+
+    public function receipt(Request $request, $id)
+    {
+        try {
+            $result = $this->donationService->generateReceipt($request->user(), (int) $id);
+
+            return $result['pdf']->download($result['filename']);
+        } catch (HttpExceptionInterface $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+            ], $e->getStatusCode());
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage() ?: 'Failed to generate receipt.',
+            ], 500);
+        }
+    }
 }

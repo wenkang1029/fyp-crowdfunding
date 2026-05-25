@@ -24,12 +24,12 @@
 - AdminUserController: index [done], destroy [done]
 - AllocationController: store [done], update [done] (service-backed)
 - AuthController: register [done], login [done], logout [done], user [done] (service-backed)
-- CampaignController: index [done], store [done], show [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support)
+- CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support)
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
 - DisbursementController: store [done], indexAdmin [done], updateStatus [done] (service-backed, rejection_reason handled)
-- DonationController: store [done], index [done] (service-backed)
+- DonationController: store [done], index [done], receipt download [done] (service-backed)
 - NotificationController: index [done], markAsRead [done], markAllAsRead [done]
 - ProfileController: update [done] (service-backed)
 - ReportController: allocationReport [done], disbursementReport [done]
@@ -37,8 +37,8 @@
 
 ## Routes (api.php)
 - Auth: POST /register, POST /login, POST /logout, GET /user, PATCH /profile
-- Campaigns: GET /campaigns, GET /campaigns/{id}, POST /campaigns, PUT /campaigns/{id}, PATCH /campaigns/{id}, DELETE /campaigns/{id}
-- Donations: POST /campaigns/{id}/donate, POST /donations, GET /donations
+- Campaigns: GET /campaigns, GET /campaigns/{id}, POST /campaigns, PUT /campaigns/{id}, PATCH /campaigns/{id}, DELETE /campaigns/{id}, GET /ngo/campaigns/{id}
+- Donations: POST /campaigns/{id}/donate, POST /donations, GET /donations, GET /donations/{id}/receipt
 - Allocations: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}
 - Disbursements: POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status
 - Dashboards: GET /dashboard/ngo, GET /dashboard/admin, GET /dashboard/ngo/disbursements
@@ -53,8 +53,9 @@
 - Login.jsx: login form and role-based redirect [done]
 - CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, and equal-split labeling [done]
 - CreateCampaign.jsx: NGO campaign creation form [done]
-- NgoCampaigns.jsx: NGO campaigns list with edit modal, status controls, and payout modal [done]
-- DonorDashboard.jsx: donor impact stats and donation history [done]
+- NgoCampaigns.jsx: NGO campaigns list with edit modal, status controls, payout modal, and view action [done]
+- NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements [done]
+- DonorDashboard.jsx: donor impact stats, donation history, receipt download action [done]
 - NgoDashboard.jsx: NGO overview metrics and charts [partial]
 - NgoDisbursements.jsx: NGO disbursement dashboard and request modal [done]
 - AdminDashboard.jsx: admin campaign moderation table [done]
@@ -81,14 +82,14 @@
 	- AuthService
 	- ProfileService
 	- CampaignService (NGO status toggle support)
-	- DonationService
+	- DonationService (receipt PDF generation)
 	- AllocationService
 	- DisbursementService
 	- DashboardService
 - React services:
 	- authService
 	- campaignService
-	- donationService
+	- donationService (receipt download)
 	- allocationService
 	- disbursementService
 	- dashboardService
@@ -96,7 +97,9 @@
 	- useAuthForm
 	- useCreateCampaign
 	- useDonationFlow
+	- useDonationReceipt
 	- useNgoCampaigns
+	- useNgoCampaignDetails
 	- useNgoDisbursements
 	- useNgoDashboardData
 	- useAuth (existing in AuthContext.jsx)

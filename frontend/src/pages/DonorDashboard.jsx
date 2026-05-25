@@ -4,12 +4,19 @@ import Card from '../components/ui/Card';
 import StatCard from '../components/ui/StatCard';
 import Badge from '../components/ui/Badge';
 import { getDonations } from '../services/donationService';
+import { useDonationReceipt } from '../hooks/useDonationReceipt';
 import { Heart, History, Award } from 'lucide-react';
 
 const DonorDashboard = () => {
     const [donations, setDonations] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const {
+        isDownloadingId,
+        error: receiptError,
+        requestReceipt,
+        clearError,
+    } = useDonationReceipt();
 
     useEffect(() => {
         const fetchMyDonations = async () => {
@@ -59,6 +66,19 @@ const DonorDashboard = () => {
                     </div>
                 )}
 
+                {receiptError && (
+                    <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-center justify-between">
+                        <span>{receiptError}</span>
+                        <button
+                            type="button"
+                            onClick={clearError}
+                            className="text-xs font-semibold text-red-500 hover:text-red-700"
+                        >
+                            Dismiss
+                        </button>
+                    </div>
+                )}
+
                 {/* Donor Impact Metrics */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
                     <StatCard 
@@ -88,12 +108,13 @@ const DonorDashboard = () => {
                                     <th className="px-6 py-4">Sub-goal</th>
                                     <th className="px-6 py-4">Amount</th>
                                     <th className="px-6 py-4 text-right">Status</th>
+                                    <th className="px-6 py-4 text-right">Receipt</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
                                 {donations.length === 0 ? (
                                     <tr>
-                                        <td colSpan="5" className="px-6 py-8 text-center text-gray-400">
+                                        <td colSpan="6" className="px-6 py-8 text-center text-gray-400">
                                             You haven't made any donations yet. Visit the gallery to find a cause!
                                         </td>
                                     </tr>
@@ -114,6 +135,16 @@ const DonorDashboard = () => {
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Badge status={donation.status} />
+                                            </td>
+                                            <td className="px-6 py-4 text-right">
+                                                <button
+                                                    type="button"
+                                                    onClick={() => requestReceipt(donation.id)}
+                                                    disabled={isDownloadingId === donation.id}
+                                                    className="text-aidwise-blue font-semibold text-sm hover:text-blue-700 disabled:opacity-60 disabled:cursor-not-allowed"
+                                                >
+                                                    {isDownloadingId === donation.id ? 'Downloading...' : 'Download'}
+                                                </button>
                                             </td>
                                         </tr>
                                     ))
