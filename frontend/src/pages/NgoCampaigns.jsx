@@ -3,12 +3,10 @@ import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import Button from '../components/ui/Button';
-import Input from '../components/ui/Input';
-import Textarea from '../components/ui/Textarea';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
 import { useNgoCampaigns } from '../hooks/useNgoCampaigns';
-import { ListOrdered, Plus, Wallet, PauseCircle, PlayCircle, Pencil, Eye } from 'lucide-react';
+import { ListOrdered, Plus, Wallet, PauseCircle, PlayCircle, Eye } from 'lucide-react';
 
 const NgoCampaigns = () => {
     const [statusModal, setStatusModal] = useState({ isOpen: false, campaign: null, nextStatus: null });
@@ -16,21 +14,12 @@ const NgoCampaigns = () => {
         campaigns,
         isLoading,
         error,
-        isModalOpen,
-        formData,
-        formErrors,
-        isSaving,
         statusUpdateId,
         successMessage,
         isPayoutModalOpen,
-        payoutCampaign,
         payoutForm,
         payoutError,
         isPayoutSubmitting,
-        openEditModal,
-        closeModal,
-        handleChange,
-        handleSubmit,
         handleStatusToggle,
         openPayoutModal,
         closePayoutModal,
@@ -208,30 +197,21 @@ const NgoCampaigns = () => {
                                                             : getStatusActionLabel(campaign.status, statusUpdateId === campaign.id);
 
                                                         return (
-                                                    <Button
-                                                        variant={campaign.status === 'active' ? 'danger' : 'secondary'}
-                                                        className="px-3 py-2 text-xs flex items-center"
-                                                        onClick={() => openStatusModal(campaign)}
-                                                        disabled={
-                                                            !['active', 'completed'].includes(campaign.status) ||
-                                                            statusUpdateId === campaign.id
-                                                        }
-                                                        title={statusTooltip}
-                                                        aria-label={statusTooltip}
-                                                    >
-                                                        {campaign.status === 'active' ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
-                                                    </Button>
+                                                            <Button
+                                                                variant={campaign.status === 'active' ? 'danger' : 'secondary'}
+                                                                className="px-3 py-2 text-xs flex items-center"
+                                                                onClick={() => openStatusModal(campaign)}
+                                                                disabled={
+                                                                    !['active', 'completed'].includes(campaign.status) ||
+                                                                    statusUpdateId === campaign.id
+                                                                }
+                                                                title={statusTooltip}
+                                                                aria-label={statusTooltip}
+                                                            >
+                                                                {campaign.status === 'active' ? <PauseCircle size={14} /> : <PlayCircle size={14} />}
+                                                            </Button>
                                                         );
                                                     })()}
-                                                    <Button
-                                                        variant="secondary"
-                                                        className="px-3 py-2 text-xs flex items-center"
-                                                        onClick={() => openEditModal(campaign)}
-                                                        title="Edit campaign"
-                                                        aria-label="Edit campaign"
-                                                    >
-                                                        <Pencil size={14} />
-                                                    </Button>
                                                 </div>
                                             </td>
                                         </tr>
@@ -242,43 +222,6 @@ const NgoCampaigns = () => {
                     </div>
                 </Card>
             </div>
-
-            <Modal isOpen={isModalOpen} onClose={closeModal} title="Edit Campaign">
-                <form onSubmit={handleSubmit}>
-                    {formErrors.global && (
-                        <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
-                            {formErrors.global}
-                        </div>
-                    )}
-                    <Input
-                        label="Campaign Title"
-                        type="text"
-                        name="title"
-                        value={formData.title}
-                        onChange={handleChange}
-                        placeholder="Campaign name"
-                        required
-                        error={formErrors.title?.[0]}
-                    />
-                    <Textarea
-                        label="Campaign Description"
-                        name="description"
-                        value={formData.description}
-                        onChange={handleChange}
-                        placeholder="Describe the campaign goals and impact"
-                        required
-                        error={formErrors.description?.[0]}
-                    />
-                    <div className="mt-6 flex justify-end gap-3">
-                        <Button variant="secondary" type="button" onClick={closeModal}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="primary">
-                            {isSaving ? 'Saving...' : 'Save Changes'}
-                        </Button>
-                    </div>
-                </form>
-            </Modal>
 
             <Modal isOpen={statusModal.isOpen} onClose={closeStatusModal} title={statusModalTitle}>
                 <div className="text-sm text-gray-600 mb-6">
@@ -307,38 +250,31 @@ const NgoCampaigns = () => {
                         </div>
                     )}
                     <div className="mb-4">
-                        <label className="block mb-1.5 text-sm font-medium text-aidwise-text">Campaign</label>
-                        <div className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text">
-                            {payoutCampaign?.title || 'Selected campaign'}
-                        </div>
+                        <label className="block mb-1.5 text-sm font-medium text-aidwise-text">Amount to Withdraw (RM)</label>
+                        <input
+                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
+                            type="number"
+                            min="1"
+                            placeholder="e.g. 500"
+                            value={payoutForm.amount}
+                            onChange={(event) => handlePayoutChange('amount', event.target.value)}
+                            required
+                        />
                     </div>
-                    <Input
-                        label="Amount to Withdraw (RM)"
-                        type="number"
-                        name="amount"
-                        min="1"
-                        placeholder="e.g. 500"
-                        value={payoutForm.amount}
-                        onChange={handlePayoutChange}
-                        required
-                    />
-                    <Input
-                        label="Purpose of Funds"
-                        type="text"
-                        name="purpose"
-                        placeholder="e.g. Water filtration equipment"
-                        value={payoutForm.purpose}
-                        onChange={handlePayoutChange}
-                        required
-                    />
-                    <div className="mt-6 flex justify-end gap-3">
-                        <Button variant="secondary" type="button" onClick={closePayoutModal}>
-                            Cancel
-                        </Button>
-                        <Button type="submit" variant="primary" disabled={isPayoutSubmitting}>
-                            {isPayoutSubmitting ? 'Submitting...' : 'Submit Request'}
-                        </Button>
+                    <div className="mb-4">
+                        <label className="block mb-1.5 text-sm font-medium text-aidwise-text">Purpose of Funds</label>
+                        <input
+                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
+                            type="text"
+                            placeholder="e.g., Water filtration equipment"
+                            value={payoutForm.purpose}
+                            onChange={(event) => handlePayoutChange('purpose', event.target.value)}
+                            required
+                        />
                     </div>
+                    <Button type="submit" variant="primary" className="w-full mt-4" disabled={isPayoutSubmitting}>
+                        {isPayoutSubmitting ? 'Recording...' : 'Record Payout'}
+                    </Button>
                 </form>
             </Modal>
         </DashboardLayout>

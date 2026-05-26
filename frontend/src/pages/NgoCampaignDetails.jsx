@@ -4,15 +4,42 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
+import Input from '../components/ui/Input';
+import Textarea from '../components/ui/Textarea';
+import Modal from '../components/ui/Modal';
 import { useNgoCampaignDetails } from '../hooks/useNgoCampaignDetails';
-import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart } from 'lucide-react';
+import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil, Plus } from 'lucide-react';
 
 const NgoCampaignDetails = () => {
     const { id } = useParams();
-    const { campaign, isLoading, error } = useNgoCampaignDetails(id);
+    const {
+        campaign,
+        isLoading,
+        error,
+        successMessage,
+        isCampaignModalOpen,
+        campaignForm,
+        campaignErrors,
+        isSavingCampaign,
+        isAllocationModalOpen,
+        activeAllocation,
+        allocationForm,
+        allocationErrors,
+        isSavingAllocation,
+        openCampaignModal,
+        closeCampaignModal,
+        handleCampaignChange,
+        handleCampaignSubmit,
+        openAllocationCreateModal,
+        openAllocationEditModal,
+        closeAllocationModal,
+        handleAllocationChange,
+        handleAllocationSubmit,
+    } = useNgoCampaignDetails(id);
 
     const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    const resolveError = (value) => (Array.isArray(value) ? value[0] : value);
 
     if (isLoading) {
         return (
@@ -63,7 +90,21 @@ const NgoCampaignDetails = () => {
                             <ArrowLeft size={16} className="mr-2" /> Back to Campaigns
                         </Link>
                     </div>
+                    <div className="flex flex-wrap gap-2">
+                        <Button variant="secondary" className="flex items-center gap-2" onClick={openCampaignModal}>
+                            <Pencil size={16} /> Edit Campaign
+                        </Button>
+                        <Button variant="primary" className="flex items-center gap-2" onClick={openAllocationCreateModal}>
+                            <Plus size={16} /> Add Allocation
+                        </Button>
+                    </div>
                 </div>
+
+                {successMessage && (
+                    <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200">
+                        {successMessage}
+                    </div>
+                )}
 
                 <Card className="mb-8 border border-gray-100 bg-gradient-to-br from-white via-white to-blue-50/60">
                     <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
@@ -149,12 +190,13 @@ const NgoCampaignDetails = () => {
                                         <th className="px-5 py-3">Purpose</th>
                                         <th className="px-5 py-3 text-right">Raised</th>
                                         <th className="px-5 py-3 text-right">Target</th>
+                                        <th className="px-5 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {allocations.length === 0 ? (
                                         <tr>
-                                            <td colSpan="3" className="px-5 py-8 text-center text-gray-400">No allocations recorded.</td>
+                                            <td colSpan="4" className="px-5 py-8 text-center text-gray-400">No allocations recorded.</td>
                                         </tr>
                                     ) : (
                                         allocations.map((allocation) => {
@@ -172,6 +214,17 @@ const NgoCampaignDetails = () => {
                                                     </td>
                                                     <td className="px-5 py-4 text-right text-gray-600">{formatRM(allocationRaised)}</td>
                                                     <td className="px-5 py-4 text-right text-gray-600">{formatRM(allocation.amount)}</td>
+                                                    <td className="px-5 py-4 text-right">
+                                                        <Button
+                                                            variant="secondary"
+                                                            className="px-3 py-2 text-xs flex items-center"
+                                                            onClick={() => openAllocationEditModal(allocation)}
+                                                            title="Edit allocation"
+                                                            aria-label="Edit allocation"
+                                                        >
+                                                            <Pencil size={14} />
+                                                        </Button>
+                                                    </td>
                                                 </tr>
                                             );
                                         })
@@ -273,6 +326,77 @@ const NgoCampaignDetails = () => {
                     </div>
                 </Card>
             </div>
+
+            <Modal isOpen={isCampaignModalOpen} onClose={closeCampaignModal} title="Edit Campaign">
+                <form onSubmit={handleCampaignSubmit}>
+                    {campaignErrors.global && (
+                        <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                            {campaignErrors.global}
+                        </div>
+                    )}
+                    <Input
+                        label="Campaign Title"
+                        type="text"
+                        name="title"
+                        value={campaignForm.title}
+                        onChange={handleCampaignChange}
+                        placeholder="Campaign name"
+                        required
+                        error={resolveError(campaignErrors.title)}
+                    />
+                    <Textarea
+                        label="Campaign Description"
+                        name="description"
+                        value={campaignForm.description}
+                        onChange={handleCampaignChange}
+                        placeholder="Describe your campaign"
+                        required
+                        error={resolveError(campaignErrors.description)}
+                    />
+                    <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSavingCampaign}>
+                        {isSavingCampaign ? 'Saving...' : 'Update Campaign'}
+                    </Button>
+                </form>
+            </Modal>
+
+            <Modal
+                isOpen={isAllocationModalOpen}
+                onClose={closeAllocationModal}
+                title={activeAllocation ? 'Edit Allocation' : 'Create Allocation'}
+            >
+                <form onSubmit={handleAllocationSubmit}>
+                    {allocationErrors.global && (
+                        <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                            {allocationErrors.global}
+                        </div>
+                    )}
+                    <Input
+                        label="Purpose"
+                        type="text"
+                        name="purpose"
+                        value={allocationForm.purpose}
+                        onChange={handleAllocationChange}
+                        placeholder="e.g., Medical supplies"
+                        required
+                        error={resolveError(allocationErrors.purpose)}
+                    />
+                    <Input
+                        label="Target Amount (RM)"
+                        type="number"
+                        name="amount"
+                        value={allocationForm.amount}
+                        onChange={handleAllocationChange}
+                        placeholder="e.g., 1500"
+                        min="1"
+                        step="0.01"
+                        required
+                        error={resolveError(allocationErrors.amount)}
+                    />
+                    <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSavingAllocation}>
+                        {isSavingAllocation ? 'Saving...' : activeAllocation ? 'Update Allocation' : 'Create Allocation'}
+                    </Button>
+                </form>
+            </Modal>
         </DashboardLayout>
     );
 };

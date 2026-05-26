@@ -21,14 +21,14 @@ Last updated: 2026-04-23
 - Notes: Campaign deadline not present in schema
 
 ### 3. Donation Flow
-- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations; PDF receipt download added
+- [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations; PDF receipt download added; missing: GET /donations/{id} and allocation list endpoint for donation preference UI
 - [x] Frontend: donationService + useDonationFlow hook added; CampaignDetails/DonorDashboard/DonationLedger now use service/hook layer; receipt download wired into donor history
 - Notes: Stripe still not implemented
 
 ### 4. Fund Allocation & Disbursement
 - [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added
-- [~] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; CampaignDetails shows sub-goal donut progress
-- Notes: Allocation CRUD UI pages are still not implemented
+- [~] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; NGO campaign details supports editing campaign info and allocations (create/edit) using NGO campaign details endpoint; delete/list API still missing
+- Notes: Allocation delete/list API endpoints still not implemented
 
 ### 5. Live Dashboard
 - [x] Backend: DashboardService added and DashboardController now thin/service-backed
@@ -66,5 +66,6 @@ Last updated: 2026-04-23
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
 ## Next 3 Tasks
-- Build missing frontend modules for Chatbot widget and Notifications UI
+- Build missing frontend modules for Chatbot widget 
+- Build missing frontend modules for Notifications UI
 - Implement Stripe payment integration and wire real payment intent flow into donation UX
