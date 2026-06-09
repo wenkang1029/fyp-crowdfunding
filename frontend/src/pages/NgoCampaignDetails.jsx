@@ -8,7 +8,7 @@ import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Modal from '../components/ui/Modal';
 import { useNgoCampaignDetails } from '../hooks/useNgoCampaignDetails';
-import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil, Plus } from 'lucide-react';
+import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil } from 'lucide-react';
 
 const NgoCampaignDetails = () => {
     const { id } = useParams();
@@ -30,7 +30,6 @@ const NgoCampaignDetails = () => {
         closeCampaignModal,
         handleCampaignChange,
         handleCampaignSubmit,
-        openAllocationCreateModal,
         openAllocationEditModal,
         closeAllocationModal,
         handleAllocationChange,
@@ -80,22 +79,40 @@ const NgoCampaignDetails = () => {
         .reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const raisedPercent = Math.min((raisedAmount / targetAmount) * 100, 100);
     const disbursedPercent = Math.min((disbursedAmount / targetAmount) * 100, 100);
+    const availableAmount = Math.max(raisedAmount - disbursedAmount, 0);
+    const allocationProgressItems = allocations.map((allocation) => {
+        const allocationRaised = Number(allocation.current_amount || 0);
+        const allocationTarget = Math.max(Number(allocation.amount || 0), 1);
+        const allocationPercent = Math.min((allocationRaised / allocationTarget) * 100, 100);
+        const remainingAmount = Math.max(allocationTarget - allocationRaised, 0);
+
+        return {
+            ...allocation,
+            allocationRaised,
+            allocationTarget,
+            allocationPercent,
+            remainingAmount,
+        };
+    });
 
     return (
         <DashboardLayout>
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
-                    <div>
+                    <div className="space-y-2">
                         <Link to="/ngo/campaigns" className="inline-flex items-center text-sm text-gray-500 hover:text-aidwise-blue">
                             <ArrowLeft size={16} className="mr-2" /> Back to Campaigns
                         </Link>
+                        <div className="flex flex-wrap items-center gap-3">
+                            <Badge status={campaign.status} />
+                            <span className="text-xs text-gray-500">Created {campaign.created_at ? formatDate(campaign.created_at) : '—'}</span>
+                        </div>
+                        <h1 className="text-3xl font-bold tracking-tight text-aidwise-text">{campaign.title}</h1>
+                        <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">{campaign.description || 'No description available.'}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
                         <Button variant="secondary" className="flex items-center gap-2" onClick={openCampaignModal}>
-                            <Pencil size={16} /> Edit Campaign
-                        </Button>
-                        <Button variant="primary" className="flex items-center gap-2" onClick={openAllocationCreateModal}>
-                            <Plus size={16} /> Add Allocation
+                            <Pencil size={16} /> Edit Campaign Details
                         </Button>
                     </div>
                 </div>
@@ -106,134 +123,108 @@ const NgoCampaignDetails = () => {
                     </div>
                 )}
 
-                <Card className="mb-8 border border-gray-100 bg-gradient-to-br from-white via-white to-blue-50/60">
-                    <div className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-                        <div className="max-w-3xl">
-                            <div className="flex items-center gap-3">
-                                <Badge status={campaign.status} />
-                                <span className="text-xs text-gray-500">Created {campaign.created_at ? formatDate(campaign.created_at) : '—'}</span>
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+                    <Card className="border border-gray-100 lg:col-span-3">
+                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                            <div className="flex items-center gap-2 text-sm font-semibold text-aidwise-text">
+                                <Wallet size={17} className="text-aidwise-blue" />
+                                Funding Progress
                             </div>
-                            <h1 className="text-3xl font-bold tracking-tight text-aidwise-text mt-3">{campaign.title}</h1>
-                            <p className="text-sm text-gray-600 leading-relaxed mt-3">{campaign.description || 'No description available.'}</p>
-                        </div>
-                        <div className="w-full max-w-sm rounded-2xl border border-blue-100 bg-white/80 p-5 shadow-sm">
-                            <div className="flex items-center gap-3 text-sm text-gray-500">
-                                <Wallet size={18} className="text-aidwise-blue" />
-                                Funding progress
-                            </div>
-                            <div className="mt-4">
-                                <div className="flex items-center justify-between text-xs text-gray-500 mb-2">
-                                    <span>{formatRM(raisedAmount)} raised</span>
-                                    <span>{formatRM(campaign.target_amount)} goal</span>
+                            <div className="grid grid-cols-3 gap-3 text-right sm:min-w-[420px]">
+                                <div>
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Raised</div>
+                                    <div className="text-sm font-bold text-aidwise-text">{formatRM(raisedAmount)}</div>
                                 </div>
-                                <div className="h-2.5 rounded-full bg-gray-100 overflow-hidden">
+                                <div>
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Available</div>
+                                    <div className="text-sm font-bold text-emerald-600">{formatRM(availableAmount)}</div>
+                                </div>
+                                <div>
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Target</div>
+                                    <div className="text-sm font-bold text-aidwise-text">{formatRM(campaign.target_amount)}</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div className="mt-6 space-y-5">
+                            <div>
+                                <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 text-sm">
+                                    <span className="font-semibold text-aidwise-text">Total Progress</span>
+                                    <span className="text-gray-500">{formatRM(raisedAmount)}</span>
+                                    <span className="w-12 text-right font-semibold text-aidwise-blue">{Math.round(raisedPercent)}%</span>
+                                </div>
+                                <div className="h-4 rounded-full bg-gray-100 overflow-hidden">
                                     <div className="h-full flex">
                                         <div className="h-full bg-emerald-500" style={{ width: `${disbursedPercent}%` }}></div>
                                         <div className="h-full bg-aidwise-blue" style={{ width: `${Math.max(raisedPercent - disbursedPercent, 0)}%` }}></div>
                                     </div>
                                 </div>
-                                <div className="flex items-center justify-between text-xs text-gray-500 mt-2">
-                                    <span>{formatRM(disbursedAmount)} withdrawn</span>
-                                    <span className="text-gray-400">Approved payouts</span>
-                                </div>
                             </div>
-                        </div>
-                    </div>
-                </Card>
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-                    <Card className="border border-gray-100">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs uppercase tracking-widest text-gray-400">Donations</p>
-                                <p className="text-2xl font-semibold text-aidwise-text mt-2">{donations.length}</p>
-                            </div>
-                            <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
-                                <HandHeart size={18} className="text-aidwise-blue" />
+                            <div className="space-y-3">
+                                {allocationProgressItems.length === 0 ? (
+                                    <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-400">
+                                        No allocations recorded.
+                                    </div>
+                                ) : (
+                                    allocationProgressItems.map((allocation) => (
+                                        <div key={allocation.id}>
+                                            <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 text-sm">
+                                                <span className="truncate font-medium text-aidwise-text" title={allocation.purpose}>
+                                                    {allocation.purpose}
+                                                </span>
+                                                <span className="hidden text-gray-500 sm:inline">
+                                                    {formatRM(allocation.allocationRaised)} / {formatRM(allocation.allocationTarget)}
+                                                </span>
+                                                <span className="w-12 text-right font-semibold text-aidwise-blue">
+                                                    {Math.round(allocation.allocationPercent)}%
+                                                </span>
+                                                <Button
+                                                    variant="secondary"
+                                                    className="px-2.5 py-2 text-xs flex items-center shadow-none"
+                                                    onClick={() => openAllocationEditModal(allocation)}
+                                                    title="Edit allocation"
+                                                    aria-label="Edit allocation"
+                                                >
+                                                    <Pencil size={13} />
+                                                </Button>
+                                            </div>
+                                            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+                                                <div className="h-full bg-aidwise-blue" style={{ width: `${allocation.allocationPercent}%` }}></div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
                             </div>
                         </div>
                     </Card>
+
                     <Card className="border border-gray-100">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs uppercase tracking-widest text-gray-400">Allocations</p>
-                                <p className="text-2xl font-semibold text-aidwise-text mt-2">{allocations.length}</p>
+                        <div className="text-sm text-gray-500">Activity summary</div>
+                        <div className="mt-4 space-y-3 text-sm text-gray-600">
+                            <div className="flex items-center justify-between">
+                                <span className="inline-flex items-center gap-2">
+                                    <HandHeart size={14} className="text-aidwise-blue" /> Donations
+                                </span>
+                                <span className="font-semibold text-aidwise-text">{donations.length}</span>
                             </div>
-                            <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
-                                <PieChart size={18} className="text-aidwise-blue" />
+                            <div className="flex items-center justify-between">
+                                <span className="inline-flex items-center gap-2">
+                                    <PieChart size={14} className="text-aidwise-blue" /> Allocations
+                                </span>
+                                <span className="font-semibold text-aidwise-text">{allocations.length}</span>
                             </div>
-                        </div>
-                    </Card>
-                    <Card className="border border-gray-100">
-                        <div className="flex items-center justify-between">
-                            <div>
-                                <p className="text-xs uppercase tracking-widest text-gray-400">Payouts</p>
-                                <p className="text-2xl font-semibold text-aidwise-text mt-2">{disbursements.length}</p>
-                            </div>
-                            <div className="h-10 w-10 rounded-full bg-blue-50 flex items-center justify-center">
-                                <ListOrdered size={18} className="text-aidwise-blue" />
+                            <div className="flex items-center justify-between">
+                                <span className="inline-flex items-center gap-2">
+                                    <ListOrdered size={14} className="text-aidwise-blue" /> Payouts
+                                </span>
+                                <span className="font-semibold text-aidwise-text">{disbursements.length}</span>
                             </div>
                         </div>
                     </Card>
                 </div>
 
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-                    <Card className="p-0 overflow-hidden border border-gray-100">
-                        <div className="p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
-                            <PieChart className="text-aidwise-blue" size={18} />
-                            <h3 className="font-bold text-aidwise-text">Allocation Details</h3>
-                        </div>
-                        <div className="overflow-x-auto">
-                            <table className="w-full text-left text-sm text-aidwise-text">
-                                <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-100">
-                                    <tr>
-                                        <th className="px-5 py-3">Purpose</th>
-                                        <th className="px-5 py-3 text-right">Raised</th>
-                                        <th className="px-5 py-3 text-right">Target</th>
-                                        <th className="px-5 py-3 text-right">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="divide-y divide-gray-100">
-                                    {allocations.length === 0 ? (
-                                        <tr>
-                                            <td colSpan="4" className="px-5 py-8 text-center text-gray-400">No allocations recorded.</td>
-                                        </tr>
-                                    ) : (
-                                        allocations.map((allocation) => {
-                                            const allocationRaised = Number(allocation.current_amount || 0);
-                                            const allocationTarget = Math.max(Number(allocation.amount || 0), 1);
-                                            const allocationPercent = Math.min((allocationRaised / allocationTarget) * 100, 100);
-
-                                            return (
-                                                <tr key={allocation.id} className="hover:bg-gray-50/50 transition-colors">
-                                                    <td className="px-5 py-4">
-                                                        <div className="font-medium text-aidwise-text">{allocation.purpose}</div>
-                                                        <div className="mt-2 h-1.5 rounded-full bg-gray-100 overflow-hidden">
-                                                            <div className="h-full bg-aidwise-blue" style={{ width: `${allocationPercent}%` }}></div>
-                                                        </div>
-                                                    </td>
-                                                    <td className="px-5 py-4 text-right text-gray-600">{formatRM(allocationRaised)}</td>
-                                                    <td className="px-5 py-4 text-right text-gray-600">{formatRM(allocation.amount)}</td>
-                                                    <td className="px-5 py-4 text-right">
-                                                        <Button
-                                                            variant="secondary"
-                                                            className="px-3 py-2 text-xs flex items-center"
-                                                            onClick={() => openAllocationEditModal(allocation)}
-                                                            title="Edit allocation"
-                                                            aria-label="Edit allocation"
-                                                        >
-                                                            <Pencil size={14} />
-                                                        </Button>
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })
-                                    )}
-                                </tbody>
-                            </table>
-                        </div>
-                    </Card>
-
+                <div className="grid grid-cols-1 gap-6 mb-8">
                     <Card className="p-0 overflow-hidden border border-gray-100">
                         <div className="p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
                             <HandHeart className="text-aidwise-blue" size={18} />

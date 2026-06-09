@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { createDonation } from '../services/donationService';
 
-export const useDonationFlow = (campaignId, onDonationSuccess) => {
+export const useDonationFlow = (campaign, onDonationSuccess) => {
     const [donationAmount, setDonationAmount] = useState('');
     const [allocationId, setAllocationId] = useState('');
     const [error, setError] = useState('');
@@ -12,6 +12,17 @@ export const useDonationFlow = (campaignId, onDonationSuccess) => {
     const handleInitialSubmit = (event) => {
         event.preventDefault();
         setSuccessMessage('');
+
+        // Client-side check: ensure campaign is accepting donations now
+        const now = new Date();
+        const start = campaign?.start_date ? new Date(campaign.start_date) : null;
+        const end = campaign?.end_date ? new Date(campaign.end_date) : null;
+        const statusActive = campaign?.status === 'active';
+
+        if (!statusActive || (start && now < start) || (end && now > end)) {
+            setError('This campaign is not accepting donations at this time.');
+            return;
+        }
 
         if (Number(donationAmount) > 0) {
             setActiveModal('confirm');
@@ -27,7 +38,7 @@ export const useDonationFlow = (campaignId, onDonationSuccess) => {
 
         try {
             await createDonation({
-                campaign_id: Number(campaignId),
+                campaign_id: Number(campaign?.id),
                 amount: Number(donationAmount),
                 allocation_id: allocationId ? Number(allocationId) : undefined,
                 transaction_id: paymentDetails.transaction_id,

@@ -27,7 +27,7 @@ A web platform built for St. John Ambulans Malaysia (SJAM KMT) to manage, promot
 
 
 1. **Auth & Profile** — Role-based login/register; profile management per role
-2. **Campaign Management** — ngo creates, edits, and closes campaigns with goals and deadlines
+2. **Campaign Management** — ngo creates, edits, and closes campaigns with goals and deadlines. Campaigns now include immutable `start_date` and `end_date` fields; donations are accepted only when a campaign is `active` and the current time is within the campaign date window. A scheduled command auto-transitions campaign `status` based on these dates.
 3. **Donation Flow** — Donor-facing campaign browsing → secure payment gateway → auto-receipt (PDF) via email
 4. **Fund Allocation & Disbursement** — ngo allocates/reallocates funds across sub-categories; tracks disbursement with audit trail
 5. **Live Dashboard** — Real-time progress bars, donation stats, and donor activity feed for ngo and Donors

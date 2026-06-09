@@ -40,13 +40,29 @@ class CampaignService
     public function createForNgo(User $user, array $data): Campaign
     {
         return DB::transaction(function () use ($user, $data) {
-            $campaign = Campaign::create([
+            if (isset($data['start_date']) && isset($data['end_date'])) {
+                if (strtotime($data['start_date']) > strtotime($data['end_date'])) {
+                    throw new HttpException(422, 'Start date must be before or equal to end date.');
+                }
+            }
+
+            $campaignData = [
                 'user_id' => $user->id,
                 'title' => $data['title'],
                 'description' => $data['description'],
                 'target_amount' => $data['target_amount'],
                 'status' => 'pending',
-            ]);
+            ];
+
+            if (isset($data['start_date'])) {
+                $campaignData['start_date'] = $data['start_date'];
+            }
+
+            if (isset($data['end_date'])) {
+                $campaignData['end_date'] = $data['end_date'];
+            }
+
+            $campaign = Campaign::create($campaignData);
 
             $allocations = $data['allocations'] ?? [];
 
@@ -117,6 +133,10 @@ class CampaignService
 
     public function updateForNgo(Campaign $campaign, array $data): Campaign
     {
+        if (isset($data['start_date']) || isset($data['end_date'])) {
+            throw new HttpException(422, 'Cannot modify start_date or end_date after creation.');
+        }
+
         $data['status'] = 'pending';
         $campaign->update($data);
 

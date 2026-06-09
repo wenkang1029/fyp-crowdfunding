@@ -17,6 +17,13 @@ class Campaign extends Model
         'target_amount',
         'current_amount',
         'status',
+        'start_date',
+        'end_date',
+    ];
+
+    protected $casts = [
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
     ];
 
     // This tells Laravel that every Campaign belongs to a User (NGO)
@@ -40,5 +47,25 @@ class Campaign extends Model
     public function donations()
     {
         return $this->hasMany(Donation::class);
+    }
+
+    public function isWithinWindow(): bool
+    {
+        $now = now();
+
+        if ($this->start_date && $now->lt($this->start_date)) {
+            return false;
+        }
+
+        if ($this->end_date && $now->gt($this->end_date)) {
+            return false;
+        }
+
+        return true;
+    }
+
+    public function isOpen(): bool
+    {
+        return $this->status === 'active' && $this->isWithinWindow();
     }
 }

@@ -41,7 +41,7 @@ const CampaignDetails = () => {
         proceedToPaymentGateway,
         executeDonation,
         closeSuccessModal,
-    } = useDonationFlow(id, fetchCampaign);
+    } = useDonationFlow(campaign, fetchCampaign);
 
     useEffect(() => {
         fetchCampaign();
@@ -284,7 +284,7 @@ const CampaignDetails = () => {
                                         )}
                                     </div>
 
-                                    <Button type="submit" variant="primary" className="w-full py-3 text-lg">
+                                    <Button type="submit" variant="primary" className="w-full py-3 text-lg" disabled={!(campaign.status === 'active' && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date)))}>
                                         Donate Now
                                     </Button>
                                     <p className="text-xs text-center text-gray-400">
@@ -292,6 +292,20 @@ const CampaignDetails = () => {
                                     </p>
                                 </form>
                             </Card>
+                            {/* Show campaign date status messages */}
+                            {!((campaign.status === 'active') && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date))) && (
+                                <div className="mt-4 rounded-lg border border-yellow-100 bg-yellow-50 p-3 text-sm text-yellow-800">
+                                    {campaign.start_date && new Date() < new Date(campaign.start_date) && (
+                                        <div>Campaign opens on {new Date(campaign.start_date).toLocaleString()}.</div>
+                                    )}
+                                    {campaign.end_date && new Date() > new Date(campaign.end_date) && (
+                                        <div>Campaign ended on {new Date(campaign.end_date).toLocaleString()}.</div>
+                                    )}
+                                    {campaign.status !== 'active' && (
+                                        <div>Campaign is not active yet.</div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
 

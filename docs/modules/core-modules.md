@@ -6,7 +6,7 @@ Status Overview
 | # | Module | Backend | Frontend | Overall |
 |---|---|---|---|---|
 | 1 | Auth & Profile | [~] | [~] | [~] |
-| 2 | Campaign Management | [~] | [~] | [~] |
+| 2 | Campaign Management | [x] | [x] | [x] |
 | 3 | Donation Flow | [~] | [~] | [~] |
 | 4 | Fund Allocation & Disbursement | [~] | [~] | [~] |
 | 5 | Live Dashboard | [~] | [~] | [~] |
@@ -47,14 +47,15 @@ ProtectedRoute expects allowedRoles but some routes pass allowedRole, so role ga
 
 Module 2 — Campaign Management
 What it does
-NGO creates, edits, and closes campaigns with goals and deadlines.
+NGO creates, edits, and closes campaigns with goals and deadlines. Campaign date window (`start_date`/`end_date`) support added; dates are set on creation and cannot be modified by NGO edits. The backend enforces that donations are accepted only when `status === 'active'` and the current time is within the campaign window. A scheduled command reconciles statuses by date.
+
 
 Backend
 
 Routes: GET /campaigns, GET /campaigns/{id}, POST /campaigns, PUT /campaigns/{id}, PATCH /campaigns/{id}, DELETE /campaigns/{id}
 Controller: CampaignController — index [done], store [done], show [done], update [done], destroy [done], donate [done]
-Service: CampaignService — missing
-Model: Campaign.php — belongsTo user; hasMany allocations, disbursements, donations
+Service: CampaignService — done (create/update/status logic updated to persist dates and prevent NGO edits to dates)
+Model: Campaign.php — belongsTo user; hasMany allocations, disbursements, donations; casts for `start_date` and `end_date`
 
 Frontend
 
@@ -72,8 +73,7 @@ Acceptance Criteria
  Campaign shows real-time progress bar toward goal
 
 Notes
-Campaign model $fillable includes a stray "1" entry, which is a syntax error risk.
-Campaigns table does not include a deadline column. [?]
+Campaign model `$fillable` updated to include `start_date` and `end_date`. A migration was added to append `start_date` and `end_date` to the `campaigns` table. NGO updates cannot modify these dates; admins may override via admin-only flows if required.
 
 Module 3 — Donation Flow
 What it does

@@ -1,6 +1,6 @@
 # Development Plan
 
-Last updated: 2026-04-23
+Last updated: 2026-06-09
 
 ## Status Legend
 - [ ] Not started
@@ -65,7 +65,10 @@ Last updated: 2026-04-23
 - Services layer structure: app/Services initialized and active across core modules
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
-## Next 3 Tasks
+## Next 6 Tasks
+- Add Start Date and End Date for Campaign where when creating a campaign need to set the Dates. Donation can only be done on the active dates. Out of Start Date and End Date campaign's status should be change accordingly. Start Date and End Date cannot be edited. (IMPLEMENTED: backend + frontend, migration, scheduler; remaining: tests & docs updated)
+- Add use case of user create account. Only donor and Ngo account can be created. 
+- Build CRUD of User, Ngo and Campaigns for Admin 
 - Build missing frontend modules for Chatbot widget 
 - Build missing frontend modules for Notifications UI
 - Implement Stripe payment integration and wire real payment intent flow into donation UX

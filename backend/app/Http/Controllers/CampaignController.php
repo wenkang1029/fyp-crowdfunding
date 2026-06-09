@@ -45,6 +45,8 @@ class CampaignController extends Controller
             'allocations' => 'sometimes|array',
             'allocations.*.purpose' => 'required_with:allocations|string|max:255',
             'allocations.*.amount' => 'required_with:allocations|numeric|min:1',
+            'start_date' => 'required|date',
+            'end_date' => 'required|date|after_or_equal:start_date',
         ]);
 
         $campaign = $this->campaignService->createForNgo($request->user(), $validated);
@@ -114,6 +116,13 @@ class CampaignController extends Controller
                     'success' => false,
                     'message' => 'Unauthorized to edit this campaign.',
                 ], 403);
+            }
+
+            if ($request->hasAny(['start_date', 'end_date'])) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Start date and end date cannot be modified after creation.',
+                ], 422);
             }
 
             $validatedData = $request->validate([
@@ -199,10 +208,10 @@ class CampaignController extends Controller
 
         $campaign = Campaign::findOrFail($id);
 
-        if ($campaign->status !== 'active') {
+        if ($campaign->status !== 'active' || !$campaign->isWithinWindow()) {
             return response()->json([
                 'success' => false,
-                'message' => 'This campaign is not accepting donations.',
+                'message' => 'This campaign is not accepting donations at this time.',
             ], 403);
         }
 

@@ -35,8 +35,8 @@ class DonationService
     {
         $campaign = Campaign::findOrFail($data['campaign_id']);
 
-        if ($campaign->status !== 'active') {
-            throw new HttpException(400, 'You can only donate to active campaigns');
+        if ($campaign->status !== 'active' || !$campaign->isWithinWindow()) {
+            throw new HttpException(403, 'You can only donate to active campaigns during the campaign dates');
         }
 
         if (isset($data['allocation_id'])) {

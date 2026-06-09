@@ -4,6 +4,8 @@
 - 2019_08_19_000000_create_failed_jobs_table.php: creates failed_jobs
 - 2019_12_14_000001_create_personal_access_tokens_table.php: creates personal_access_tokens (polymorphic tokenable)
 - 2026_04_13_073401_create_campaigns_table.php: creates campaigns, FK user_id -> users.id (cascade)
+- 2026_04_13_073401_create_campaigns_table.php: creates campaigns, FK user_id -> users.id (cascade)
+- 2026_06_09_000000_add_start_end_dates_to_campaigns_table.php: adds nullable `start_date` and `end_date` to campaigns
 - 2026_04_13_073411_create_donations_table.php: creates donations, FK user_id -> users.id (null on delete), FK campaign_id -> campaigns.id (cascade)
 - 2026_04_13_073422_create_allocations_table.php: creates allocations, FK campaign_id -> campaigns.id (cascade)
 - 2026_04_16_145313_create_disbursements_table.php: creates disbursements, FK campaign_id -> campaigns.id (cascade)
@@ -15,6 +17,7 @@
 ## Models
 - User: hasMany Campaign, Donation added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
+- Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation; now casts `start_date`/`end_date` as datetimes
 - Donation: belongsTo User; belongsTo Campaign; belongsTo Allocation
 - Allocation: belongsTo Campaign; hasMany Donation added; current_amount accessor with overall-donation redistribution
 - Disbursement: belongsTo Campaign; rejection_reason fillable added
@@ -25,6 +28,7 @@
 - AllocationController: store [done], update [done] (service-backed)
 - AuthController: register [done], login [done], logout [done], user [done] (service-backed)
 - CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support)
+- CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support). `store` now accepts `start_date`/`end_date`; `donate` enforces date-window.
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
@@ -79,9 +83,10 @@
 
 ## Services & Hooks
 - Laravel services:
+ - Laravel services:
 	- AuthService
 	- ProfileService
-	- CampaignService (NGO status toggle support)
+	- CampaignService (create now accepts start/end dates; update forbids changing dates for NGOs)
 	- DonationService (receipt PDF generation)
 	- AllocationService
 	- DisbursementService
@@ -96,7 +101,8 @@
 - React hooks:
 	- useAuthForm
 	- useCreateCampaign
-	- useDonationFlow
+	- useCreateCampaign (includes start/end date inputs)
+	- useDonationFlow (client-side blocks donations outside campaign window)
 	- useDonationReceipt
 	- useNgoCampaigns
 	- useNgoCampaignDetails

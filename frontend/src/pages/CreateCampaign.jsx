@@ -62,6 +62,28 @@ const CreateCampaign = () => {
                                 error={errors.description?.[0]} // Pass specific Laravel error
                             />
 
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                <Input
+                                    label="Start Date"
+                                    type="datetime-local"
+                                    name="start_date"
+                                    value={formData.start_date}
+                                    onChange={handleChange}
+                                    required
+                                    error={errors.start_date?.[0]}
+                                />
+
+                                <Input
+                                    label="End Date"
+                                    type="datetime-local"
+                                    name="end_date"
+                                    value={formData.end_date}
+                                    onChange={handleChange}
+                                    required
+                                    error={errors.end_date?.[0]}
+                                />
+                            </div>
+
                         </div>
 
                         <div className="mt-8 border-t border-aidwise-border pt-6">

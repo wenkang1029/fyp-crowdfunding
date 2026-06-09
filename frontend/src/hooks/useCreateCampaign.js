@@ -6,6 +6,8 @@ const initialFormData = {
     title: '',
     description: '',
     allocations: [{ purpose: '', amount: '' }],
+    start_date: '',
+    end_date: '',
 };
 
 export const useCreateCampaign = () => {
@@ -116,6 +118,19 @@ export const useCreateCampaign = () => {
                 return;
             }
 
+            // Validate dates client-side
+            if (!formData.start_date || !formData.end_date) {
+                setErrors({ global: 'Please provide both start and end dates for the campaign.' });
+                setIsLoading(false);
+                return;
+            }
+
+            if (new Date(formData.start_date) > new Date(formData.end_date)) {
+                setErrors({ global: 'Start date must be before or equal to end date.' });
+                setIsLoading(false);
+                return;
+            }
+
             const totalAllocated = getAllocationTotal(formData.allocations);
 
             const payload = {
@@ -126,6 +141,8 @@ export const useCreateCampaign = () => {
                     purpose: allocation.purpose.trim(),
                     amount: parseFloat(allocation.amount),
                 })),
+                start_date: new Date(formData.start_date).toISOString(),
+                end_date: new Date(formData.end_date).toISOString(),
             };
 
             await createCampaign(payload);
