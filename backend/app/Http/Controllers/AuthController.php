@@ -18,7 +18,10 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|min:8|confirmed',
-            'role' => 'sometimes|in:admin,ngo,donor'
+            'role' => 'required|in:ngo,donor',
+            'org_name' => 'required_if:role,ngo|nullable|string|max:255',
+            'org_reg_number' => 'required_if:role,ngo|nullable|string|max:255',
+            'org_description' => 'nullable|string',
         ]);
 
         $result = $this->authService->register($validated);

@@ -57,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Admin Specific Routes
     Route::get('/admin/users', [\App\Http\Controllers\AdminUserController::class, 'index']);
+    Route::post('/admin/users', [\App\Http\Controllers\AdminUserController::class, 'store']);
     Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminUserController::class, 'destroy']);
     Route::get('/admin/settings', [\App\Http\Controllers\SettingController::class, 'index']);
     Route::post('/admin/settings', [\App\Http\Controllers\SettingController::class, 'store']);

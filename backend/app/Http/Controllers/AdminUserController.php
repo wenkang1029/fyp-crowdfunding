@@ -40,4 +40,38 @@ class AdminUserController extends Controller
             'message' => 'User account deleted successfully'
         ], 200);
     }
+
+    // 3. Create a new user (Admin Only)
+    public function store(Request $request)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized. Only Admins can manage accounts.'], 403);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|unique:users',
+            'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:admin,ngo,donor',
+            'org_name' => 'required_if:role,ngo|nullable|string|max:255',
+            'org_reg_number' => 'required_if:role,ngo|nullable|string|max:255',
+            'org_description' => 'nullable|string',
+        ]);
+
+        $user = User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => \Illuminate\Support\Facades\Hash::make($validated['password']),
+            'role' => $validated['role'],
+            'org_name' => $validated['role'] === 'ngo' ? $validated['org_name'] : null,
+            'org_reg_number' => $validated['role'] === 'ngo' ? $validated['org_reg_number'] : null,
+            'org_description' => $validated['role'] === 'ngo' ? $validated['org_description'] : null,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+            'message' => 'User created successfully',
+        ], 201);
+    }
 }

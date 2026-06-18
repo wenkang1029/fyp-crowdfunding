@@ -13,20 +13,16 @@
 - 2026_04_17_033254_add_allocation_id_to_donations_table.php: adds FK allocation_id -> allocations.id (null on delete)
 - 2026_04_17_065549_create_notifications_table.php: creates notifications (polymorphic notifiable)
 - 2026_04_23_120000_add_rejection_reason_to_disbursements_table.php: adds nullable rejection_reason to disbursements
+- 2026_06_18_100815_add_org_details_to_users_table.php: adds nullable org_name, org_reg_number, org_description to users table
 
 ## Models
-- User: hasMany Campaign, Donation added
+- User: hasMany Campaign, Donation added; org_name, org_reg_number, org_description fillable fields added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
-- Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation; now casts `start_date`/`end_date` as datetimes
-- Donation: belongsTo User; belongsTo Campaign; belongsTo Allocation
-- Allocation: belongsTo Campaign; hasMany Donation added; current_amount accessor with overall-donation redistribution
-- Disbursement: belongsTo Campaign; rejection_reason fillable added
-- Setting: no relationships
 
 ## Controllers
-- AdminUserController: index [done], destroy [done]
+- AdminUserController: index [done], destroy [done], store [done] (service-backed user creation)
 - AllocationController: store [done], update [done] (service-backed)
-- AuthController: register [done], login [done], logout [done], user [done] (service-backed)
+- AuthController: register [done], login [done], logout [done], user [done] (service-backed, public registration restricted to donor/ngo and validates NGO details)
 - CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support)
 - CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support). `store` now accepts `start_date`/`end_date`; `donate` enforces date-window.
 - ChatbotController: handleWebhook [done]
@@ -46,7 +42,7 @@
 - Allocations: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}
 - Disbursements: POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status
 - Dashboards: GET /dashboard/ngo, GET /dashboard/admin, GET /dashboard/ngo/disbursements
-- Admin Users: GET /admin/users, DELETE /admin/users/{id}
+- Admin Users: GET /admin/users, POST /admin/users, DELETE /admin/users/{id}
 - Settings: GET /admin/settings, POST /admin/settings
 - Reports: GET /campaigns/{campaign_id}/reports/allocations, GET /campaigns/{campaign_id}/reports/disbursements
 - Notifications: GET /notifications, PATCH /notifications/{id}/read, PATCH /notifications/read-all
@@ -55,6 +51,7 @@
 ## Frontend Pages
 - Home.jsx: public campaign gallery and hero layout [done]
 - Login.jsx: login form and role-based redirect [done]
+- Register.jsx: public donor and NGO registration form [done]
 - CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, and equal-split labeling [done]
 - CreateCampaign.jsx: NGO campaign creation form [done]
 - NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal, and view action [done]
@@ -101,6 +98,7 @@
 	- dashboardService
 - React hooks:
 	- useAuthForm
+	- useRegisterForm
 	- useCreateCampaign
 	- useDonationFlow (client-side blocks donations outside campaign window)
 	- useDonationReceipt

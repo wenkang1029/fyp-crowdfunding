@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
@@ -63,6 +64,14 @@ const Login = () => {
                         >
                             {isLoading ? 'Signing in...' : 'Sign In'}
                         </Button>
+
+                        {/* Redirect to Register */}
+                        <p className="text-center text-sm text-gray-500 mt-4">
+                            Don't have an account?{' '}
+                            <Link to="/register" className="font-semibold text-aidwise-blue hover:underline">
+                                Sign Up
+                            </Link>
+                        </p>
 
                     </form>
                 </Card>

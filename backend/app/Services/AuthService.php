@@ -15,6 +15,9 @@ class AuthService
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
             'role' => $data['role'] ?? 'donor',
+            'org_name' => ($data['role'] ?? 'donor') === 'ngo' ? ($data['org_name'] ?? null) : null,
+            'org_reg_number' => ($data['role'] ?? 'donor') === 'ngo' ? ($data['org_reg_number'] ?? null) : null,
+            'org_description' => ($data['role'] ?? 'donor') === 'ngo' ? ($data['org_description'] ?? null) : null,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;

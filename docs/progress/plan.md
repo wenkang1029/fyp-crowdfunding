@@ -67,8 +67,8 @@ Last updated: 2026-06-09
 
 ## Next 6 Tasks
 - [x] Add Start Date and End Date for Campaign where when creating a campaign need to set the Dates. Donation can only be done on the active dates. Out of Start Date and End Date campaign's status should be change accordingly. Start Date and End Date cannot be edited. (COMPLETED: migration, model casts, validations, scheduler command, client validations)
-- [ ] Add use case of user create account. Only donor and Ngo account can be created. 
-- [ ] Build CRUD of User, Ngo and Campaigns for Admin 
+- [x] Add use case of user create account. Only donor and Ngo account can be created. Admin account creation will be done by the Admin. (COMPLETED: custom hook, Register page with Donor/NGO tabs, conditional NGO details, backend validation & authService registration, AdminUserController endpoint for admin-driven user creation)
+- [ ] Build RUD of User, Ngo and Campaigns for Admin. For Update will be update the status for user, ngo, and campaigns. The status will block them to perform actions and some other features accordingly. 
 - [x] Build missing frontend modules for Chatbot widget (COMPLETED: ChatbotWidget component, useChatbot hook, chatbotService, integrated in CampaignDetails page)
 - [ ] Build missing frontend modules for Notifications UI
 - [ ] Implement Stripe payment integration and wire real payment intent flow into donation UX
