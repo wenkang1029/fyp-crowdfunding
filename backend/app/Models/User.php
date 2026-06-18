@@ -26,6 +26,7 @@ class User extends Authenticatable
         'org_name',
         'org_reg_number',
         'org_description',
+        'status',
     ];
 
     /**

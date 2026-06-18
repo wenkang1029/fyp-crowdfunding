@@ -33,6 +33,9 @@ class CampaignService
 
         return Campaign::with('user')
             ->where('status', 'active')
+            ->whereHas('user', function ($query) {
+                $query->where('status', '!=', 'suspended');
+            })
             ->orderBy('created_at', 'desc')
             ->get();
     }

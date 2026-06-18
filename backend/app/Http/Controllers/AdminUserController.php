@@ -74,4 +74,30 @@ class AdminUserController extends Controller
             'message' => 'User created successfully',
         ], 201);
     }
+
+    // 4. Update status of a specific user (Admin Only)
+    public function updateStatus(Request $request, $id)
+    {
+        if ($request->user()->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized. Only Admins can manage status.'], 403);
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:active,suspended',
+        ]);
+
+        $user = User::findOrFail($id);
+
+        if ($user->role === 'admin' && $validated['status'] === 'suspended') {
+            return response()->json(['message' => 'You cannot suspend an admin account.'], 400);
+        }
+
+        $user->update(['status' => $validated['status']]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $user,
+            'message' => 'User status updated successfully.',
+        ], 200);
+    }
 }

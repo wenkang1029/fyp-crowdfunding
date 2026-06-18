@@ -40,3 +40,23 @@ export const updateProfile = async (payload) => {
     const response = await axiosInstance.patch('/profile', payload);
     return extractData(response);
 };
+
+export const getAllUsers = async () => {
+    const response = await axiosInstance.get('/admin/users');
+    return extractData(response);
+};
+
+export const updateUserStatus = async (userId, status) => {
+    const response = await axiosInstance.patch(`/admin/users/${userId}/status`, { status });
+    return extractData(response);
+};
+
+export const deleteUser = async (userId) => {
+    const response = await axiosInstance.delete(`/admin/users/${userId}`);
+    return extractData(response);
+};
+
+export const adminCreateUser = async (payload) => {
+    const response = await axiosInstance.post('/admin/users', payload);
+    return extractData(response);
+};

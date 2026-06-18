@@ -14,17 +14,18 @@
 - 2026_04_17_065549_create_notifications_table.php: creates notifications (polymorphic notifiable)
 - 2026_04_23_120000_add_rejection_reason_to_disbursements_table.php: adds nullable rejection_reason to disbursements
 - 2026_06_18_100815_add_org_details_to_users_table.php: adds nullable org_name, org_reg_number, org_description to users table
+- 2026_06_18_200000_add_status_to_users_table.php: adds status column (default active) to users table
+- EnsureUserIsActive.php: request-interception middleware to enforce status-based account suspension
 
 ## Models
 - User: hasMany Campaign, Donation added; org_name, org_reg_number, org_description fillable fields added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
 
 ## Controllers
-- AdminUserController: index [done], destroy [done], store [done] (service-backed user creation)
+- AdminUserController: index [done], destroy [done], store [done] (service-backed user creation), updateStatus [done] (suspend/activate user)
 - AllocationController: store [done], update [done] (service-backed)
 - AuthController: register [done], login [done], logout [done], user [done] (service-backed, public registration restricted to donor/ngo and validates NGO details)
-- CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support)
-- CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done], donate [done] (service-backed, NGO status toggle support). `store` now accepts `start_date`/`end_date`; `donate` enforces date-window.
+- CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done] (admin support), donate [done] (service-backed, NGO status toggle support, start/end dates support, blocks suspended organizers)
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
@@ -42,7 +43,7 @@
 - Allocations: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}
 - Disbursements: POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status
 - Dashboards: GET /dashboard/ngo, GET /dashboard/admin, GET /dashboard/ngo/disbursements
-- Admin Users: GET /admin/users, POST /admin/users, DELETE /admin/users/{id}
+- Admin Users: GET /admin/users, POST /admin/users, PATCH /admin/users/{id}/status, DELETE /admin/users/{id}
 - Settings: GET /admin/settings, POST /admin/settings
 - Reports: GET /campaigns/{campaign_id}/reports/allocations, GET /campaigns/{campaign_id}/reports/disbursements
 - Notifications: GET /notifications, PATCH /notifications/{id}/read, PATCH /notifications/read-all

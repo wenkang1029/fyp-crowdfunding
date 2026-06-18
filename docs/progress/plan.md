@@ -11,9 +11,9 @@ Last updated: 2026-06-09
 ## Phase 1 — Core Modules
 
 ### 1. Auth & Profile
-- [x] Backend: AuthService and ProfileService added; AuthController/ProfileController now thin and service-backed; /user endpoint response standardized
-- [x] Frontend: authService + useAuthForm hook added; Login/AuthContext now use service/hook layers
-- Notes: Registration only covers name/email/password/role; no org details
+- [x] Backend: AuthService and ProfileService added; AuthController/ProfileController now thin and service-backed; /user endpoint response standardized; AdminUserController store endpoint added for admin-driven user creation
+- [x] Frontend: authService + useAuthForm + useRegisterForm hooks added; Login/Register/AuthContext now use service/hook layers
+- Notes: Public registration restricted to donor and NGO roles; NGO details (org_name, org_reg_number, org_description) persisted in users table; Admin user creation supported via secure endpoint.
 
 ### 2. Campaign Management
 - [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed; NGO campaign details endpoint added
@@ -67,8 +67,8 @@ Last updated: 2026-06-09
 
 ## Next 6 Tasks
 - [x] Add Start Date and End Date for Campaign where when creating a campaign need to set the Dates. Donation can only be done on the active dates. Out of Start Date and End Date campaign's status should be change accordingly. Start Date and End Date cannot be edited. (COMPLETED: migration, model casts, validations, scheduler command, client validations)
-- [x] Add use case of user create account. Only donor and Ngo account can be created. Admin account creation will be done by the Admin. (COMPLETED: custom hook, Register page with Donor/NGO tabs, conditional NGO details, backend validation & authService registration, AdminUserController endpoint for admin-driven user creation)
-- [ ] Build RUD of User, Ngo and Campaigns for Admin. For Update will be update the status for user, ngo, and campaigns. The status will block them to perform actions and some other features accordingly. 
-- [x] Build missing frontend modules for Chatbot widget (COMPLETED: ChatbotWidget component, useChatbot hook, chatbotService, integrated in CampaignDetails page)
+- [x] Add use case of user create account. Only donor and Ngo account can be created. Admin account creation will be done by the Admin. (COMPLETED: custom register hook, public Register page with Donor/NGO fields, backend validations, Admin UserController user creation endpoint)
+- [x] Build RUD of User, Ngo and Campaigns for Admin. For Update will be update the status for user, ngo, and campaigns. The status will block them to perform actions and some other features accordingly. (COMPLETED: status migration, active-user middleware gating, updateStatus endpoint, AdminDashboard tabbed view, user suspension & campaign management tools)
+- [x] Build missing frontend modules for Chatbot widget (COMPLETED: ChatbotWidget component, useChatbot hook, chatbotService, integrated globally via Navbar)
 - [ ] Build missing frontend modules for Notifications UI
 - [ ] Implement Stripe payment integration and wire real payment intent flow into donation UX

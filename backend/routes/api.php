@@ -26,7 +26,7 @@ Route::post('/chatbot/webhook', [\App\Http\Controllers\ChatbotController::class,
 | PROTECTED ROUTES (Requires Login / Token)
 |--------------------------------------------------------------------------
 */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'active'])->group(function () {
     
     // Auth & Profile
     Route::post('/logout', [AuthController::class, 'logout']);
@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
     // Admin Specific Routes
     Route::get('/admin/users', [\App\Http\Controllers\AdminUserController::class, 'index']);
     Route::post('/admin/users', [\App\Http\Controllers\AdminUserController::class, 'store']);
+    Route::patch('/admin/users/{id}/status', [\App\Http\Controllers\AdminUserController::class, 'updateStatus']);
     Route::delete('/admin/users/{id}', [\App\Http\Controllers\AdminUserController::class, 'destroy']);
     Route::get('/admin/settings', [\App\Http\Controllers\SettingController::class, 'index']);
     Route::post('/admin/settings', [\App\Http\Controllers\SettingController::class, 'store']);

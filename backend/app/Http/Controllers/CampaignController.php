@@ -98,7 +98,7 @@ class CampaignController extends Controller
 
         if ($user->role === 'admin') {
             $validatedData = $request->validate([
-                'status' => 'required|in:active,rejected,pending',
+                'status' => 'required|in:active,rejected,pending,completed',
             ]);
 
             $updatedCampaign = $this->campaignService->updateStatus($campaign, $validatedData['status']);
@@ -171,19 +171,21 @@ class CampaignController extends Controller
         ], 403);
     }
 
-    // 6. Delete Campaign (NGO Only, Must Own Campaign)
+    // 6. Delete Campaign (NGO or Admin)
     public function destroy(Request $request, $id)
     {
-        if ($request->user()->role !== 'ngo') {
+        $user = $request->user();
+
+        if ($user->role !== 'ngo' && $user->role !== 'admin') {
             return response()->json([
                 'success' => false,
-                'message' => 'Only NGOs can delete campaigns.',
+                'message' => 'Unauthorized.',
             ], 403);
         }
 
         $campaign = Campaign::findOrFail($id);
 
-        if ($campaign->user_id !== $request->user()->id) {
+        if ($user->role === 'ngo' && $campaign->user_id !== $user->id) {
             return response()->json([
                 'success' => false,
                 'message' => 'Unauthorized. You can only delete your own campaigns.',
@@ -212,6 +214,13 @@ class CampaignController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'This campaign is not accepting donations at this time.',
+            ], 403);
+        }
+
+        if ($campaign->user && $campaign->user->status === 'suspended') {
+            return response()->json([
+                'success' => false,
+                'message' => 'This campaign is currently suspended because the organizer account is suspended.',
             ], 403);
         }
 

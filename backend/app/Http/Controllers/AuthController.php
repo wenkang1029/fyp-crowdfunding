@@ -50,6 +50,13 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if (isset($result['user']) && $result['user']->status === 'suspended') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Your account is suspended. Please contact the administrator.',
+            ], 403);
+        }
+
         return response()->json([
             'success' => true,
             'data' => $result,
