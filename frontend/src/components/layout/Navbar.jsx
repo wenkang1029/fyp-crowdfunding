@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
 import { LogOut, LayoutDashboard } from 'lucide-react';
+import ChatbotWidget from '../ui/ChatbotWidget';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -56,6 +57,8 @@ const Navbar = () => {
                     </div>
                 )}
             </div>
+            {/* Floating Chatbot Widget */}
+            <ChatbotWidget />
         </nav>
     );
 };

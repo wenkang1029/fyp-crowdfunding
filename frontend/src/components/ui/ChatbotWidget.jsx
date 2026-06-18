@@ -27,8 +27,8 @@ const ChatbotWidget = () => {
     return (
         <div className="fixed bottom-6 right-6 z-50">
             {isOpen && (
-                <div className="w-[320px] sm:w-[360px] bg-white rounded-2xl shadow-apple border border-aidwise-border overflow-hidden mb-4">
-                    <div className="flex items-center justify-between px-4 py-3 bg-aidwise-blue text-white">
+                <div className="w-[320px] sm:w-[360px] h-[500px] max-h-[75vh] flex flex-col bg-white rounded-2xl shadow-apple border border-aidwise-border overflow-hidden mb-4">
+                    <div className="flex items-center justify-between px-4 py-3 bg-aidwise-blue text-white flex-shrink-0">
                         <div>
                             <p className="text-sm font-semibold">AidWise Assistant</p>
                             <p className="text-[11px] text-blue-100">FAQ help for donors</p>
@@ -43,7 +43,7 @@ const ChatbotWidget = () => {
                         </button>
                     </div>
 
-                    <div ref={scrollRef} className="max-h-80 overflow-y-auto px-4 py-3 space-y-3 bg-aidwise-light">
+                    <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-3 bg-aidwise-light">
                         {messages.map((message) => (
                             <div
                                 key={message.id}
@@ -69,7 +69,7 @@ const ChatbotWidget = () => {
                         )}
                     </div>
 
-                    <div className="px-4 py-3 border-t border-aidwise-border bg-white">
+                    <div className="px-4 py-3 border-t border-aidwise-border bg-white flex-shrink-0">
                         {error && (
                             <p className="text-xs text-red-500 mb-2">
                                 {error}

@@ -74,6 +74,7 @@
 - ui/Button.jsx: styled button
 - ui/Card.jsx: card container
 - ui/CampaignCard.jsx: campaign summary card
+- ui/ChatbotWidget.jsx: interactive AI chatbot widget for FAQs and active campaigns queries
 - ui/CheckoutModal.jsx: mock payment flow modal
 - ui/DonationLedger.jsx: donation ledger table
 - ui/Input.jsx: styled input
@@ -83,7 +84,6 @@
 
 ## Services & Hooks
 - Laravel services:
- - Laravel services:
 	- AuthService
 	- ProfileService
 	- CampaignService (create now accepts start/end dates; update forbids changing dates for NGOs)
@@ -94,6 +94,7 @@
 - React services:
 	- authService
 	- campaignService
+	- chatbotService
 	- donationService (receipt download)
 	- allocationService
 	- disbursementService
@@ -101,13 +102,13 @@
 - React hooks:
 	- useAuthForm
 	- useCreateCampaign
-	- useCreateCampaign (includes start/end date inputs)
 	- useDonationFlow (client-side blocks donations outside campaign window)
 	- useDonationReceipt
 	- useNgoCampaigns
 	- useNgoCampaignDetails
 	- useNgoDisbursements
 	- useNgoDashboardData
+	- useChatbot
 	- useAuth (existing in AuthContext.jsx)
 
 ## Missing — Not Started Yet

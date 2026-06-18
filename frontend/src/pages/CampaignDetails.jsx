@@ -8,7 +8,6 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Navbar from '../components/layout/Navbar';
 import CheckoutModal from '../components/ui/CheckoutModal';
-import ChatbotWidget from '../components/ui/ChatbotWidget';
 
 const CampaignDetails = () => {
     const { id } = useParams();
@@ -359,8 +358,6 @@ const CampaignDetails = () => {
                     </Button>
                 </div>
             </Modal>
-
-            <ChatbotWidget />
 
         </div>
     );

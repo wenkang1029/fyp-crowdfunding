@@ -18,7 +18,7 @@ Last updated: 2026-06-09
 ### 2. Campaign Management
 - [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed; NGO campaign details endpoint added
 - [x] Frontend: campaignService + useCreateCampaign hook added; Home/CampaignDetails/CreateCampaign/AdminDashboard/NgoDashboard integrated with service/hook; NGO campaign details page added
-- Notes: Campaign deadline not present in schema
+- Notes: Campaign start/end dates schema and validation implemented
 
 ### 3. Donation Flow
 - [~] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations; PDF receipt download added; missing: GET /donations/{id} and allocation list endpoint for donation preference UI
@@ -36,9 +36,9 @@ Last updated: 2026-06-09
 - Notes: NgoDashboard hardcoded donors removed (computed from donation data)
 
 ### 6. AI Chatbot
-- [~] Backend: ChatbotController webhook exists; no service layer
-- [ ] Frontend: No chatbot widget/components/services
-- Notes: Frontend integration missing
+- [x] Backend: ChatbotController webhook exists
+- [x] Frontend: chatbotService, useChatbot hook, and ChatbotWidget component implemented and integrated globally via Navbar
+- Notes: Local FAQ fallback matches with fallback dialogflow webhook for database active campaigns query
 
 ### 7. Notifications
 - [~] Backend: NotificationController index/markAsRead/markAllAsRead exist; CampaignApprovedNotification exists
@@ -66,9 +66,9 @@ Last updated: 2026-06-09
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
 
 ## Next 6 Tasks
-- Add Start Date and End Date for Campaign where when creating a campaign need to set the Dates. Donation can only be done on the active dates. Out of Start Date and End Date campaign's status should be change accordingly. Start Date and End Date cannot be edited. (IMPLEMENTED: backend + frontend, migration, scheduler; remaining: tests & docs updated)
-- Add use case of user create account. Only donor and Ngo account can be created. 
-- Build CRUD of User, Ngo and Campaigns for Admin 
-- Build missing frontend modules for Chatbot widget 
-- Build missing frontend modules for Notifications UI
-- Implement Stripe payment integration and wire real payment intent flow into donation UX
+- [x] Add Start Date and End Date for Campaign where when creating a campaign need to set the Dates. Donation can only be done on the active dates. Out of Start Date and End Date campaign's status should be change accordingly. Start Date and End Date cannot be edited. (COMPLETED: migration, model casts, validations, scheduler command, client validations)
+- [ ] Add use case of user create account. Only donor and Ngo account can be created. 
+- [ ] Build CRUD of User, Ngo and Campaigns for Admin 
+- [x] Build missing frontend modules for Chatbot widget (COMPLETED: ChatbotWidget component, useChatbot hook, chatbotService, integrated in CampaignDetails page)
+- [ ] Build missing frontend modules for Notifications UI
+- [ ] Implement Stripe payment integration and wire real payment intent flow into donation UX
