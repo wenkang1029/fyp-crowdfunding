@@ -10,10 +10,10 @@ const Modal = ({ isOpen, onClose, title, children }) => {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm transition-opacity">
             
             {/* The actual white modal box */}
-            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all">
+            <div className="bg-white rounded-3xl shadow-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden transform transition-all">
                 
                 {/* Modal Header */}
-                <div className="flex justify-between items-center p-6 border-b border-gray-100">
+                <div className="flex justify-between items-center p-6 border-b border-gray-100 flex-shrink-0">
                     <h3 className="text-xl font-extrabold text-aidwise-text tracking-tight">{title}</h3>
                     <button 
                         onClick={onClose} 
@@ -24,7 +24,7 @@ const Modal = ({ isOpen, onClose, title, children }) => {
                 </div>
                 
                 {/* Modal Content (Passed in from the parent page) */}
-                <div className="p-6">
+                <div className="p-6 overflow-y-auto flex-1">
                     {children}
                 </div>
 
