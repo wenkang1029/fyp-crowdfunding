@@ -70,5 +70,5 @@ Last updated: 2026-06-09
 - [x] Add use case of user create account. Only donor and Ngo account can be created. Admin account creation will be done by the Admin. (COMPLETED: custom register hook, public Register page with Donor/NGO fields, backend validations, Admin UserController user creation endpoint)
 - [x] Build RUD of User, Ngo and Campaigns for Admin. For Update will be update the status for user, ngo, and campaigns. The status will block them to perform actions and some other features accordingly. (COMPLETED: status migration, active-user middleware gating, updateStatus endpoint, AdminDashboard tabbed view, user suspension & campaign management tools)
 - [x] Build missing frontend modules for Chatbot widget (COMPLETED: ChatbotWidget component, useChatbot hook, chatbotService, integrated globally via Navbar)
-- [ ] Build missing frontend modules for Notifications UI
+- [x] Build missing frontend modules for Notifications UI (COMPLETED: API service, useNotifications hook, glassmorphism NotificationDropdown component, Navbar integration)
 - [ ] Implement Stripe payment integration and wire real payment intent flow into donation UX

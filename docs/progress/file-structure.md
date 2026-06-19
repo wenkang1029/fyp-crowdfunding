@@ -58,6 +58,13 @@
 |   |   |   |-- User.php  # User model
 |   |   |-- Notifications/
 |   |   |   |-- CampaignApprovedNotification.php  # NGO campaign approval notification
+|   |   |   |-- CampaignGoalReachedNotification.php  # NGO goal completion notification
+|   |   |   |-- DisbursementDecidedNotification.php  # NGO payout approval/rejection notification
+|   |   |   |-- DonationReceivedNotification.php  # NGO donation received notification
+|   |   |   |-- DonationSuccessNotification.php  # Donor donation success notification
+|   |   |   |-- NewCampaignSubmittedNotification.php  # Admin campaign submitted notification
+|   |   |   |-- NewDisbursementRequestNotification.php  # Admin payout requested notification
+|   |   |   |-- NewNgoRegisteredNotification.php  # Admin NGO registered notification
 |   |   |-- Providers/
 |   |   |   |-- AppServiceProvider.php  # Application service bindings
 |   |       |-- NgoCampaigns.jsx  # NGO campaigns list and edit modal
@@ -126,7 +133,10 @@
 |   |   |-- CreatesApplication.php  # Test app bootstrap
 |   |   |-- TestCase.php  # Base test case
 |   |   |-- Feature/
+|   |   |   |-- AdminManagementTest.php  # Admin RUD and status management tests
+|   |   |   |-- BackendNotificationTest.php  # Notification event triggers tests
 |   |   |   |-- ExampleTest.php  # Feature test stub
+|   |   |   |-- RegistrationTest.php  # User registration workflow tests
 |   |   |-- Unit/
 |   |       |-- ExampleTest.php  # Unit test stub
 |-- docs/
@@ -179,6 +189,7 @@
 |   |   |       |-- DonationLedger.jsx  # Donation history table
 |   |   |       |-- Input.jsx  # Styled text input
 |   |   |       |-- Modal.jsx  # Generic modal
+|   |   |       |-- NotificationDropdown.jsx  # Floating bell dropdown
 |   |   |       |-- StatCard.jsx  # Metric card
 |   |   |       |-- Textarea.jsx  # Styled textarea
 |   |   |-- context/
@@ -187,6 +198,14 @@
 |   |   |   |-- useNgoCampaigns.js  # NGO campaigns list logic and status/payout actions
 |   |   |   |-- useNgoCampaignDetails.js  # NGO campaign details data loader
 |   |   |   |-- useDonationReceipt.js  # Donation receipt download logic
+|   |   |   |-- useNotifications.js  # Notification loader and clear triggers hook
+|   |   |-- services/
+|   |   |   |-- authService.js  # Authentication API client
+|   |   |   |-- campaignService.js  # Campaign API client
+|   |   |   |-- chatbotService.js  # Chatbot mock API client
+|   |   |   |-- dashboardService.js  # Dashboard statistics API client
+|   |   |   |-- donationService.js  # Donation and receipt API client
+|   |   |   |-- notificationService.js  # Notifications API client
 |   |   |-- pages/
 |   |       |-- AdminDashboard.jsx  # Admin campaign moderation UI
 |   |       |-- AdminDisbursements.jsx  # Admin payout moderation UI

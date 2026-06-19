@@ -20,6 +20,15 @@
 ## Models
 - User: hasMany Campaign, Donation added; org_name, org_reg_number, org_description fillable fields added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
+- Notification Database Classes:
+	- CampaignApprovedNotification: NGO campaign approval alert
+	- CampaignGoalReachedNotification: NGO fundraising goal hit alert
+	- DonationReceivedNotification: NGO donation incoming alert
+	- DonationSuccessNotification: Donor transaction success alert
+	- NewNgoRegisteredNotification: Admin new NGO verification alert
+	- NewCampaignSubmittedNotification: Admin new campaign moderation alert
+	- NewDisbursementRequestNotification: Admin new payout request alert
+	- DisbursementDecidedNotification: NGO payout decision alert
 
 ## Controllers
 - AdminUserController: index [done], destroy [done], store [done] (service-backed user creation), updateStatus [done] (suspend/activate user)
@@ -77,6 +86,7 @@
 - ui/DonationLedger.jsx: donation ledger table
 - ui/Input.jsx: styled input
 - ui/Modal.jsx: generic modal
+- ui/NotificationDropdown.jsx: bell trigger with unread badge, relative times, click-outside auto close, and optimistic card clear actions [done]
 - ui/StatCard.jsx: metric card
 - ui/Textarea.jsx: styled textarea
 
@@ -97,6 +107,7 @@
 	- allocationService
 	- disbursementService
 	- dashboardService
+	- notificationService
 - React hooks:
 	- useAuthForm
 	- useRegisterForm
@@ -108,6 +119,7 @@
 	- useNgoDisbursements
 	- useNgoDashboardData
 	- useChatbot
+	- useNotifications
 	- useAuth (existing in AuthContext.jsx)
 
 ## Missing — Not Started Yet
