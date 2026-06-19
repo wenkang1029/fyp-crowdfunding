@@ -4,6 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
 import { LogOut, LayoutDashboard } from 'lucide-react';
 import ChatbotWidget from '../ui/ChatbotWidget';
+import NotificationDropdown from '../ui/NotificationDropdown';
 
 const Navbar = () => {
     const { user, logout } = useAuth();
@@ -40,6 +41,8 @@ const Navbar = () => {
                             <LayoutDashboard size={16} />
                             <span className="hidden sm:inline">Dashboard</span>
                         </Link>
+
+                        <NotificationDropdown />
 
                         <button 
                             onClick={handleLogout}
