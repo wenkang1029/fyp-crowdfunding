@@ -17,7 +17,7 @@ const formatRelativeTime = (dateString) => {
     return `${diffDays}d ago`;
 };
 
-const NotificationDropdown = () => {
+const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
     const { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications } = useNotifications();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -67,25 +67,43 @@ const NotificationDropdown = () => {
         }
     };
 
+    // Responsive class logic for trigger button
+    const buttonClass = isSidebar
+        ? `${isOpen ? 'bg-blue-50 text-aidwise-blue border-aidwise-blue/10' : 'bg-aidwise-light text-aidwise-text hover:bg-blue-50'} border border-transparent w-full flex items-center ${isCollapsed ? 'justify-center p-2.5' : 'gap-3 px-3 py-2.5'} rounded-xl transition-all active:scale-95 focus:outline-none font-semibold text-sm`
+        : `${isOpen ? 'bg-blue-50 text-aidwise-blue' : 'bg-aidwise-light text-aidwise-text hover:bg-blue-50'} relative flex items-center justify-center p-2.5 rounded-xl transition-all active:scale-95 focus:outline-none`;
+
+    // Responsive class logic for dropdown positioning
+    const dropdownClass = isSidebar
+        ? "absolute left-full top-0 ml-2 w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md border border-gray-100 shadow-2xl rounded-2xl z-50 overflow-hidden transform origin-top-left transition-all"
+        : "absolute right-0 mt-3 w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md border border-gray-100 shadow-2xl rounded-2xl z-50 overflow-hidden transform origin-top-right transition-all";
+
     return (
         <div className="relative" ref={dropdownRef}>
             {/* Bell Trigger Button */}
-            <button
-                onClick={handleToggle}
-                className="relative flex items-center justify-center p-2.5 bg-aidwise-light hover:bg-blue-50 text-aidwise-text rounded-xl transition-all active:scale-95 focus:outline-none"
-                aria-label="Notifications"
-            >
-                <Bell size={18} />
-                {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white shadow-sm animate-pulse">
-                        {unreadCount}
-                    </span>
+            <button onClick={handleToggle} className={buttonClass} aria-label="Notifications">
+                <div className="relative flex items-center justify-center">
+                    <Bell size={isSidebar ? 20 : 18} className="shrink-0" />
+                    {unreadCount > 0 && (isCollapsed || !isSidebar) && (
+                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white shadow-sm animate-pulse">
+                            {unreadCount}
+                        </span>
+                    )}
+                </div>
+                {isSidebar && !isCollapsed && (
+                    <>
+                        <span className="whitespace-nowrap flex-1 text-left">Notifications</span>
+                        {unreadCount > 0 && (
+                            <span className="flex h-5 px-1.5 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white ml-auto shrink-0 shadow-sm animate-pulse">
+                                {unreadCount}
+                            </span>
+                        )}
+                    </>
                 )}
             </button>
 
             {/* Dropdown Menu */}
             {isOpen && (
-                <div className="absolute right-0 mt-3 w-80 max-w-[calc(100vw-2rem)] bg-white/95 backdrop-blur-md border border-gray-100 shadow-2xl rounded-2xl z-50 overflow-hidden transform origin-top-right transition-all">
+                <div className={dropdownClass}>
                     
                     {/* Header */}
                     <div className="flex justify-between items-center p-4 border-b border-gray-50">

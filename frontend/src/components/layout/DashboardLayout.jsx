@@ -3,6 +3,7 @@ import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
 import { LayoutDashboard, LogOut, ChevronLeft, ChevronRight, Megaphone, Wallet } from 'lucide-react';
+import NotificationDropdown from '../ui/NotificationDropdown';
 
 const DashboardLayout = ({ children }) => {
     const { user, logout } = useAuth();
@@ -45,6 +46,11 @@ const DashboardLayout = ({ children }) => {
                     >
                         {isCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
                     </button>
+                </div>
+
+                {/* Notifications (Always visible outside scroll container to prevent overflow clipping) */}
+                <div className="px-3 mb-2 shrink-0">
+                    <NotificationDropdown isSidebar={true} isCollapsed={isCollapsed} />
                 </div>
                 
                 {/* FIX 2: Added flex-1 to this nav so it pushes the bottom profile section down, but stays within the screen height */}
