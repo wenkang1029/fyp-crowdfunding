@@ -22,6 +22,13 @@ class AuthService
 
         $token = $user->createToken('auth_token')->plainTextToken;
 
+        if ($user->role === 'ngo') {
+            $admins = User::where('role', 'admin')->get();
+            foreach ($admins as $admin) {
+                $admin->notify(new \App\Notifications\NewNgoRegisteredNotification($user->org_name ?? $user->name));
+            }
+        }
+
         return [
             'user' => $user,
             'token' => $token,

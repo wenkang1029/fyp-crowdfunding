@@ -13,7 +13,9 @@ class DonationService
 {
     public function donateToCampaign(Campaign $campaign, float $amount, ?User $user = null, ?string $paymentMethod = null, ?string $transactionId = null, ?string $donorName = null): Donation
     {
-        return DB::transaction(function () use ($campaign, $amount, $user, $paymentMethod, $transactionId, $donorName) {
+        $previousAmount = $campaign->current_amount ?? 0.0;
+
+        $donation = DB::transaction(function () use ($campaign, $amount, $user, $paymentMethod, $transactionId, $donorName) {
             $donation = Donation::create([
                 'user_id' => $user?->id,
                 'campaign_id' => $campaign->id,
@@ -29,6 +31,10 @@ class DonationService
 
             return $donation;
         });
+
+        $this->triggerDonationNotifications($campaign, $amount, $user, $previousAmount);
+
+        return $donation;
     }
 
     public function createDonation(array $data, ?User $user = null): array
@@ -49,6 +55,8 @@ class DonationService
             }
         }
 
+        $previousAmount = $campaign->current_amount ?? 0.0;
+
         $donation = DB::transaction(function () use ($data, $campaign, $user) {
             $donation = Donation::create([
                 'user_id' => $user?->id,
@@ -67,10 +75,34 @@ class DonationService
             return $donation;
         });
 
+        $this->triggerDonationNotifications($campaign, $data['amount'], $user, $previousAmount);
+
         return [
             'donation' => $donation,
             'campaign_progress' => $campaign->current_amount,
         ];
+    }
+
+    private function triggerDonationNotifications(Campaign $campaign, float $amount, ?User $user, float $previousAmount): void
+    {
+        // 1. Notify Donor if logged in
+        if ($user) {
+            $user->notify(new \App\Notifications\DonationSuccessNotification($campaign->title, $amount));
+        }
+
+        // 2. Notify NGO Organizer
+        $ngo = $campaign->user;
+        if ($ngo) {
+            $ngo->notify(new \App\Notifications\DonationReceivedNotification($campaign->title, $amount));
+        }
+
+        // 3. Notify NGO if campaign goal is reached (and wasn't reached previously)
+        $newAmount = $campaign->current_amount ?? 0.0;
+        if ($newAmount >= $campaign->target_amount && $previousAmount < $campaign->target_amount) {
+            if ($ngo) {
+                $ngo->notify(new \App\Notifications\CampaignGoalReachedNotification($campaign->title, $campaign->target_amount));
+            }
+        }
     }
 
     public function listByRole(User $user)

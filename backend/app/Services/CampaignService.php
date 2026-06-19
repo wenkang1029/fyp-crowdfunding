@@ -42,7 +42,7 @@ class CampaignService
 
     public function createForNgo(User $user, array $data): Campaign
     {
-        return DB::transaction(function () use ($user, $data) {
+        $campaign = DB::transaction(function () use ($user, $data) {
             if (isset($data['start_date']) && isset($data['end_date'])) {
                 if (strtotime($data['start_date']) > strtotime($data['end_date'])) {
                     throw new HttpException(422, 'Start date must be before or equal to end date.');
@@ -94,6 +94,14 @@ class CampaignService
 
             return $campaign->load(['allocations', 'user']);
         });
+
+        // Notify admins of new pending campaign submission
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new \App\Notifications\NewCampaignSubmittedNotification($campaign->title, $user->name));
+        }
+
+        return $campaign;
     }
 
     public function getById(int $id): Campaign

@@ -20,12 +20,20 @@ class DisbursementService
             throw new HttpException(400, "You have raised {$campaign->current_amount} and already disbursed {$alreadyDisbursed}. You do not have enough funds to disburse {$data['amount']}.");
         }
 
-        return Disbursement::create([
+        $disbursement = Disbursement::create([
             'campaign_id' => $campaign->id,
             'purpose' => $data['purpose'],
             'amount' => $data['amount'],
             'status' => 'pending',
         ]);
+
+        // Notify admins of new disbursement request
+        $admins = \App\Models\User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            $admin->notify(new \App\Notifications\NewDisbursementRequestNotification($campaign->title, $disbursement->amount));
+        }
+
+        return $disbursement;
     }
 
     public function adminList()
@@ -48,6 +56,18 @@ class DisbursementService
         }
 
         $disbursement->save();
+
+        // Notify NGO of the payout decision
+        $campaign = $disbursement->campaign;
+        $ngo = $campaign->user;
+        if ($ngo) {
+            $ngo->notify(new \App\Notifications\DisbursementDecidedNotification(
+                $campaign->title,
+                $disbursement->amount,
+                $status,
+                $rejectionReason
+            ));
+        }
 
         return $disbursement;
     }
