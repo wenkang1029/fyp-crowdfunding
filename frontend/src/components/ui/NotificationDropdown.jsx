@@ -81,10 +81,10 @@ const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
         <div className="relative" ref={dropdownRef}>
             {/* Bell Trigger Button */}
             <button onClick={handleToggle} className={buttonClass} aria-label="Notifications">
-                <div className="relative flex items-center justify-center">
+                <div className="relative p-0.5">
                     <Bell size={isSidebar ? 20 : 18} className="shrink-0" />
                     {unreadCount > 0 && (isCollapsed || !isSidebar) && (
-                        <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-extrabold text-white shadow-sm animate-pulse">
+                        <span className="absolute -top-1.5 -right-1.5 flex min-w-[15px] h-3.5 px-0.5 items-center justify-center rounded-full bg-red-500 text-[8px] font-extrabold text-white shadow-sm animate-pulse">
                             {unreadCount}
                         </span>
                     )}
