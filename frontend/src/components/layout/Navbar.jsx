@@ -3,7 +3,6 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
 import { LogOut, LayoutDashboard } from 'lucide-react';
-import ChatbotWidget from '../ui/ChatbotWidget';
 import NotificationDropdown from '../ui/NotificationDropdown';
 
 const Navbar = () => {
@@ -60,8 +59,6 @@ const Navbar = () => {
                     </div>
                 )}
             </div>
-            {/* Floating Chatbot Widget */}
-            <ChatbotWidget />
         </nav>
     );
 };
