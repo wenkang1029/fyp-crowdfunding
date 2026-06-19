@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bell, Check, CheckCheck, CheckCircle, Info } from 'lucide-react';
 import { useNotifications } from '../../hooks/useNotifications';
 
@@ -18,6 +19,7 @@ const formatRelativeTime = (dateString) => {
 };
 
 const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
+    const navigate = useNavigate();
     const { notifications, unreadCount, markAsRead, markAllAsRead, fetchNotifications } = useNotifications();
     const [isOpen, setIsOpen] = useState(false);
     const dropdownRef = useRef(null);
@@ -44,6 +46,37 @@ const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
         };
     }, []);
 
+    const handleNotificationClick = (notification) => {
+        // Mark as read
+        markAsRead(notification.id);
+        setIsOpen(false);
+
+        // Routing logic based on notification type
+        const type = notification.data?.type;
+        switch (type) {
+            case 'campaign_approval':
+            case 'campaign_goal_reached':
+            case 'donation_received':
+                navigate('/ngo/campaigns');
+                break;
+            case 'new_campaign_submitted':
+            case 'new_ngo_registered':
+                navigate('/admin/dashboard');
+                break;
+            case 'new_disbursement_request':
+                navigate('/admin/disbursements');
+                break;
+            case 'disbursement_decided':
+                navigate('/ngo/disbursements');
+                break;
+            case 'donation_success':
+                navigate('/donor/dashboard');
+                break;
+            default:
+                break;
+        }
+    };
+
     const getIcon = (type) => {
         switch (type) {
             case 'campaign_approval':
@@ -53,6 +86,8 @@ const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
                     </div>
                 );
             case 'donation':
+            case 'donation_success':
+            case 'donation_received':
                 return (
                     <div className="p-2 bg-blue-50 text-blue-500 rounded-xl flex-shrink-0">
                         <Info size={16} />
@@ -125,7 +160,8 @@ const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
                             notifications.map((notification) => (
                                 <div
                                     key={notification.id}
-                                    className="flex items-start gap-3 p-4 hover:bg-gray-50/50 transition-colors group"
+                                    onClick={() => handleNotificationClick(notification)}
+                                    className="flex items-start gap-3 p-4 hover:bg-gray-50/50 transition-colors group cursor-pointer"
                                 >
                                     {getIcon(notification.data?.type)}
                                     <div className="flex-1 min-w-0">
@@ -140,7 +176,10 @@ const NotificationDropdown = ({ isSidebar = false, isCollapsed = false }) => {
                                         </span>
                                     </div>
                                     <button
-                                        onClick={() => markAsRead(notification.id)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            markAsRead(notification.id);
+                                        }}
                                         className="p-1 text-gray-300 hover:text-emerald-500 hover:bg-emerald-50 rounded-lg opacity-0 group-hover:opacity-100 transition-all focus:outline-none flex-shrink-0"
                                         title="Mark as read"
                                     >

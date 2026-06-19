@@ -37,13 +37,63 @@ const NgoDashboard = () => {
     const chartOptions = {
         responsive: true,
         maintainAspectRatio: false,
+        animation: {
+            duration: 1200,
+            easing: 'easeInOutQuart',
+        },
         plugins: {
-            legend: { position: 'top', labels: { font: { family: 'Inter', weight: '500' }, color: '#6B7280' } },
-            tooltip: { backgroundColor: '#1D1D1F', padding: 12, cornerRadius: 8 }
+            legend: { 
+                position: 'top', 
+                labels: { 
+                    font: { family: 'Inter', weight: '600', size: 12 }, 
+                    color: '#374151',
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    padding: 20
+                } 
+            },
+            tooltip: { 
+                backgroundColor: '#1F2937', 
+                padding: 12, 
+                titleFont: { family: 'Inter', weight: 'bold', size: 13 },
+                bodyFont: { family: 'Inter', size: 12 },
+                cornerRadius: 12,
+                boxPadding: 6,
+                callbacks: {
+                    label: function(context) {
+                        let label = context.dataset.label || '';
+                        if (label) {
+                            label += ': ';
+                        }
+                        if (context.parsed.y !== null) {
+                            label += new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(context.parsed.y);
+                        }
+                        return label;
+                    }
+                }
+            }
         },
         scales: {
-            y: { border: { display: false }, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { family: 'Inter' } } },
-            x: { grid: { display: false }, ticks: { color: '#9CA3AF', font: { family: 'Inter' }, maxRotation: 45, minRotation: 45 } }
+            y: { 
+                border: { display: false }, 
+                grid: { color: '#F3F4F6' }, 
+                ticks: { 
+                    color: '#9CA3AF', 
+                    font: { family: 'Inter', size: 11 },
+                    callback: function(value) {
+                        return 'RM ' + value.toLocaleString();
+                    }
+                } 
+            },
+            x: { 
+                grid: { display: false }, 
+                ticks: { 
+                    color: '#9CA3AF', 
+                    font: { family: 'Inter', size: 11 }, 
+                    maxRotation: 30, 
+                    minRotation: 30 
+                } 
+            }
         }
     };
 
@@ -51,16 +101,22 @@ const NgoDashboard = () => {
         labels: campaigns.map(camp => camp.title), // Dynamic X-axis labels
         datasets: [
             {
-                label: 'Target Amount ($)',
+                label: 'Target Amount (RM)',
                 data: campaigns.map(camp => camp.target_amount),
-                backgroundColor: '#E5E7EB',
-                borderRadius: 6,
+                backgroundColor: 'rgba(229, 231, 235, 0.6)', 
+                borderColor: '#D1D5DB',
+                borderWidth: 1,
+                borderRadius: 8,
+                hoverBackgroundColor: 'rgba(209, 213, 219, 0.8)',
             },
             {
-                label: 'Funds Raised ($)',
+                label: 'Funds Raised (RM)',
                 data: campaigns.map(camp => camp.current_amount || 0),
-                backgroundColor: '#0066CC',
-                borderRadius: 6,
+                backgroundColor: 'rgba(37, 99, 235, 0.85)', 
+                borderColor: '#2563EB',
+                borderWidth: 1,
+                borderRadius: 8,
+                hoverBackgroundColor: '#1D4ED8',
             },
         ],
     };
