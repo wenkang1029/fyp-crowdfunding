@@ -106,7 +106,6 @@ class DonationService
 
         // Initialize Stripe SDK
         \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
-        \Stripe\Stripe::setApiVersion('2023-10-16');
 
         try {
             $paymentIntent = \Stripe\PaymentIntent::create([

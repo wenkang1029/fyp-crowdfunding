@@ -14,8 +14,6 @@ class StripeController extends Controller
     public function __construct()
     {
         Stripe::setApiKey(config('services.stripe.secret'));
-        // Pin Stripe API version to avoid V2 Accounts enforcement
-        Stripe::setApiVersion('2023-10-16');
     }
 
     /**
@@ -36,14 +34,11 @@ class StripeController extends Controller
         try {
             $accountId = $user->stripe_account_id;
 
-            // If user doesn't have a Stripe account id, create one
+            // If user doesn't have a Stripe account id, create one using V2 core API
             if (!$accountId) {
-                $account = Account::create([
+                $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
+                $account = $stripeClient->v2->core->accounts->create([
                     'type' => 'express',
-                    'email' => $user->email,
-                    'business_profile' => [
-                        'name' => $user->org_name ?? $user->name,
-                    ],
                 ]);
                 $accountId = $account->id;
 
