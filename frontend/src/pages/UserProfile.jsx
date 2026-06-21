@@ -4,6 +4,7 @@ import Card from '../components/ui/Card';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
+import Modal from '../components/ui/Modal';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile } from '../services/authService';
 import { User, Mail, MapPin, Shield, Lock, Landmark, CheckCircle } from 'lucide-react';
@@ -33,6 +34,12 @@ const UserProfile = () => {
     const [errorMessage, setErrorMessage] = useState('');
     const [isLoading, setIsLoading] = useState(false);
 
+    // Password Modal States
+    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
+    const [isSavingPassword, setIsSavingPassword] = useState(false);
+    const [passwordError, setPasswordError] = useState('');
+    const [passwordSuccess, setPasswordSuccess] = useState('');
+
     useEffect(() => {
         if (user) {
             setName(user.name || '');
@@ -53,23 +60,12 @@ const UserProfile = () => {
         setSuccessMessage('');
         setErrorMessage('');
 
-        if (password && password !== passwordConfirmation) {
-            setErrorMessage('Passwords do not match.');
-            setIsLoading(false);
-            return;
-        }
-
         try {
             const payload = {
                 name,
                 identification_number: identificationNumber,
                 mailing_address: mailingAddress,
             };
-
-            if (password) {
-                payload.password = password;
-                payload.password_confirmation = passwordConfirmation;
-            }
 
             if (user?.role === 'ngo') {
                 payload.org_name = orgName;
@@ -83,17 +79,52 @@ const UserProfile = () => {
             
             // Update local auth state
             if (response) {
-                // Ensure we merge role since updateProfile returns user
                 setUser(response);
                 setSuccessMessage('Profile updated successfully.');
-                setPassword('');
-                setPasswordConfirmation('');
             }
         } catch (err) {
             const msg = err.response?.data?.message || 'Failed to update profile. Please try again.';
             setErrorMessage(msg);
         } finally {
             setIsLoading(false);
+        }
+    };
+
+    const handlePasswordSubmit = async (e) => {
+        e.preventDefault();
+        setPasswordError('');
+        setPasswordSuccess('');
+        setIsSavingPassword(true);
+
+        if (password.length < 8) {
+            setPasswordError('Password must be at least 8 characters long.');
+            setIsSavingPassword(false);
+            return;
+        }
+
+        if (password !== passwordConfirmation) {
+            setPasswordError('Passwords do not match.');
+            setIsSavingPassword(false);
+            return;
+        }
+
+        try {
+            await updateProfile({
+                password,
+                password_confirmation: passwordConfirmation,
+            });
+            setPasswordSuccess('Password updated successfully!');
+            setPassword('');
+            setPasswordConfirmation('');
+            setTimeout(() => {
+                setIsPasswordModalOpen(false);
+                setPasswordSuccess('');
+            }, 1500);
+        } catch (err) {
+            const msg = err.response?.data?.message || 'Failed to update password.';
+            setPasswordError(msg);
+        } finally {
+            setIsSavingPassword(false);
         }
     };
 
@@ -273,38 +304,33 @@ const UserProfile = () => {
                         </div>
                     </Card>
 
-                    {/* Section: Change Password */}
-                    <Card className="p-8 shadow-apple border border-aidwise-border">
-                        <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
-                            <Lock className="text-aidwise-blue" size={20} />
-                            <h3 className="font-extrabold text-lg text-aidwise-text">Change Password</h3>
+                    {/* Section: Change Password Trigger Banner */}
+                    <div className="p-6 bg-white border border-aidwise-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
+                        <div className="flex items-center gap-3">
+                            <div className="p-3 bg-blue-50 rounded-xl text-aidwise-blue shrink-0">
+                                <Lock size={20} />
+                            </div>
+                            <div>
+                                <span className="font-bold text-sm text-aidwise-text block">Security Settings</span>
+                                <span className="text-xs text-gray-500">Update your account login password periodically.</span>
+                            </div>
                         </div>
-
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <Input
-                                label="New Password (optional)"
-                                type="password"
-                                value={password}
-                                onChange={(e) => setPassword(e.target.value)}
-                                placeholder="Min 8 characters"
-                            />
-
-                            <Input
-                                label="Confirm New Password"
-                                type="password"
-                                value={passwordConfirmation}
-                                onChange={(e) => setPasswordConfirmation(e.target.value)}
-                                placeholder="Retype password"
-                            />
-                        </div>
-                    </Card>
+                        <Button 
+                            type="button" 
+                            variant="secondary"
+                            onClick={() => setIsPasswordModalOpen(true)}
+                            className="flex items-center gap-2 text-sm font-semibold rounded-xl border border-gray-200 shrink-0"
+                        >
+                            Change Password
+                        </Button>
+                    </div>
 
                     {/* Submit Actions */}
                     <div className="flex justify-end gap-4">
                         <Button
                             type="submit"
                             variant="primary"
-                            className="px-8 py-3 font-bold rounded-2xl"
+                            className="px-8 py-3 font-bold rounded-2xl animate-in fade-in"
                             disabled={isLoading}
                         >
                             {isLoading ? 'Saving Changes...' : 'Save Profile Details'}
@@ -312,6 +338,78 @@ const UserProfile = () => {
                     </div>
                 </form>
             </main>
+
+            {/* Change Password Modal */}
+            <Modal
+                isOpen={isPasswordModalOpen}
+                onClose={() => {
+                    setIsPasswordModalOpen(false);
+                    setPassword('');
+                    setPasswordConfirmation('');
+                    setPasswordError('');
+                    setPasswordSuccess('');
+                }}
+                title="Change Password"
+            >
+                <form onSubmit={handlePasswordSubmit} className="space-y-4 text-left">
+                    <p className="text-xs text-gray-500 mb-4">Please enter your new login password. Password must be at least 8 characters long.</p>
+                    
+                    {passwordError && (
+                        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                            {passwordError}
+                        </div>
+                    )}
+                    {passwordSuccess && (
+                        <div className="p-3 bg-green-50 text-green-700 text-sm font-semibold rounded-xl border border-green-200">
+                            {passwordSuccess}
+                        </div>
+                    )}
+
+                    <Input
+                        label="New Password"
+                        type="password"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        placeholder="Min 8 characters"
+                        required
+                    />
+
+                    <Input
+                        label="Confirm New Password"
+                        type="password"
+                        value={passwordConfirmation}
+                        onChange={(e) => setPasswordConfirmation(e.target.value)}
+                        placeholder="Retype new password"
+                        required
+                    />
+
+                    <div className="flex gap-3 pt-2">
+                        <Button 
+                            type="button" 
+                            variant="secondary" 
+                            className="flex-1" 
+                            onClick={() => {
+                                setIsPasswordModalOpen(false);
+                                setPassword('');
+                                setPasswordConfirmation('');
+                                setPasswordError('');
+                                setPasswordSuccess('');
+                            }}
+                            disabled={isSavingPassword}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            type="submit" 
+                            variant="primary" 
+                            className="flex-1"
+                            disabled={isSavingPassword}
+                        >
+                            {isSavingPassword ? 'Updating...' : 'Update Password'}
+                        </Button>
+                    </div>
+                </form>
+            </Modal>
         </div>
     );
 };
