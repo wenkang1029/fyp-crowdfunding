@@ -24,7 +24,11 @@ export const getNgoCampaignDetails = async (campaignId) => {
 };
 
 export const createCampaign = async (payload) => {
-    const response = await axiosInstance.post('/campaigns', payload);
+    const response = await axiosInstance.post('/campaigns', payload, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
     return extractData(response);
 };
 

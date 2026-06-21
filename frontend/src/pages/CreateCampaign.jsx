@@ -128,10 +128,18 @@ const CreateCampaign = () => {
                 <Card>
                     <form onSubmit={handleFormSubmit}>
                         
-                        {/* Global Error (e.g., 500 Server Error) */}
-                        {(errors.global || localErrors.global) && (
+                        {/* Global & Validation Errors List */}
+                        {((errors && Object.keys(errors).length > 0) || localErrors.global) && (
                             <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
-                                {errors.global || localErrors.global}
+                                <span className="font-bold block mb-1">Could not create campaign:</span>
+                                <ul className="list-disc pl-5 space-y-0.5">
+                                    {localErrors.global && <li>{localErrors.global}</li>}
+                                    {errors && Object.entries(errors).map(([field, errs]) => (
+                                        <li key={field}>
+                                            <span className="capitalize font-semibold">{field.replace('_', ' ')}</span>: {Array.isArray(errs) ? errs[0] : errs}
+                                        </li>
+                                    ))}
+                                </ul>
                             </div>
                         )}
 
