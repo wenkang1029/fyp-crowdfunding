@@ -134,11 +134,16 @@ const CreateCampaign = () => {
                                 <span className="font-bold block mb-1">Could not create campaign:</span>
                                 <ul className="list-disc pl-5 space-y-0.5">
                                     {localErrors.global && <li>{localErrors.global}</li>}
-                                    {errors && Object.entries(errors).map(([field, errs]) => (
-                                        <li key={field}>
-                                            <span className="capitalize font-semibold">{field.replace('_', ' ')}</span>: {Array.isArray(errs) ? errs[0] : errs}
-                                        </li>
-                                    ))}
+                                    {errors && Object.entries(errors).map(([field, errs]) => {
+                                        if (field === 'global') {
+                                            return <li key={field}>{Array.isArray(errs) ? errs[0] : errs}</li>;
+                                        }
+                                        return (
+                                            <li key={field}>
+                                                <span className="capitalize font-semibold">{field.replace('_', ' ')}</span>: {Array.isArray(errs) ? errs[0] : errs}
+                                            </li>
+                                        );
+                                    })}
                                 </ul>
                             </div>
                         )}
