@@ -14,6 +14,8 @@ class StripeController extends Controller
     public function __construct()
     {
         Stripe::setApiKey(config('services.stripe.secret'));
+        // Pin Stripe API version to avoid V2 Accounts enforcement
+        Stripe::setApiVersion('2023-10-16');
     }
 
     /**
