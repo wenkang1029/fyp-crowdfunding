@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
-import axios from 'axios';
+import axiosInstance from '../../api/axios';
 
 const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
     const [ngo, setNgo] = useState(null);
@@ -14,7 +14,7 @@ const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
             setIsLoading(true);
             setError('');
             try {
-                const response = await axios.get(`/api/profiles/ngo/${ngoId}`);
+                const response = await axiosInstance.get(`/profiles/ngo/${ngoId}`);
                 if (response.data?.success) {
                     setNgo(response.data.data);
                 }
@@ -40,6 +40,13 @@ const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
                 </div>
             ) : ngo ? (
                 <div className="space-y-4 text-left">
+                    {/* Show incomplete profile notice if key fields are missing */}
+                    {!ngo.org_description && !ngo.mailing_address && (
+                        <div className="p-3 bg-amber-50 border border-amber-100 rounded-xl text-amber-700 text-xs font-medium">
+                            ⚠️ This organisation has not completed their public profile yet.
+                        </div>
+                    )}
+
                     <div className="border-b border-gray-100 pb-3">
                         <h3 className="text-xl font-bold text-aidwise-text">{ngo.org_name || ngo.name}</h3>
                         <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mt-1">

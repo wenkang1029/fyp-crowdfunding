@@ -24,8 +24,8 @@ class ProfileController extends Controller
             'org_name' => 'sometimes|nullable|string|max:255',
             'org_reg_number' => 'sometimes|nullable|string|max:255',
             'org_description' => 'sometimes|nullable|string|max:2000',
-            'is_tax_exempt' => 'sometimes|nullable|boolean',
-            'lhdn_reference' => 'sometimes|nullable|string|max:255',
+            'is_tax_exempt'  => 'sometimes|nullable|boolean',
+            'lhdn_reference' => 'required_if:is_tax_exempt,true|nullable|string|max:255',
         ]);
 
         $updatedUser = $this->profileService->update($user, $validated);

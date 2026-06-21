@@ -8,7 +8,9 @@ import Modal from '../components/ui/Modal';
 import Textarea from '../components/ui/Textarea';
 import { getCampaigns, updateCampaign, deleteCampaign } from '../services/campaignService';
 import { getAllUsers, updateUserStatus, deleteUser, adminCreateUser } from '../services/authService';
-import { CheckCircle, XCircle, AlertCircle, Users, Megaphone, UserPlus, Trash2, ShieldAlert } from 'lucide-react';
+import { CheckCircle, XCircle, AlertCircle, Users, Megaphone, UserPlus, Trash2, ShieldAlert, Eye } from 'lucide-react';
+import NgoProfileView from '../components/ui/NgoProfileView';
+import DonorProfileView from '../components/ui/DonorProfileView';
 
 const AdminDashboard = () => {
     // Tab State: 'campaigns' | 'users'
@@ -36,6 +38,12 @@ const AdminDashboard = () => {
     const [createOrgDesc, setCreateOrgDesc] = useState('');
     const [createError, setCreateError] = useState('');
     const [createLoading, setCreateLoading] = useState(false);
+
+    // Profile view modal state
+    const [profileModal, setProfileModal] = useState({ open: false, userId: null, userRole: null });
+
+    const openProfileModal = (userId, userRole) => setProfileModal({ open: true, userId, userRole });
+    const closeProfileModal = () => setProfileModal({ open: false, userId: null, userRole: null });
 
     useEffect(() => {
         if (activeTab === 'campaigns') {
@@ -388,6 +396,13 @@ const AdminDashboard = () => {
                                                         {user.role !== 'admin' && (
                                                             <>
                                                                 <button
+                                                                    onClick={() => openProfileModal(user.id, user.role)}
+                                                                    className="p-1.5 text-aidwise-blue hover:bg-blue-50 rounded-lg transition-colors"
+                                                                    title="View Profile"
+                                                                >
+                                                                    <Eye size={18} />
+                                                                </button>
+                                                                <button
                                                                     onClick={() => handleToggleUserStatus(user.id, user.status)}
                                                                     className={`px-3 py-1.5 text-xs font-bold rounded-lg transition-colors ${
                                                                         user.status === 'suspended'
@@ -536,6 +551,18 @@ const AdminDashboard = () => {
                         </div>
                     </form>
                 </Modal>
+
+                {/* Profile View Modals (P1) */}
+                <NgoProfileView
+                    isOpen={profileModal.open && profileModal.userRole === 'ngo'}
+                    onClose={closeProfileModal}
+                    ngoId={profileModal.userId}
+                />
+                <DonorProfileView
+                    isOpen={profileModal.open && profileModal.userRole === 'donor'}
+                    onClose={closeProfileModal}
+                    donorId={profileModal.userId}
+                />
 
             </div>
         </DashboardLayout>

@@ -20,27 +20,10 @@ export const useCreateCampaign = () => {
     const handleChange = (event) => {
         const { name, value } = event.target;
 
-        setFormData((prev) => {
-            const nextData = {
-                ...prev,
-                [name]: value,
-            };
-
-            if (
-                name === 'title'
-                && prev.allocations.length === 1
-                && prev.allocations[0].purpose.trim() === ''
-            ) {
-                nextData.allocations = [
-                    {
-                        ...prev.allocations[0],
-                        purpose: value,
-                    },
-                ];
-            }
-
-            return nextData;
-        });
+        setFormData((prev) => ({
+            ...prev,
+            [name]: value,
+        }));
 
         if (errors[name]) {
             setErrors((prev) => ({
@@ -175,6 +158,7 @@ export const useCreateCampaign = () => {
 
     const allocationValidation = getAllocationValidation(formData.allocations);
     const isFormValid = Boolean(formData.title.trim() && formData.description.trim())
+        && Boolean(formData.start_date && formData.end_date)
         && allocationValidation.isValid;
     const isSubmitDisabled = isLoading || !isFormValid;
 

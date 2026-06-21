@@ -3,6 +3,7 @@ import { CreditCard, Building2, QrCode, Loader2, CheckCircle, X } from 'lucide-r
 import { useAuth } from '../../context/AuthContext';
 import Button from './Button';
 import Input from './Input';
+import Textarea from './Textarea';
 
 const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign }) => {
     const { user } = useAuth();
@@ -46,7 +47,7 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign 
 
     if (!isOpen) return null;
 
-    const isTaxExemptCampaign = campaign?.user?.is_tax_exempt === true || campaign?.user?.is_tax_exempt == 1;
+    const isTaxExemptCampaign = campaign?.user?.is_tax_exempt === true;
 
     const handleSimulatePayment = (e) => {
         e.preventDefault();
@@ -235,17 +236,14 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign 
                                                 onChange={(e) => setTaxIdNumber(e.target.value)}
                                                 required={requestTaxReceipt}
                                             />
-                                            <div>
-                                                <label className="block text-xs font-bold text-aidwise-text mb-1">Complete Mailing Address</label>
-                                                <textarea
-                                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
-                                                    placeholder="Enter mailing address for tax auditing..."
-                                                    value={taxAddress}
-                                                    onChange={(e) => setTaxAddress(e.target.value)}
-                                                    required={requestTaxReceipt}
-                                                    rows={2}
-                                                />
-                                            </div>
+                                            <Textarea
+                                                label="Complete Mailing Address"
+                                                placeholder="Enter mailing address for tax auditing..."
+                                                value={taxAddress}
+                                                onChange={(e) => setTaxAddress(e.target.value)}
+                                                required={requestTaxReceipt}
+                                                rows={2}
+                                            />
                                         </div>
                                     )}
                                 </div>

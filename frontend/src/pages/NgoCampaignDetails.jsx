@@ -10,6 +10,7 @@ import Modal from '../components/ui/Modal';
 import { useNgoCampaignDetails } from '../hooks/useNgoCampaignDetails';
 import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil, FileText } from 'lucide-react';
 import { downloadCampaignReport } from '../services/campaignService';
+import DonorProfileView from '../components/ui/DonorProfileView';
 
 const NgoCampaignDetails = () => {
     const { id } = useParams();
@@ -39,6 +40,10 @@ const NgoCampaignDetails = () => {
 
     const [isDownloadingReport, setIsDownloadingReport] = React.useState(false);
     const [reportError, setReportError] = React.useState('');
+    const [donorModal, setDonorModal] = React.useState({ open: false, donorId: null });
+
+    const openDonorModal = (donorId) => setDonorModal({ open: true, donorId });
+    const closeDonorModal = () => setDonorModal({ open: false, donorId: null });
 
     const handleDownloadReport = async () => {
         setIsDownloadingReport(true);
@@ -120,6 +125,7 @@ const NgoCampaignDetails = () => {
     });
 
     return (
+        <>
         <DashboardLayout>
             <div className="max-w-7xl mx-auto">
                 <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6">
@@ -303,7 +309,14 @@ const NgoCampaignDetails = () => {
                                         donations.map((donation) => (
                                             <tr key={donation.id} className="hover:bg-gray-50/50 transition-colors">
                                                 <td className="px-5 py-4">
-                                                    <div className="font-medium text-aidwise-text">{donation.donor_name || donation.user?.name || 'Anonymous'}</div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => openDonorModal(donation.user_id || donation.user?.id)}
+                                                        className="font-medium text-aidwise-blue hover:underline cursor-pointer text-left"
+                                                        title="View donor profile"
+                                                    >
+                                                        {donation.donor_name || donation.user?.name || 'Anonymous'}
+                                                    </button>
                                                     <div className="text-xs text-gray-400">{donation.created_at ? formatDate(donation.created_at) : '—'}</div>
                                                 </td>
                                                 <td className="px-5 py-4 text-gray-600">
@@ -443,6 +456,14 @@ const NgoCampaignDetails = () => {
                 </form>
             </Modal>
         </DashboardLayout>
+
+        {/* P2: Donor profile modal — mounted outside DashboardLayout */}
+        <DonorProfileView
+            isOpen={donorModal.open}
+            onClose={closeDonorModal}
+            donorId={donorModal.donorId}
+        />
+    </>
     );
 };
 

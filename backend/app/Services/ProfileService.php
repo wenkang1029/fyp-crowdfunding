@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Donation;
+use App\Models\Campaign;
 use Illuminate\Support\Facades\Hash;
 
 class ProfileService
@@ -41,8 +42,9 @@ class ProfileService
             if (isset($data['org_description'])) {
                 $user->org_description = $data['org_description'];
             }
-            if (isset($data['is_tax_exempt'])) {
-                $user->is_tax_exempt = filter_var($data['is_tax_exempt'], FILTER_VALIDATE_BOOLEAN);
+            if (array_key_exists('is_tax_exempt', $data)) {
+                // Cast is already defined on the model; direct assignment is safe
+                $user->is_tax_exempt = (bool) $data['is_tax_exempt'];
             }
             if (isset($data['lhdn_reference'])) {
                 $user->lhdn_reference = $data['lhdn_reference'];
@@ -73,10 +75,13 @@ class ProfileService
 
         // 3. NGO can view ONLY if this donor has donated to one of their campaigns
         if ($requester->role === 'ngo') {
+            // Use a subquery select instead of whereHas closure for better query performance
             $hasDonated = Donation::where('user_id', $donorId)
-                ->whereHas('campaign', function ($query) use ($requester) {
-                    $query->where('user_id', $requester->id);
-                })->exists();
+                ->whereIn(
+                    'campaign_id',
+                    Campaign::where('user_id', $requester->id)->select('id')
+                )
+                ->exists();
 
             if ($hasDonated) {
                 return $donor;
@@ -87,10 +92,21 @@ class ProfileService
     }
 
     /**
-     * Get an NGO's profile. Open to all authenticated users.
+     * Get an NGO's public profile. Restricts response to safe public fields only.
      */
     public function getNgoProfile(int $ngoId): User
     {
-        return User::where('role', 'ngo')->findOrFail($ngoId);
+        return User::where('role', 'ngo')
+            ->select([
+                'id',
+                'name',
+                'org_name',
+                'org_reg_number',
+                'org_description',
+                'mailing_address',
+                'is_tax_exempt',
+                'lhdn_reference',
+            ])
+            ->findOrFail($ngoId);
     }
 }

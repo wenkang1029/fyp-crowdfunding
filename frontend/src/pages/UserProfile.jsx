@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
+import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
@@ -6,137 +7,36 @@ import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import Modal from '../components/ui/Modal';
-import { useAuth } from '../context/AuthContext';
-import { updateProfile } from '../services/authService';
-import { User, Mail, MapPin, Shield, Lock, Landmark, CheckCircle } from 'lucide-react';
+import { useUserProfile } from '../hooks/useUserProfile';
+import { User, Mail, MapPin, Shield, Lock, Landmark, CheckCircle, LayoutDashboard } from 'lucide-react';
 
 const UserProfile = () => {
-    const { user, setUser } = useAuth();
-    
-    const [name, setName] = useState('');
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
-    const [passwordConfirmation, setPasswordConfirmation] = useState('');
-    
-    // Donor specific fields
-    const [identificationNumber, setIdentificationNumber] = useState('');
-    
-    // NGO specific fields
-    const [orgName, setOrgName] = useState('');
-    const [orgRegNumber, setOrgRegNumber] = useState('');
-    const [orgDescription, setOrgDescription] = useState('');
-    const [isTaxExempt, setIsTaxExempt] = useState(false);
-    const [lhdnReference, setLhdnReference] = useState('');
-    
-    // Shared fields
-    const [mailingAddress, setMailingAddress] = useState('');
-
-    const [successMessage, setSuccessMessage] = useState('');
-    const [errorMessage, setErrorMessage] = useState('');
-    const [isLoading, setIsLoading] = useState(false);
-
-    // Password Modal States
-    const [isPasswordModalOpen, setIsPasswordModalOpen] = useState(false);
-    const [isSavingPassword, setIsSavingPassword] = useState(false);
-    const [passwordError, setPasswordError] = useState('');
-    const [passwordSuccess, setPasswordSuccess] = useState('');
-
-    // Profile Update Confirmation Modal State
-    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
-
-    useEffect(() => {
-        if (user) {
-            setName(user.name || '');
-            setEmail(user.email || '');
-            setIdentificationNumber(user.identification_number || '');
-            setMailingAddress(user.mailing_address || '');
-            setOrgName(user.org_name || '');
-            setOrgRegNumber(user.org_reg_number || '');
-            setOrgDescription(user.org_description || '');
-            setIsTaxExempt(!!user.is_tax_exempt);
-            setLhdnReference(user.lhdn_reference || '');
-        }
-    }, [user]);
-
-    const handleSaveClick = (e) => {
-        e.preventDefault();
-        setSuccessMessage('');
-        setErrorMessage('');
-        setIsConfirmModalOpen(true);
-    };
-
-    const executeProfileUpdate = async () => {
-        setIsLoading(true);
-        setSuccessMessage('');
-        setErrorMessage('');
-
-        try {
-            const payload = {
-                name,
-                identification_number: identificationNumber,
-                mailing_address: mailingAddress,
-            };
-
-            if (user?.role === 'ngo') {
-                payload.org_name = orgName;
-                payload.org_reg_number = orgRegNumber;
-                payload.org_description = orgDescription;
-                payload.is_tax_exempt = isTaxExempt;
-                payload.lhdn_reference = lhdnReference;
-            }
-
-            const response = await updateProfile(payload);
-            
-            // Update local auth state
-            if (response) {
-                setUser(response);
-                setSuccessMessage('Profile details updated successfully!');
-            }
-        } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to update profile. Please try again.';
-            setErrorMessage(msg);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    const handlePasswordSubmit = async (e) => {
-        e.preventDefault();
-        setPasswordError('');
-        setPasswordSuccess('');
-        setIsSavingPassword(true);
-
-        if (password.length < 8) {
-            setPasswordError('Password must be at least 8 characters long.');
-            setIsSavingPassword(false);
-            return;
-        }
-
-        if (password !== passwordConfirmation) {
-            setPasswordError('Passwords do not match.');
-            setIsSavingPassword(false);
-            return;
-        }
-
-        try {
-            await updateProfile({
-                password,
-                password_confirmation: passwordConfirmation,
-            });
-            setPasswordSuccess('Password updated successfully!');
-            setPassword('');
-            setPasswordConfirmation('');
-            setTimeout(() => {
-                setIsPasswordModalOpen(false);
-                setPasswordSuccess('');
-            }, 1500);
-        } catch (err) {
-            const msg = err.response?.data?.message || 'Failed to update password.';
-            setPasswordError(msg);
-        } finally {
-            setIsSavingPassword(false);
-        }
-    };
+    const {
+        user,
+        name, setName,
+        email,
+        identificationNumber, setIdentificationNumber,
+        orgName, setOrgName,
+        orgRegNumber, setOrgRegNumber,
+        orgDescription, setOrgDescription,
+        isTaxExempt, setIsTaxExempt,
+        lhdnReference, setLhdnReference,
+        mailingAddress, setMailingAddress,
+        successMessage,
+        errorMessage,
+        isLoading,
+        isConfirmModalOpen, setIsConfirmModalOpen,
+        handleSaveClick,
+        executeProfileUpdate,
+        isPasswordModalOpen, setIsPasswordModalOpen,
+        password, setPassword,
+        passwordConfirmation, setPasswordConfirmation,
+        isSavingPassword,
+        passwordError,
+        passwordSuccess,
+        handleClosePasswordModal,
+        handlePasswordSubmit,
+    } = useUserProfile();
 
     if (!user) {
         return (
@@ -145,6 +45,18 @@ const UserProfile = () => {
             </div>
         );
     }
+
+    // U1 fix: derive the badge text & colour from the actual account status field
+    const statusBadge = user.status === 'suspended'
+        ? { label: 'Suspended', className: 'bg-red-50 text-red-600 border-red-100' }
+        : { label: 'Active Account', className: 'bg-green-50 text-green-700 border-green-100' };
+
+    // U4: determine the dashboard link for the donor's back-navigation
+    const dashboardLink = user.role === 'ngo'
+        ? '/ngo/dashboard'
+        : user.role === 'admin'
+        ? '/admin/dashboard'
+        : '/donor/dashboard';
 
     const renderFormContent = () => (
         <div className="max-w-4xl mx-auto">
@@ -170,14 +82,14 @@ const UserProfile = () => {
             )}
 
             <form onSubmit={handleSaveClick} className="space-y-8">
-                {/* Account Type Banner */}
+                {/* Account Type Banner — U1: reflects actual account status */}
                 <div className="p-4 bg-white/60 backdrop-blur border border-aidwise-border/50 rounded-2xl flex items-center justify-between">
                     <div>
                         <span className="text-xs uppercase tracking-wider text-gray-400 font-bold block">Account Role</span>
                         <span className="text-lg font-extrabold text-aidwise-text capitalize">{user.role}</span>
                     </div>
-                    <span className="px-3 py-1 bg-blue-50 text-aidwise-blue font-bold text-xs rounded-full border border-blue-100">
-                        Verified Status
+                    <span className={`px-3 py-1 text-xs font-bold rounded-full border ${statusBadge.className}`}>
+                        {statusBadge.label}
                     </span>
                 </div>
 
@@ -190,13 +102,13 @@ const UserProfile = () => {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <Input
-                            label={user.role === 'ngo' ? "Representative Name" : "Full Name"}
+                            label={user.role === 'ngo' ? 'Representative Name' : 'Full Name'}
                             type="text"
                             value={name}
                             onChange={(e) => setName(e.target.value)}
                             required
                         />
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-aidwise-text mb-1">Email Address</label>
                             <div className="flex items-center rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 text-gray-500 cursor-not-allowed">
@@ -220,7 +132,7 @@ const UserProfile = () => {
                     </div>
                 </Card>
 
-                {/* Section: NGO details */}
+                {/* Section: NGO Organisation Details */}
                 {user.role === 'ngo' && (
                     <Card className="p-8 shadow-apple border border-aidwise-border">
                         <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
@@ -322,8 +234,8 @@ const UserProfile = () => {
                             <span className="text-xs text-gray-500">Update your account login password periodically.</span>
                         </div>
                     </div>
-                    <Button 
-                        type="button" 
+                    <Button
+                        type="button"
                         variant="secondary"
                         onClick={() => setIsPasswordModalOpen(true)}
                         className="flex items-center gap-2 text-sm font-semibold rounded-xl border border-gray-200 shrink-0"
@@ -349,7 +261,7 @@ const UserProfile = () => {
 
     const renderModals = () => (
         <>
-            {/* Profile Update Confirmation Modal */}
+            {/* Profile Update Confirmation Modal — H1: stays open while saving */}
             <Modal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
@@ -360,23 +272,20 @@ const UserProfile = () => {
                         Are you sure you want to save the updated profile details?
                     </p>
                     <div className="flex gap-3">
-                        <Button 
-                            type="button" 
-                            variant="secondary" 
-                            className="flex-1" 
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
                             onClick={() => setIsConfirmModalOpen(false)}
                             disabled={isLoading}
                         >
                             Cancel
                         </Button>
-                        <Button 
-                            type="button" 
-                            variant="primary" 
-                            className="flex-1" 
-                            onClick={async () => {
-                                setIsConfirmModalOpen(false);
-                                await executeProfileUpdate();
-                            }}
+                        <Button
+                            type="button"
+                            variant="primary"
+                            className="flex-1"
+                            onClick={executeProfileUpdate}
                             disabled={isLoading}
                         >
                             {isLoading ? 'Saving...' : 'Yes, Confirm'}
@@ -388,18 +297,14 @@ const UserProfile = () => {
             {/* Change Password Modal */}
             <Modal
                 isOpen={isPasswordModalOpen}
-                onClose={() => {
-                    setIsPasswordModalOpen(false);
-                    setPassword('');
-                    setPasswordConfirmation('');
-                    setPasswordError('');
-                    setPasswordSuccess('');
-                }}
+                onClose={handleClosePasswordModal}
                 title="Change Password"
             >
                 <form onSubmit={handlePasswordSubmit} className="space-y-4 text-left">
-                    <p className="text-xs text-gray-500 mb-4">Please enter your new login password. Password must be at least 8 characters long.</p>
-                    
+                    <p className="text-xs text-gray-500 mb-4">
+                        Please enter your new login password. Password must be at least 8 characters long.
+                    </p>
+
                     {passwordError && (
                         <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
                             {passwordError}
@@ -430,24 +335,18 @@ const UserProfile = () => {
                     />
 
                     <div className="flex gap-3 pt-2">
-                        <Button 
-                            type="button" 
-                            variant="secondary" 
-                            className="flex-1" 
-                            onClick={() => {
-                                setIsPasswordModalOpen(false);
-                                setPassword('');
-                                setPasswordConfirmation('');
-                                setPasswordError('');
-                                setPasswordSuccess('');
-                            }}
+                        <Button
+                            type="button"
+                            variant="secondary"
+                            className="flex-1"
+                            onClick={handleClosePasswordModal}
                             disabled={isSavingPassword}
                         >
                             Cancel
                         </Button>
-                        <Button 
-                            type="submit" 
-                            variant="primary" 
+                        <Button
+                            type="submit"
+                            variant="primary"
                             className="flex-1"
                             disabled={isSavingPassword}
                         >
@@ -459,7 +358,7 @@ const UserProfile = () => {
         </>
     );
 
-    // NGOs and Admins operate inside the sidebar dashboard layout
+    // NGOs and Admins use the sidebar dashboard layout
     if (user.role === 'ngo' || user.role === 'admin') {
         return (
             <DashboardLayout>
@@ -469,11 +368,20 @@ const UserProfile = () => {
         );
     }
 
-    // Donors operate inside the standard top navbar view
+    // Donors use the standard top navbar view
+    // U4: Add back navigation link to donor dashboard
     return (
         <div className="min-h-screen bg-aidwise-light font-sans">
             <Navbar />
             <main className="max-w-4xl mx-auto px-6 py-12 lg:px-8">
+                {/* U4: Back navigation for donors */}
+                <Link
+                    to={dashboardLink}
+                    className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-aidwise-blue mb-6"
+                >
+                    <LayoutDashboard size={15} />
+                    Back to Dashboard
+                </Link>
                 {renderFormContent()}
             </main>
             {renderModals()}

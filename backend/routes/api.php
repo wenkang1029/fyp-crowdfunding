@@ -37,7 +37,6 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
 
     // Campaign Actions (Create, Update, Delete)
     Route::post('/campaigns', [CampaignController::class, 'store']);
-    Route::put('/campaigns/{id}', [CampaignController::class, 'update']);
     Route::patch('/campaigns/{id}', [CampaignController::class, 'update']);
     Route::delete('/campaigns/{id}', [CampaignController::class, 'destroy']);
     Route::get('/ngo/campaigns/{id}', [CampaignController::class, 'showNgo']);
