@@ -37,9 +37,7 @@ class StripeController extends Controller
             // If user doesn't have a Stripe account id, create one using V2 core API
             if (!$accountId) {
                 $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
-                $account = $stripeClient->v2->core->accounts->create([
-                    'type' => 'express',
-                ]);
+                $account = $stripeClient->v2->core->accounts->create([]);
                 $accountId = $account->id;
 
                 // Save to user model
