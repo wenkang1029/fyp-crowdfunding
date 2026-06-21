@@ -1,221 +1,151 @@
 Core Modules
 Reference: docs/system-overview.md
-Last updated: 2026-04-23
+Last updated: 2026-06-21
 
 Status Overview
 | # | Module | Backend | Frontend | Overall |
 |---|---|---|---|---|
-| 1 | Auth & Profile | [~] | [~] | [~] |
+| 1 | Auth & Profile | [x] | [x] | [x] |
 | 2 | Campaign Management | [x] | [x] | [x] |
-| 3 | Donation Flow | [~] | [~] | [~] |
-| 4 | Fund Allocation & Disbursement | [~] | [~] | [~] |
-| 5 | Live Dashboard | [~] | [~] | [~] |
-| 6 | AI Chatbot (FAQ) | [~] | [ ] | [~] |
-| 7 | Notifications | [~] | [ ] | [~] |
+| 3 | Donation Flow | [x] | [x] | [x] |
+| 4 | Fund Allocation & Disbursement | [x] | [x] | [x] |
+| 5 | Live Dashboard | [x] | [x] | [x] |
+| 6 | AI Chatbot (FAQ) | [x] | [x] | [x] |
+| 7 | Notifications | [x] | [x] | [x] |
 
 Legend: [ ] Not started · [~] In progress · [x] Done · [!] Blocked · [?] Uncertain
 
 Module 1 — Auth & Profile
 What it does
-Role-based login/register; profile management per role.
+Role-based login/register; profile management per role (Donor, NGO, Admin).
 
 Backend
-
-Routes: POST /register, POST /login, POST /logout, GET /user, PATCH /profile
-Controller: AuthController — register [done], login [done], logout [done]; ProfileController — update [done]
-Service: AuthService — missing
-Model: User.php — relationships not defined (missing campaign/donation/notification relationships)
+- Routes: POST /register, POST /login, POST /logout, GET /user, PATCH /profile, GET /profiles/donor/{id}, GET /profiles/ngo/{id}
+- Controller: AuthController (register, login, logout, user), ProfileController (update, showDonor, showNgo)
+- Service: AuthService, ProfileService (PDPA 2010 gating for donor profiles: visible to Admin, and NGO only if donor contributed to their campaign)
+- Model: User.php (relationships to Campaign, Donation, etc. defined)
 
 Frontend
-
-Pages: Login.jsx
-Components: ProtectedRoute.jsx, Navbar.jsx, ui/Input.jsx, ui/Button.jsx, ui/Card.jsx
-Hook: useAuth (AuthContext.jsx)
-Service: authService.js — missing
+- Pages: Login.jsx, Register.jsx, UserProfile.jsx (editable CRUD matching user role: identification number and address for Donor; reg number, address, and tax exemption settings for NGO)
+- Components: ProtectedRoute.jsx, Navbar.jsx, ui/NgoProfileView.jsx (lookup modal on click of NGO name)
+- Hook: useAuth (AuthContext.jsx), useRegisterForm, useAuthForm
+- Service: authService.js (updateProfile, getDonorProfile, getNgoProfile)
 
 Acceptance Criteria
-
- Donor can register with name, email, password
- NGO admin can register with organisation details
- All roles can log in and receive a Sanctum token
- All roles can view and update their profile
- Protected routes reject unauthenticated requests with 401
-
-Notes
-NGO organisation details are not present in the current register flow. [?]
-ProtectedRoute expects allowedRoles but some routes pass allowedRole, so role gating is inconsistent.
+✓ Donor can register with name, email, password
+✓ NGO admin can register with organisation details
+✓ All roles can log in and receive a Sanctum token
+✓ All roles can view and update their profile
+✓ Protected routes reject unauthenticated requests with 401
+✓ Donor profiles are protected under PDPA (restricted to Admin & organizing NGOs of campaigns they donated to)
 
 Module 2 — Campaign Management
 What it does
-NGO creates, edits, and closes campaigns with goals and deadlines. Campaign date window (`start_date`/`end_date`) support added; dates are set on creation and cannot be modified by NGO edits. The backend enforces that donations are accepted only when `status === 'active'` and the current time is within the campaign window. A scheduled command reconciles statuses by date.
-
+NGO creates, edits, and closes campaigns with goals and deadlines. Start/end dates set on creation are immutable. Support for uploading a campaign cover image.
 
 Backend
-
-Routes: GET /campaigns, GET /campaigns/{id}, POST /campaigns, PUT /campaigns/{id}, PATCH /campaigns/{id}, DELETE /campaigns/{id}
-Controller: CampaignController — index [done], store [done], show [done], update [done], destroy [done], donate [done]
-Service: CampaignService — done (create/update/status logic updated to persist dates and prevent NGO edits to dates)
-Model: Campaign.php — belongsTo user; hasMany allocations, disbursements, donations; casts for `start_date` and `end_date`
+- Routes: GET /campaigns, GET /campaigns/{id}, POST /campaigns, PUT /campaigns/{id}, PATCH /campaigns/{id}, DELETE /campaigns/{id}
+- Controller: CampaignController (index, store, show, showNgo, update, destroy)
+- Service: CampaignService (handles creation and storage of campaign cover image under public disk)
+- Model: Campaign.php (hasMany allocations, disbursements, donations; start_date/end_date casts; image_path fillable)
 
 Frontend
-
-Pages: Home.jsx, CampaignDetails.jsx, CreateCampaign.jsx, NgoDashboard.jsx, AdminDashboard.jsx
-Components: ui/CampaignCard.jsx, ui/Card.jsx, ui/Badge.jsx, ui/StatCard.jsx
-Hook: useCampaigns — missing
-Service: campaignService.js — missing
+- Pages: Home.jsx, CampaignDetails.jsx, CreateCampaign.jsx (3-step wizard stepper with timelines and allocations, file upload selector for cover image), NgoDashboard.jsx, AdminDashboard.jsx
+- Components: ui/CampaignCard.jsx, ui/Card.jsx, ui/Badge.jsx, ui/StatCard.jsx
+- Hook: useCreateCampaign
+- Service: campaignService.js (supports multipart/form-data for image uploads)
 
 Acceptance Criteria
-
- NGO admin can create a campaign with title, description, goal amount, deadline
- NGO admin can edit and close a campaign
- Admin can approve or reject a campaign
- All users can view a list of active campaigns
- Campaign shows real-time progress bar toward goal
-
-Notes
-Campaign model `$fillable` updated to include `start_date` and `end_date`. A migration was added to append `start_date` and `end_date` to the `campaigns` table. NGO updates cannot modify these dates; admins may override via admin-only flows if required.
+✓ NGO admin can create a campaign with title, description, goal amount, deadline, and cover image
+✓ NGO admin can edit and close a campaign
+✓ Admin can approve or reject a campaign
+✓ All users can view active campaigns with cover images rendered dynamically
+✓ Campaign shows real-time progress bar toward goal
 
 Module 3 — Donation Flow
 What it does
-Donor-facing campaign browsing -> secure payment gateway -> auto-receipt (PDF) via email.
+Donor browses active campaigns, checks out with a simulated payment gateway, requests a tax exemption receipt (pre-filled from Donor profile) if the NGO is approved, and downloads LHDN Section 44(6) compliant PDF receipts.
 
 Backend
-
-Routes: POST /campaigns/{id}/donate, POST /donations, GET /donations
-Controller: DonationController — store [done], index [done]; CampaignController — donate [done]
-Service: DonationService — missing
-Model: Donation.php — belongsTo user, campaign, allocation
-Payment: Stripe integration — not yet
-PDF Receipt: DomPDF receipt generation — not yet
+- Routes: POST /campaigns/{id}/donate, POST /donations, GET /donations, GET /donations/{id}/receipt
+- Controller: DonationController (store, index, receipt), CampaignController (donate)
+- Service: DonationService (receipt generation with sequential LHDN numbers and Ringgit Malaysia words conversion helper)
+- Model: Donation.php (belongsTo user, campaign, allocation)
+- Helper: NumberToWordsHelper (spells out ringgit and cents numbers into English text)
 
 Frontend
-
-Pages: Home.jsx, CampaignDetails.jsx, DonorDashboard.jsx
-Components: ui/CheckoutModal.jsx, ui/Modal.jsx, ui/Input.jsx, ui/Button.jsx, ui/Badge.jsx
-Hook: useDonation — missing
-Service: donationService.js — missing
+- Pages: Home.jsx, CampaignDetails.jsx, DonorDashboard.jsx (donation ledger with click-blocked asynchronous download indicators)
+- Components: ui/CheckoutModal.jsx (LHDN receipt request checkbox and fields pre-filled from Donor context), ui/Modal.jsx
+- Hook: useDonationFlow, useDonationReceipt
+- Service: donationService.js
 
 Acceptance Criteria
-
- Donor can browse and filter active campaigns
- Donor can select a campaign and enter donation amount
- Payment is processed via Stripe (test mode)
- Donation record is saved on successful payment
- PDF receipt is auto-generated and available to donor
- Donor receives confirmation notification
-
-Notes
-Stripe payment and PDF receipts are not implemented yet.
-Donations table has donor_name but the model fillable does not include it and controllers do not set it.
+✓ Donor can browse and filter active campaigns
+✓ Donor can select a campaign and enter donation amount (blocks donations outside active timelines)
+✓ Payment is simulated securely via CheckoutModal (Card, FPX, QR)
+✓ Donation record and tax details are saved on successful payment
+✓ Compliant PDF receipts with sequential formatting and words conversion are generated
+✓ Donor can download receipt from history ledger with visual download feedback
 
 Module 4 — Fund Allocation & Disbursement
 What it does
-NGO allocates/reallocates funds across sub-categories; tracks disbursement with audit trail.
+NGO allocates funds across sub-categories and tracks disbursement requests. NGO and Admin can generate a campaign summary report.
 
 Backend
-
-Routes: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}, POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status, GET /campaigns/{campaign_id}/reports/allocations, GET /campaigns/{campaign_id}/reports/disbursements
-Controller: AllocationController — store [done], update [done]; DisbursementController — store [done], indexAdmin [done], updateStatus [done]; ReportController — allocationReport [done], disbursementReport [done]
-Service: AllocationService/DisbursementService — missing
-Models: Allocation.php — belongsTo campaign (missing hasMany donations); Disbursement.php — belongsTo campaign
+- Routes: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}, POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status, GET /campaigns/{campaign_id}/reports/summary
+- Controller: AllocationController, DisbursementController, ReportController (campaignReport streams summary PDF of donations and disbursements)
+- Service: AllocationService, DisbursementService
+- Model: Allocation.php, Disbursement.php
 
 Frontend
-
-Pages: NgoDisbursements.jsx
-Components: ui/StatCard.jsx, ui/Modal.jsx, ui/Input.jsx, ui/Button.jsx, ui/Badge.jsx
-Hook: useDisbursements — missing
-Service: disbursementService.js — missing
+- Pages: NgoDisbursements.jsx, NgoCampaignDetails.jsx (Export Campaign Report button downloads PDF summary of allocations and payouts)
+- Components: ui/Modal.jsx, ui/Badge.jsx
+- Hook: useNgoDisbursements, useNgoCampaignDetails
+- Service: disbursementService.js, campaignService.js (downloadCampaignReport)
 
 Acceptance Criteria
-
- NGO admin can set fund allocation breakdown per campaign sub-category
- NGO admin can record a disbursement against an allocation
- NGO admin can reallocate funds between sub-categories
- All disbursements are stored with an audit trail
- NGO admin can generate a disbursement report (PDF)
-
-Notes
-Frontend does not expose allocation CRUD yet. [?]
-Frontend sends rejection_reason for disbursements but no DB column or backend handling exists.
+✓ NGO admin can set fund allocation breakdown per campaign sub-category
+✓ NGO admin can record a disbursement against an allocation
+✓ All disbursements are stored with an audit trail
+✓ NGO admin/Admin can generate an export campaign report (PDF)
 
 Module 5 — Live Dashboard
 What it does
-Real-time progress bars, donation stats, and donor activity feed for NGO and donors.
+Real-time progress bars, donation statistics, and dynamic feeds for NGO, Donor, and Admin portals.
 
 Backend
-
-Routes: GET /dashboard/ngo, GET /dashboard/admin, GET /dashboard/ngo/disbursements
-Controller: DashboardController — ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done]
-Service: DashboardService — missing
+- Routes: GET /dashboard/ngo, GET /dashboard/admin, GET /dashboard/ngo/disbursements
+- Controller: DashboardController
+- Service: DashboardService
 
 Frontend
-
-Pages: NgoDashboard.jsx, DonorDashboard.jsx, AdminDashboard.jsx, NgoDisbursements.jsx
-Components: ui/StatCard.jsx, ui/DonationLedger.jsx, ui/Badge.jsx, charts (Chart.js)
-Hook: useDashboard — missing
-Service: dashboardService.js — missing
-
-Acceptance Criteria
-
- NGO admin sees total funds raised, active campaigns, recent donations
- Donor sees their total donations and campaign progress they contributed to
- Admin sees platform-wide stats (total users, total raised, active campaigns)
- Progress bars update to reflect latest donation totals
-
-Notes
-NgoDashboard includes a hardcoded Total Donors value. [?]
+- Pages: NgoDashboard.jsx (fully interactive HSL chart analytics), DonorDashboard.jsx, AdminDashboard.jsx
+- Components: ui/StatCard.jsx, ui/DonationLedger.jsx, ui/Badge.jsx
+- Hook: useNgoDashboardData
+- Service: dashboardService.js
 
 Module 6 — AI Chatbot (FAQ)
 What it does
-Embedded widget (Dialogflow) to handle common donor queries automatically.
+Embedded chatbot widget routing natural language queries through Dialogflow Messenger.
 
 Backend
-
-Routes: POST /chatbot/webhook
-Controller: ChatbotController — handleWebhook [done]
-Integration: Dialogflow webhook — exists (server endpoint only)
+- Routes: POST /chatbot/webhook
+- Controller: ChatbotController (handles webhook fulfillments to query active campaigns)
 
 Frontend
-
-Pages: N/A
-Components: Chatbot widget — missing
-Hook: useChatbot — missing
-Service: chatbotService.js — missing
-
-Acceptance Criteria
-
- Chatbot widget is visible to donors on campaign pages
- Chatbot responds to predefined FAQ topics
- Unanswered queries are handled gracefully with fallback message
-
-Notes
-Frontend widget is not implemented yet.
+- Components: ui/ChatbotWidget.jsx (globally integrated via Navbar)
+- Hook: useChatbot
+- Service: chatbotService.js
 
 Module 7 — Notifications
 What it does
-Push/email alerts for campaign milestones and donation confirmations (Firebase Cloud Messaging).
+Unread count badge, relative timestamps, Deep-linking to action pages, and Optimistic UI clears.
 
 Backend
-
-Routes: GET /notifications, PATCH /notifications/{id}/read, PATCH /notifications/read-all
-Controller: NotificationController — index [done], markAsRead [done], markAllAsRead [done]
-Notification classes: CampaignApprovedNotification.php
-Current implementation: Laravel database notifications
+- Routes: GET /notifications, PATCH /notifications/{id}/read, PATCH /notifications/read-all
+- Controller: NotificationController
 
 Frontend
-
-Pages: N/A
-Components: notification bell/dropdown — missing
-Hook: useNotifications — missing
-Service: notificationService.js — missing
-
-Acceptance Criteria
-
- Donor receives notification on successful donation
- NGO admin receives notification when a donation is made to their campaign
- Admin receives notification when a new NGO registers
- User can mark notifications as read
- Notification count badge updates in navbar
-
-Notes
-Firebase Cloud Messaging: deferred — see architecture.md
+- Components: ui/NotificationDropdown.jsx (Navbar and Dashboard sidebar integrations)
+- Hook: useNotifications
+- Service: notificationService.js

@@ -13,6 +13,7 @@ import CampaignDetails from './pages/CampaignDetails';
 import NgoDisbursements from './pages/NgoDisbursements';
 import DonorDashboard from './pages/DonorDashboard';
 import AdminDisbursements from './pages/AdminDisbursements';
+import UserProfile from './pages/UserProfile';
 
 function App() {
   return (
@@ -26,6 +27,9 @@ function App() {
           
           {/* Automatically redirect the generic /dashboard to the correct one */}
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />
+
+          {/* Profile Route */}
+          <Route path="/profile" element={<ProtectedRoute allowedRoles={['donor', 'ngo', 'admin']}><UserProfile /></ProtectedRoute>} />
 
           {/* Donor Route */}
           <Route path="/donor/dashboard" element={<ProtectedRoute allowedRoles={['donor']}><DonorDashboard /></ProtectedRoute>} />

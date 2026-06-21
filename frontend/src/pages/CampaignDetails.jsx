@@ -8,12 +8,17 @@ import Button from '../components/ui/Button';
 import Modal from '../components/ui/Modal';
 import Navbar from '../components/layout/Navbar';
 import CheckoutModal from '../components/ui/CheckoutModal';
+import NgoProfileView from '../components/ui/NgoProfileView';
+
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
 
 const CampaignDetails = () => {
     const { id } = useParams();
     
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isNgoModalOpen, setIsNgoModalOpen] = useState(false);
 
     const fetchCampaign = useCallback(async () => {
         try {
@@ -124,7 +129,10 @@ const CampaignDetails = () => {
                     {/* Left Column: Story */}
                     <div className="lg:col-span-2 space-y-10">
                         <div>
-                            <span className="text-xs font-semibold text-aidwise-blue uppercase tracking-wider">
+                            <span 
+                                onClick={() => setIsNgoModalOpen(true)}
+                                className="text-xs font-semibold text-aidwise-blue uppercase tracking-wider cursor-pointer hover:underline"
+                            >
                                 Organized by {campaign.user?.name || 'Verified NGO'}
                             </span>
                             <h1 className="text-4xl font-extrabold text-aidwise-text mt-2 leading-tight">
@@ -135,9 +143,19 @@ const CampaignDetails = () => {
                             </p>
                         </div>
 
-                        <div className="w-full h-80 bg-gray-200 rounded-3xl border border-gray-300 flex items-center justify-center overflow-hidden">
-                            <span className="text-gray-400">Campaign Image / Video</span>
-                        </div>
+                        {campaign.image_path ? (
+                            <div className="w-full h-80 rounded-3xl overflow-hidden border border-aidwise-border bg-gray-50">
+                                <img 
+                                    src={campaign.image_path.startsWith('http') ? campaign.image_path : `${backendUrl}${campaign.image_path}`} 
+                                    alt={campaign.title} 
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                        ) : (
+                            <div className="w-full h-80 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 rounded-3xl border border-aidwise-border flex items-center justify-center">
+                                <span className="text-gray-400 font-medium">No Image Provided</span>
+                            </div>
+                        )}
 
                         <div>
                             <h2 className="text-2xl font-bold text-aidwise-text mb-4">About this campaign</h2>
@@ -339,6 +357,7 @@ const CampaignDetails = () => {
                 onClose={() => setActiveModal(null)}
                 amount={donationAmount}
                 onSuccessfulPayment={executeDonation} 
+                campaign={campaign}
             />
 
             <Modal 
@@ -358,6 +377,12 @@ const CampaignDetails = () => {
                     </Button>
                 </div>
             </Modal>
+
+            <NgoProfileView 
+                isOpen={isNgoModalOpen}
+                onClose={() => setIsNgoModalOpen(false)}
+                ngoId={campaign.user_id}
+            />
 
         </div>
     );

@@ -2,6 +2,9 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import Card from './Card';
 
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
+
 const CampaignCard = ({ campaign }) => {
     // Ensure math works safely with fallbacks
     const target = Number(campaign.target_amount) || 1;
@@ -10,12 +13,25 @@ const CampaignCard = ({ campaign }) => {
     // Calculate percentage, capped at 100% so the visual bar doesn't overflow
     const progressPercentage = Math.min(Math.round((raised / target) * 100), 100);
 
+    const imageUrl = campaign.image_path 
+        ? (campaign.image_path.startsWith('http') ? campaign.image_path : `${backendUrl}${campaign.image_path}`) 
+        : null;
+
     return (
         <Card className="flex flex-col h-full hover:shadow-apple transition-shadow duration-300 p-0 overflow-hidden">
-            {/* Optional: A placeholder image area. You can add real image uploads later! */}
-            <div className="h-40 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 border-b border-aidwise-border flex items-center justify-center">
-                <span className="text-4xl">🌍</span>
-            </div>
+            {imageUrl ? (
+                <div className="h-40 w-full overflow-hidden border-b border-aidwise-border bg-gray-50">
+                    <img 
+                        src={imageUrl} 
+                        alt={campaign.title} 
+                        className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
+                    />
+                </div>
+            ) : (
+                <div className="h-40 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 border-b border-aidwise-border flex items-center justify-center">
+                    <span className="text-4xl">🌍</span>
+                </div>
+            )}
 
             <div className="p-6 flex flex-col flex-1">
                 <div className="mb-2">
@@ -35,8 +51,8 @@ const CampaignCard = ({ campaign }) => {
                 {/* Progress Bar Section */}
                 <div className="mt-auto">
                     <div className="flex justify-between text-sm font-semibold mb-2">
-                        <span className="text-aidwise-text">${raised.toLocaleString()} raised</span>
-                        <span className="text-gray-400">of ${target.toLocaleString()}</span>
+                        <span className="text-aidwise-text">RM {raised.toLocaleString()} raised</span>
+                        <span className="text-gray-400">of RM {target.toLocaleString()}</span>
                     </div>
                     
                     <div className="w-full bg-gray-100 rounded-full h-2.5 mb-4 overflow-hidden">
@@ -46,7 +62,6 @@ const CampaignCard = ({ campaign }) => {
                         ></div>
                     </div>
 
-                    {/* We will build this dedicated details page in the next step! */}
                     <Link 
                         to={`/campaigns/${campaign.id}`}
                         className="block w-full text-center py-2.5 px-4 bg-gray-50 text-aidwise-text font-semibold rounded-xl hover:bg-aidwise-blue hover:text-white transition-colors border border-gray-200 hover:border-aidwise-blue"

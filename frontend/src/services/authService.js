@@ -60,3 +60,14 @@ export const adminCreateUser = async (payload) => {
     const response = await axiosInstance.post('/admin/users', payload);
     return extractData(response);
 };
+
+export const getDonorProfile = async (id) => {
+    const response = await axiosInstance.get(`/profiles/donor/${id}`);
+    return extractData(response);
+};
+
+export const getNgoProfile = async (id) => {
+    const response = await axiosInstance.get(`/profiles/ngo/${id}`);
+    return extractData(response);
+};
+

@@ -8,7 +8,8 @@ import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Modal from '../components/ui/Modal';
 import { useNgoCampaignDetails } from '../hooks/useNgoCampaignDetails';
-import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil } from 'lucide-react';
+import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil, FileText } from 'lucide-react';
+import { downloadCampaignReport } from '../services/campaignService';
 
 const NgoCampaignDetails = () => {
     const { id } = useParams();
@@ -35,6 +36,29 @@ const NgoCampaignDetails = () => {
         handleAllocationChange,
         handleAllocationSubmit,
     } = useNgoCampaignDetails(id);
+
+    const [isDownloadingReport, setIsDownloadingReport] = React.useState(false);
+    const [reportError, setReportError] = React.useState('');
+
+    const handleDownloadReport = async () => {
+        setIsDownloadingReport(true);
+        setReportError('');
+        try {
+            const { blob, filename } = await downloadCampaignReport(campaign.id);
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = filename;
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+        } catch (err) {
+            setReportError('Failed to generate and download campaign report.');
+        } finally {
+            setIsDownloadingReport(false);
+        }
+    };
 
     const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
@@ -111,6 +135,23 @@ const NgoCampaignDetails = () => {
                         <p className="text-sm text-gray-600 leading-relaxed max-w-3xl">{campaign.description || 'No description available.'}</p>
                     </div>
                     <div className="flex flex-wrap gap-2">
+                        <Button 
+                            variant="secondary" 
+                            className="flex items-center gap-2 border-emerald-200 text-emerald-700 bg-emerald-50 hover:bg-emerald-100" 
+                            onClick={handleDownloadReport}
+                            disabled={isDownloadingReport}
+                        >
+                            {isDownloadingReport ? (
+                                <>
+                                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-emerald-700"></span>
+                                    Generating Report...
+                                </>
+                            ) : (
+                                <>
+                                    <FileText size={16} /> Export Campaign Report
+                                </>
+                            )}
+                        </Button>
                         <Button variant="secondary" className="flex items-center gap-2" onClick={openCampaignModal}>
                             <Pencil size={16} /> Edit Campaign Details
                         </Button>
@@ -120,6 +161,19 @@ const NgoCampaignDetails = () => {
                 {successMessage && (
                     <div className="mb-6 p-4 bg-green-50 text-green-700 rounded-xl border border-green-200">
                         {successMessage}
+                    </div>
+                )}
+
+                {reportError && (
+                    <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100 flex items-center justify-between">
+                        <span>{reportError}</span>
+                        <button
+                            type="button"
+                            onClick={() => setReportError('')}
+                            className="text-xs font-semibold text-red-500 hover:text-red-700"
+                        >
+                            Dismiss
+                        </button>
                     </div>
                 )}
 

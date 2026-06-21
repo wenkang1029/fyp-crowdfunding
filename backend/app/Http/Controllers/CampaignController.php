@@ -38,6 +38,14 @@ class CampaignController extends Controller
             ], 403);
         }
 
+        // Decode allocations from JSON if sent in FormData
+        if ($request->has('allocations') && is_string($request->input('allocations'))) {
+            $decoded = json_decode($request->input('allocations'), true);
+            if (is_array($decoded)) {
+                $request->merge(['allocations' => $decoded]);
+            }
+        }
+
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
@@ -47,7 +55,13 @@ class CampaignController extends Controller
             'allocations.*.amount' => 'required_with:allocations|numeric|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
+            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
         ]);
+
+        if ($request->hasFile('image')) {
+            $path = $request->file('image')->store('campaigns', 'public');
+            $validated['image_path'] = '/storage/' . $path;
+        }
 
         $campaign = $this->campaignService->createForNgo($request->user(), $validated);
 

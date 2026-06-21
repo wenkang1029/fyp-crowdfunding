@@ -27,6 +27,10 @@ class User extends Authenticatable
         'org_reg_number',
         'org_description',
         'status',
+        'identification_number',
+        'mailing_address',
+        'is_tax_exempt',
+        'lhdn_reference',
     ];
 
     /**

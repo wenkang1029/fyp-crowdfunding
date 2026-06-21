@@ -25,13 +25,13 @@ const Navbar = () => {
             <div>
                 {user ? (
                     <div className="flex items-center gap-4">
-                        <div className="hidden sm:flex items-center gap-2 border-r border-gray-200 pr-4">
+                        <Link to="/profile" className="hidden sm:flex items-center gap-2 border-r border-gray-200 pr-4 hover:opacity-80 transition-opacity">
                             <Avatar name={user.name} className="h-8 w-8 text-xs" />
                             <div className="flex flex-col">
                                 <span className="text-sm font-bold text-aidwise-text leading-tight">{user.name}</span>
                                 <span className="text-[10px] font-semibold text-gray-500 uppercase tracking-wider leading-tight">{user.role}</span>
                             </div>
-                        </div>
+                        </Link>
 
                         <Link 
                             to={user.role === 'admin' ? '/admin/dashboard' : user.role === 'ngo' ? '/ngo/dashboard' : '/donor/dashboard'} 

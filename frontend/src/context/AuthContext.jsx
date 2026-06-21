@@ -50,7 +50,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
             {/* HCI: Prevent rendering protected routes until we know who the user is */}
             {loading ? (
                 <div className="min-h-screen flex items-center justify-center bg-aidwise-light text-aidwise-text">

@@ -164,6 +164,29 @@ const CreateCampaign = () => {
                                     error={getError('description')}
                                     rows={6}
                                 />
+
+                                <div>
+                                    <label className="block text-sm font-medium text-aidwise-text mb-1">Campaign Cover Image</label>
+                                    <input 
+                                        type="file" 
+                                        accept="image/*"
+                                        onChange={(e) => {
+                                            const file = e.target.files[0];
+                                            if (file) {
+                                                handleChange({ target: { name: 'image', value: file } });
+                                            }
+                                        }}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-xl p-2 bg-gray-50/50"
+                                    />
+                                    {formData.image && (
+                                        <p className="text-xs text-emerald-600 mt-1 font-semibold flex items-center gap-1">
+                                            ✓ {formData.image.name} selected
+                                        </p>
+                                    )}
+                                    {getError('image') && (
+                                        <p className="text-xs text-red-600 mt-1">{getError('image')}</p>
+                                    )}
+                                </div>
                             </div>
                         )}
 

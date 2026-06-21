@@ -28,6 +28,10 @@ class DonationController extends Controller
             'transaction_id' => 'nullable|string',
             'payment_method' => 'nullable|string',
             'donor_name' => 'nullable|string|max:255',
+            'request_tax_receipt' => 'nullable|boolean',
+            'tax_name' => 'nullable|string|max:255',
+            'tax_id_number' => 'nullable|string|max:255',
+            'tax_address' => 'nullable|string|max:1000',
         ]);
 
         try {

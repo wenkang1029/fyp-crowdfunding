@@ -8,6 +8,7 @@ const initialFormData = {
     allocations: [{ purpose: '', amount: '' }],
     start_date: '',
     end_date: '',
+    image: null,
 };
 
 export const useCreateCampaign = () => {
@@ -133,19 +134,24 @@ export const useCreateCampaign = () => {
 
             const totalAllocated = getAllocationTotal(formData.allocations);
 
-            const payload = {
-                title: formData.title,
-                description: formData.description,
-                target_amount: totalAllocated,
-                allocations: formData.allocations.map((allocation) => ({
-                    purpose: allocation.purpose.trim(),
-                    amount: parseFloat(allocation.amount),
-                })),
-                start_date: new Date(formData.start_date).toISOString(),
-                end_date: new Date(formData.end_date).toISOString(),
-            };
+            const data = new FormData();
+            data.append('title', formData.title);
+            data.append('description', formData.description);
+            data.append('target_amount', totalAllocated);
+            data.append('start_date', new Date(formData.start_date).toISOString());
+            data.append('end_date', new Date(formData.end_date).toISOString());
+            
+            const formattedAllocations = formData.allocations.map((allocation) => ({
+                purpose: allocation.purpose.trim(),
+                amount: parseFloat(allocation.amount),
+            }));
+            data.append('allocations', JSON.stringify(formattedAllocations));
 
-            await createCampaign(payload);
+            if (formData.image) {
+                data.append('image', formData.image);
+            }
+
+            await createCampaign(data);
             navigate('/ngo/dashboard');
         } catch (err) {
             if (err?.response?.data?.errors) {

@@ -5,17 +5,21 @@ namespace App\Services;
 use App\Models\Campaign;
 use App\Models\Donation;
 use App\Models\User;
+use App\Helpers\NumberToWordsHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DonationService
 {
-    public function donateToCampaign(Campaign $campaign, float $amount, ?User $user = null, ?string $paymentMethod = null, ?string $transactionId = null, ?string $donorName = null): Donation
+    public function donateToCampaign(Campaign $campaign, float $amount, ?User $user = null, ?string $paymentMethod = null, ?string $transactionId = null, ?string $donorName = null, bool $requestTaxReceipt = false, ?string $taxName = null, ?string $taxIdNumber = null, ?string $taxAddress = null): Donation
     {
         $previousAmount = $campaign->current_amount ?? 0.0;
 
-        $donation = DB::transaction(function () use ($campaign, $amount, $user, $paymentMethod, $transactionId, $donorName) {
+        $donation = DB::transaction(function () use ($campaign, $amount, $user, $paymentMethod, $transactionId, $donorName, $requestTaxReceipt, $taxName, $taxIdNumber, $taxAddress) {
+            $isNgoTaxExempt = $campaign->user && $campaign->user->is_tax_exempt;
+            $shouldGenerateTax = $requestTaxReceipt && $isNgoTaxExempt;
+
             $donation = Donation::create([
                 'user_id' => $user?->id,
                 'campaign_id' => $campaign->id,
@@ -24,7 +28,16 @@ class DonationService
                 'status' => 'success',
                 'transaction_id' => $transactionId,
                 'payment_method' => $paymentMethod,
+                'request_tax_receipt' => $shouldGenerateTax,
+                'tax_name' => $shouldGenerateTax ? $taxName : null,
+                'tax_id_number' => $shouldGenerateTax ? $taxIdNumber : null,
+                'tax_address' => $shouldGenerateTax ? $taxAddress : null,
             ]);
+
+            if ($donation->request_tax_receipt) {
+                $donation->tax_receipt_number = 'TX-' . date('Y') . '-' . str_pad($donation->id, 6, '0', STR_PAD_LEFT);
+                $donation->save();
+            }
 
             $campaign->current_amount = ($campaign->current_amount ?? 0) + $amount;
             $campaign->save();
@@ -58,6 +71,10 @@ class DonationService
         $previousAmount = $campaign->current_amount ?? 0.0;
 
         $donation = DB::transaction(function () use ($data, $campaign, $user) {
+            $requestTaxReceipt = filter_var($data['request_tax_receipt'] ?? false, FILTER_VALIDATE_BOOLEAN);
+            $isNgoTaxExempt = $campaign->user && $campaign->user->is_tax_exempt;
+            $shouldGenerateTax = $requestTaxReceipt && $isNgoTaxExempt;
+
             $donation = Donation::create([
                 'user_id' => $user?->id,
                 'campaign_id' => $campaign->id,
@@ -67,7 +84,16 @@ class DonationService
                 'status' => 'success',
                 'transaction_id' => $data['transaction_id'] ?? ('TXN_' . uniqid()),
                 'payment_method' => $data['payment_method'] ?? null,
+                'request_tax_receipt' => $shouldGenerateTax,
+                'tax_name' => $shouldGenerateTax ? ($data['tax_name'] ?? null) : null,
+                'tax_id_number' => $shouldGenerateTax ? ($data['tax_id_number'] ?? null) : null,
+                'tax_address' => $shouldGenerateTax ? ($data['tax_address'] ?? null) : null,
             ]);
+
+            if ($donation->request_tax_receipt) {
+                $donation->tax_receipt_number = 'TX-' . date('Y') . '-' . str_pad($donation->id, 6, '0', STR_PAD_LEFT);
+                $donation->save();
+            }
 
             $campaign->current_amount = ($campaign->current_amount ?? 0) + $data['amount'];
             $campaign->save();
@@ -117,7 +143,7 @@ class DonationService
         if ($user->role === 'ngo') {
             return Donation::with([
                 'campaign:id,title',
-                'user:id,name,email',
+                'user:id,name,email,identification_number,mailing_address',
                 'allocation:id,purpose',
             ])
                 ->whereHas('campaign', function ($query) use ($user) {
@@ -138,22 +164,28 @@ class DonationService
 
         $donation = Donation::with([
             'campaign:id,title,user_id',
-            'campaign.user:id,name',
+            'campaign.user:id,name,org_name,mailing_address,lhdn_reference',
             'allocation:id,purpose',
-            'user:id,name,email',
+            'user:id,name,email,identification_number,mailing_address',
         ])->findOrFail($donationId);
 
         if (!$donation->user_id || $donation->user_id !== $user->id) {
             throw new HttpException(403, 'You can only download your own donation receipts.');
         }
 
-        $pdf = Pdf::loadView('reports.donation-receipt', [
+        $viewName = $donation->request_tax_receipt ? 'reports.tax-receipt' : 'reports.donation-receipt';
+        $amountInWords = NumberToWordsHelper::convert($donation->amount);
+
+        $pdf = Pdf::loadView($viewName, [
             'donation' => $donation,
+            'amountInWords' => $amountInWords,
         ]);
 
         return [
             'pdf' => $pdf,
-            'filename' => 'donation_receipt_' . $donation->id . '.pdf',
+            'filename' => $donation->request_tax_receipt 
+                ? 'tax_receipt_' . $donation->id . '.pdf' 
+                : 'donation_receipt_' . $donation->id . '.pdf',
         ];
     }
 }

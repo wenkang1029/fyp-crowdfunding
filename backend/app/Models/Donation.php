@@ -17,7 +17,12 @@ class Donation extends Model
         'amount',
         'status',
         'transaction_id',
-        'payment_method' // NEW
+        'payment_method',
+        'request_tax_receipt',
+        'tax_name',
+        'tax_id_number',
+        'tax_address',
+        'tax_receipt_number',
     ];
 
     // A donation belongs to a user (the donor)

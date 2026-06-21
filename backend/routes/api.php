@@ -32,6 +32,8 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::post('/logout', [AuthController::class, 'logout']);
     Route::get('/user', [AuthController::class, 'user']);
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
+    Route::get('/profiles/donor/{id}', [\App\Http\Controllers\ProfileController::class, 'showDonor']);
+    Route::get('/profiles/ngo/{id}', [\App\Http\Controllers\ProfileController::class, 'showNgo']);
 
     // Campaign Actions (Create, Update, Delete)
     Route::post('/campaigns', [CampaignController::class, 'store']);
@@ -70,6 +72,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     // Report Routes
     Route::get('/campaigns/{campaign_id}/reports/allocations', [\App\Http\Controllers\ReportController::class, 'allocationReport']);
     Route::get('/campaigns/{campaign_id}/reports/disbursements', [\App\Http\Controllers\ReportController::class, 'disbursementReport']);
+    Route::get('/campaigns/{campaign_id}/reports/summary', [\App\Http\Controllers\ReportController::class, 'campaignReport']);
     
     // Notification Routes
     Route::get('/notifications', [\App\Http\Controllers\NotificationController::class, 'index']);

@@ -51,4 +51,39 @@ class ReportController extends Controller
         // 4. Return the PDF file
         return $pdf->stream('disbursement_report.pdf');
     }
+
+    /**
+     * Generate overall campaign summary report containing list of donations and disbursements.
+     */
+    public function campaignReport(Request $request, $campaign_id)
+    {
+        $user = $request->user();
+        if ($user->role !== 'ngo' && $user->role !== 'admin') {
+            return response()->json(['message' => 'Unauthorized.'], 403);
+        }
+
+        $campaign = Campaign::with([
+            'user:id,name,email',
+            'donations' => function ($query) {
+                $query->where('status', 'success')
+                    ->with(['user:id,name,email', 'allocation:id,purpose'])
+                    ->orderBy('created_at', 'desc');
+            },
+            'disbursements' => function ($query) {
+                $query->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($campaign_id);
+
+        if ($user->role === 'ngo' && $campaign->user_id !== $user->id) {
+            return response()->json(['message' => 'You do not own this campaign.'], 403);
+        }
+
+        $pdf = Pdf::loadView('reports.campaign', [
+            'campaign' => $campaign,
+            'donations' => $campaign->donations,
+            'disbursements' => $campaign->disbursements,
+        ]);
+
+        return $pdf->stream('campaign_summary_report_' . $campaign->id . '.pdf');
+    }
 }

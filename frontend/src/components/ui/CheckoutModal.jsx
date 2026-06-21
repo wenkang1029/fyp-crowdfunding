@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { CreditCard, Building2, QrCode, Loader2, CheckCircle, X } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
 import Button from './Button';
 import Input from './Input';
 
-const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
+const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign }) => {
+    const { user } = useAuth();
     const [activeTab, setActiveTab] = useState('card');
     const [isProcessing, setIsProcessing] = useState(false);
     const [isSuccess, setIsSuccess] = useState(false);
@@ -11,6 +13,12 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
     // Mock Form States
     const [cardNumber, setCardNumber] = useState('');
     const [bank, setBank] = useState('');
+
+    // Tax Exemption States
+    const [requestTaxReceipt, setRequestTaxReceipt] = useState(false);
+    const [taxName, setTaxName] = useState('');
+    const [taxIdNumber, setTaxIdNumber] = useState('');
+    const [taxAddress, setTaxAddress] = useState('');
 
     useEffect(() => {
         if (!isOpen) {
@@ -22,9 +30,23 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
         setIsSuccess(false);
         setCardNumber('');
         setBank('');
-    }, [isOpen]);
+
+        // Pre-fill tax fields if user is authenticated and is a donor
+        if (user) {
+            setTaxName(user.name || '');
+            setTaxIdNumber(user.identification_number || '');
+            setTaxAddress(user.mailing_address || '');
+        } else {
+            setTaxName('');
+            setTaxIdNumber('');
+            setTaxAddress('');
+        }
+        setRequestTaxReceipt(false);
+    }, [isOpen, user]);
 
     if (!isOpen) return null;
+
+    const isTaxExemptCampaign = campaign?.user?.is_tax_exempt === true || campaign?.user?.is_tax_exempt == 1;
 
     const handleSimulatePayment = (e) => {
         e.preventDefault();
@@ -41,14 +63,15 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
             const prefix = activeTab === 'card' ? 'CRD' : activeTab === 'fpx' ? 'FPX' : 'DQR';
             const mockReceiptId = `${prefix}_${Math.floor(100000000 + Math.random() * 900000000)}`;
 
-            // 4. Wait 1 second on the success screen so the user sees the green checkmark
+            // 4. Wait 1.2 seconds on the success screen so the user sees the green checkmark
             setTimeout(() => {
-                // FIX: We REMOVED `setIsSuccess(false)` from here!
-                // We keep the green checkmark permanently on screen while the API call 
-                // runs in the background, until the parent page unmounts this modal.
                 onSuccessfulPayment({
                     method: activeTab,
-                    transaction_id: mockReceiptId
+                    transaction_id: mockReceiptId,
+                    request_tax_receipt: requestTaxReceipt,
+                    tax_name: requestTaxReceipt ? taxName : null,
+                    tax_id_number: requestTaxReceipt ? taxIdNumber : null,
+                    tax_address: requestTaxReceipt ? taxAddress : null
                 });
             }, 1200);
 
@@ -92,23 +115,26 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
 
                 {/* Interactive Payment Selection (Hidden during processing) */}
                 {!isProcessing && !isSuccess && (
-                    <div className="p-6">
+                    <div className="p-6 max-h-[80vh] overflow-y-auto">
                         
                         {/* Tab Navigation */}
                         <div className="flex bg-gray-100 p-1 rounded-xl mb-6">
                             <button 
+                                type="button"
                                 onClick={() => setActiveTab('card')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'card' ? 'bg-white text-aidwise-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 <CreditCard size={16} /> Card
                             </button>
                             <button 
+                                type="button"
                                 onClick={() => setActiveTab('fpx')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'fpx' ? 'bg-white text-aidwise-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
                                 <Building2 size={16} /> FPX
                             </button>
                             <button 
+                                type="button"
                                 onClick={() => setActiveTab('qr')}
                                 className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'qr' ? 'bg-white text-aidwise-blue shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                             >
@@ -165,7 +191,6 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
                             {activeTab === 'qr' && (
                                 <div className="space-y-4 flex flex-col items-center animate-in fade-in slide-in-from-bottom-2 duration-300">
                                     <div className="w-48 h-48 bg-gray-100 rounded-xl border-2 border-dashed border-gray-300 flex items-center justify-center p-2">
-                                        {/* Mock QR graphic using an icon */}
                                         <QrCode size={120} className="text-gray-400 opacity-50" />
                                     </div>
                                     <p className="text-sm font-medium text-gray-600">Scan this code using any banking app or e-wallet.</p>
@@ -173,7 +198,60 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment }) => {
                                 </div>
                             )}
 
-                            <Button type="submit" variant="primary" className="w-full mt-8 h-12 text-base font-bold shadow-md hover:shadow-lg transition-all">
+                            {/* LHDN Tax Exemption Request Section */}
+                            {isTaxExemptCampaign && (
+                                <div className="mt-6 border-t border-gray-100 pt-4 space-y-4">
+                                    <div className="flex items-start gap-2">
+                                        <input 
+                                            type="checkbox" 
+                                            id="requestTaxReceipt"
+                                            checked={requestTaxReceipt}
+                                            onChange={(e) => setRequestTaxReceipt(e.target.checked)}
+                                            className="mt-1 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
+                                        />
+                                        <div>
+                                            <label htmlFor="requestTaxReceipt" className="font-bold text-sm text-aidwise-text cursor-pointer block">
+                                                Request LHDN Section 44(6) Tax Receipt
+                                            </label>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                This organization is approved by LHDN to support tax exemption receipt generation.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {requestTaxReceipt && (
+                                        <div className="space-y-3 p-4 bg-gray-50 rounded-xl border border-gray-200 animate-in fade-in duration-200">
+                                            <Input 
+                                                label="Tax Receipt Name (Full / Company)" 
+                                                placeholder="e.g. John Doe"
+                                                value={taxName}
+                                                onChange={(e) => setTaxName(e.target.value)}
+                                                required={requestTaxReceipt}
+                                            />
+                                            <Input 
+                                                label="Identification Number (IC / Passport / Reg No)" 
+                                                placeholder="e.g. 960101-10-1234"
+                                                value={taxIdNumber}
+                                                onChange={(e) => setTaxIdNumber(e.target.value)}
+                                                required={requestTaxReceipt}
+                                            />
+                                            <div>
+                                                <label className="block text-xs font-bold text-aidwise-text mb-1">Complete Mailing Address</label>
+                                                <textarea
+                                                    className="w-full px-4 py-2.5 bg-white border border-gray-200 rounded-lg text-sm text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
+                                                    placeholder="Enter mailing address for tax auditing..."
+                                                    value={taxAddress}
+                                                    onChange={(e) => setTaxAddress(e.target.value)}
+                                                    required={requestTaxReceipt}
+                                                    rows={2}
+                                                />
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            <Button type="submit" variant="primary" className="w-full mt-6 h-12 text-base font-bold shadow-md hover:shadow-lg transition-all">
                                 Pay RM {Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                             </Button>
                         </form>

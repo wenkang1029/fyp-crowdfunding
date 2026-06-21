@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
-import { LayoutDashboard, LogOut, ChevronLeft, ChevronRight, Megaphone, Wallet } from 'lucide-react';
+import { LayoutDashboard, LogOut, ChevronLeft, ChevronRight, Megaphone, Wallet, User } from 'lucide-react';
 import NotificationDropdown from '../ui/NotificationDropdown';
 
 const DashboardLayout = ({ children }) => {
@@ -113,6 +113,19 @@ const DashboardLayout = ({ children }) => {
                             </Link>
                         </>
                     )}
+                    
+                    <Link 
+                        to="/profile" 
+                        className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
+                            location.pathname === '/profile' 
+                            ? 'bg-aidwise-blue text-white shadow-sm'
+                            : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
+                        }`}
+                        title="Profile Settings"
+                    >
+                        <User size={20} className="shrink-0" />
+                        {!isCollapsed && <span className="whitespace-nowrap">Profile Settings</span>}
+                    </Link>
                 </nav>
 
                 <div className="p-3 border-t border-aidwise-border bg-white mt-auto shrink-0">

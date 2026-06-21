@@ -37,3 +37,19 @@ export const deleteCampaign = async (campaignId) => {
     const response = await axiosInstance.delete(`/campaigns/${campaignId}`);
     return extractData(response);
 };
+
+export const downloadCampaignReport = async (campaignId) => {
+    const response = await axiosInstance.get(`/campaigns/${campaignId}/reports/summary`, {
+        responseType: 'blob',
+    });
+
+    const disposition = response.headers?.['content-disposition'] || '';
+    const filenameMatch = /filename="?([^";]+)"?/i.exec(disposition);
+    const filename = filenameMatch?.[1] || `campaign_report_${campaignId}.pdf`;
+
+    return {
+        blob: response.data,
+        filename,
+    };
+};
+

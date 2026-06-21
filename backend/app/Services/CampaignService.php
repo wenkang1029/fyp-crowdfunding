@@ -57,6 +57,10 @@ class CampaignService
                 'status' => 'pending',
             ];
 
+            if (isset($data['image_path'])) {
+                $campaignData['image_path'] = $data['image_path'];
+            }
+
             if (isset($data['start_date'])) {
                 $campaignData['start_date'] = $data['start_date'];
             }
