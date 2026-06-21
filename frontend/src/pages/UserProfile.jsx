@@ -40,6 +40,9 @@ const UserProfile = () => {
     const [passwordError, setPasswordError] = useState('');
     const [passwordSuccess, setPasswordSuccess] = useState('');
 
+    // Profile Update Confirmation Modal State
+    const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+
     useEffect(() => {
         if (user) {
             setName(user.name || '');
@@ -54,8 +57,14 @@ const UserProfile = () => {
         }
     }, [user]);
 
-    const handleSubmit = async (e) => {
+    const handleSaveClick = (e) => {
         e.preventDefault();
+        setSuccessMessage('');
+        setErrorMessage('');
+        setIsConfirmModalOpen(true);
+    };
+
+    const executeProfileUpdate = async () => {
         setIsLoading(true);
         setSuccessMessage('');
         setErrorMessage('');
@@ -80,7 +89,7 @@ const UserProfile = () => {
             // Update local auth state
             if (response) {
                 setUser(response);
-                setSuccessMessage('Profile updated successfully.');
+                setSuccessMessage('Profile details updated successfully!');
             }
         } catch (err) {
             const msg = err.response?.data?.message || 'Failed to update profile. Please try again.';
@@ -162,7 +171,7 @@ const UserProfile = () => {
                     </div>
                 )}
 
-                <form onSubmit={handleSubmit} className="space-y-8">
+                <form onSubmit={handleSaveClick} className="space-y-8">
                     {/* Account Type Banner */}
                     <div className="p-4 bg-white/60 backdrop-blur border border-aidwise-border/50 rounded-2xl flex items-center justify-between">
                         <div>
@@ -330,7 +339,7 @@ const UserProfile = () => {
                         <Button
                             type="submit"
                             variant="primary"
-                            className="px-8 py-3 font-bold rounded-2xl animate-in fade-in"
+                            className="px-8 py-3 font-bold rounded-2xl"
                             disabled={isLoading}
                         >
                             {isLoading ? 'Saving Changes...' : 'Save Profile Details'}
@@ -338,6 +347,42 @@ const UserProfile = () => {
                     </div>
                 </form>
             </main>
+
+            {/* Profile Update Confirmation Modal */}
+            <Modal
+                isOpen={isConfirmModalOpen}
+                onClose={() => setIsConfirmModalOpen(false)}
+                title="Confirm Profile Update"
+            >
+                <div className="text-center">
+                    <p className="text-gray-600 mb-6">
+                        Are you sure you want to save the updated profile details?
+                    </p>
+                    <div className="flex gap-3">
+                        <Button 
+                            type="button" 
+                            variant="secondary" 
+                            className="flex-1" 
+                            onClick={() => setIsConfirmModalOpen(false)}
+                            disabled={isLoading}
+                        >
+                            Cancel
+                        </Button>
+                        <Button 
+                            type="button" 
+                            variant="primary" 
+                            className="flex-1" 
+                            onClick={async () => {
+                                setIsConfirmModalOpen(false);
+                                await executeProfileUpdate();
+                            }}
+                            disabled={isLoading}
+                        >
+                            {isLoading ? 'Saving...' : 'Yes, Confirm'}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
 
             {/* Change Password Modal */}
             <Modal
