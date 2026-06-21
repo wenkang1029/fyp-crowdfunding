@@ -71,3 +71,14 @@ export const getNgoProfile = async (id) => {
     return extractData(response);
 };
 
+export const getStripeConnectUrl = async () => {
+    const response = await axiosInstance.get('/stripe/connect');
+    return response.data;
+};
+
+export const verifyStripeOnboarding = async () => {
+    const response = await axiosInstance.post('/stripe/verify-onboarding');
+    return response.data;
+};
+
+

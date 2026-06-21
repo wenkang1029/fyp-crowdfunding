@@ -49,8 +49,17 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
+    const refreshUser = async () => {
+        try {
+            const userData = await getAuthenticatedUser();
+            setUser(userData);
+        } catch (e) {
+            console.error("Failed to refresh user profile data", e);
+        }
+    };
+
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading, setUser }}>
+        <AuthContext.Provider value={{ user, login, logout, loading, setUser, refreshUser }}>
             {/* HCI: Prevent rendering protected routes until we know who the user is */}
             {loading ? (
                 <div className="min-h-screen flex items-center justify-center bg-aidwise-light text-aidwise-text">

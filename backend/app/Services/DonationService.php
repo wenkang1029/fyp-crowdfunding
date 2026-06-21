@@ -70,6 +70,12 @@ class DonationService
 
         $previousAmount = $campaign->current_amount ?? 0.0;
 
+        // Retrieve NGO Stripe account details
+        $ngo = $campaign->user;
+        if (!$ngo || !$ngo->stripe_account_id || !$ngo->stripe_onboarding_completed) {
+            throw new HttpException(400, 'This NGO has not linked their Stripe account yet and cannot receive donations.');
+        }
+
         $donation = DB::transaction(function () use ($data, $campaign, $user) {
             $requestTaxReceipt = filter_var($data['request_tax_receipt'] ?? false, FILTER_VALIDATE_BOOLEAN);
             $isNgoTaxExempt = $campaign->user && $campaign->user->is_tax_exempt;
@@ -81,9 +87,9 @@ class DonationService
                 'allocation_id' => $data['allocation_id'] ?? null,
                 'donor_name' => $data['donor_name'] ?? ($user?->name ?? 'Anonymous'),
                 'amount' => $data['amount'],
-                'status' => 'success',
-                'transaction_id' => $data['transaction_id'] ?? ('TXN_' . uniqid()),
-                'payment_method' => $data['payment_method'] ?? null,
+                'status' => 'pending', // Starts pending until Stripe webhook succeeds
+                'transaction_id' => null,
+                'payment_method' => 'card',
                 'request_tax_receipt' => $shouldGenerateTax,
                 'tax_name' => $shouldGenerateTax ? ($data['tax_name'] ?? null) : null,
                 'tax_id_number' => $shouldGenerateTax ? ($data['tax_id_number'] ?? null) : null,
@@ -95,18 +101,36 @@ class DonationService
                 $donation->save();
             }
 
-            $campaign->current_amount = ($campaign->current_amount ?? 0) + $data['amount'];
-            $campaign->save();
-
             return $donation;
         });
 
-        $this->triggerDonationNotifications($campaign, $data['amount'], $user, $previousAmount);
+        // Initialize Stripe SDK
+        \Stripe\Stripe::setApiKey(config('services.stripe.secret'));
 
-        return [
-            'donation' => $donation,
-            'campaign_progress' => $campaign->current_amount,
-        ];
+        try {
+            $paymentIntent = \Stripe\PaymentIntent::create([
+                'amount' => intval($donation->amount * 100), // Convert to cents
+                'currency' => 'myr',
+                'payment_method_types' => ['card'],
+                'metadata' => [
+                    'donation_id' => $donation->id,
+                    'campaign_id' => $campaign->id,
+                ],
+                'transfer_data' => [
+                    'destination' => $ngo->stripe_account_id,
+                ],
+            ]);
+
+            return [
+                'donation' => $donation,
+                'client_secret' => $paymentIntent->client_secret,
+                'campaign_progress' => $campaign->current_amount,
+            ];
+        } catch (\Exception $e) {
+            // Rollback donation on Stripe intent error
+            $donation->delete();
+            throw new HttpException(500, 'Stripe Payment Gateway Error: ' . $e->getMessage());
+        }
     }
 
     private function triggerDonationNotifications(Campaign $campaign, float $amount, ?User $user, float $previousAmount): void

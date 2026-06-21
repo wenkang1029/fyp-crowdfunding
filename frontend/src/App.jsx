@@ -15,6 +15,8 @@ import DonorDashboard from './pages/DonorDashboard';
 import AdminDisbursements from './pages/AdminDisbursements';
 import UserProfile from './pages/UserProfile';
 
+import StripeCallback from './pages/StripeCallback';
+
 function App() {
   return (
     <AuthProvider>
@@ -24,6 +26,7 @@ function App() {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/campaigns/:id" element={<CampaignDetails />} />
+          <Route path="/ngo/stripe-callback" element={<StripeCallback />} />
           
           {/* Automatically redirect the generic /dashboard to the correct one */}
           <Route path="/dashboard" element={<Navigate to="/login" replace />} />

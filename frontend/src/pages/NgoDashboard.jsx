@@ -141,6 +141,39 @@ const NgoDashboard = () => {
                     <p className="mt-1 text-gray-500">Welcome back, {user?.name}. Here is your real-time impact.</p>
                 </div>
 
+                {/* Stripe Connection Call to Action Banner */}
+                {!user?.stripe_onboarding_completed && (
+                    <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm animate-fade-in">
+                        <div className="flex items-start gap-3">
+                            <span className="text-2xl mt-0.5">⚠️</span>
+                            <div>
+                                <h4 className="font-bold text-amber-900 text-sm md:text-base">Stripe Account Setup Required</h4>
+                                <p className="text-amber-700 text-xs md:text-sm mt-1 max-w-xl">
+                                    To receive direct donations from contributors, you must link your organization's bank account with Stripe. This takes less than 5 minutes.
+                                </p>
+                            </div>
+                        </div>
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { getStripeConnectUrl } = await import('../services/authService');
+                                    const response = await getStripeConnectUrl();
+                                    if (response.success && response.url) {
+                                        window.location.href = response.url;
+                                    } else {
+                                        alert(response.message || 'Failed to retrieve connection link.');
+                                    }
+                                } catch (err) {
+                                    alert('Failed to connect to Stripe service. Please try again.');
+                                }
+                            }}
+                            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-5 rounded-xl transition-all shadow-sm hover:shadow-apple whitespace-nowrap text-sm"
+                        >
+                            Link Stripe Account
+                        </button>
+                    </div>
+                )}
+
                 {/* Dynamic Metric Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard title="Total Raised" value={`$${totalRaised.toLocaleString()}`} icon={DollarSign} />

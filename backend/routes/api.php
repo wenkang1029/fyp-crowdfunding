@@ -20,6 +20,11 @@ Route::post('/campaigns/{id}/donate', [CampaignController::class, 'donate']);
 // AI Chatbot Webhook (Public, so external bot servers can reach it)
 Route::post('/chatbot/webhook', [\App\Http\Controllers\ChatbotController::class, 'handleWebhook']);
 
+// Stripe Webhook Endpoint (Public, since Stripe calls it directly)
+Route::post('/webhooks/stripe/connect', [\App\Http\Controllers\StripeController::class, 'handleWebhook']);
+Route::post('/webhooks/stripe', [\App\Http\Controllers\StripeController::class, 'handleWebhook']);
+
+
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +39,11 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update']);
     Route::get('/profiles/donor/{id}', [\App\Http\Controllers\ProfileController::class, 'showDonor']);
     Route::get('/profiles/ngo/{id}', [\App\Http\Controllers\ProfileController::class, 'showNgo']);
+
+    // Stripe Connect Endpoints
+    Route::get('/stripe/connect', [\App\Http\Controllers\StripeController::class, 'connect']);
+    Route::post('/stripe/verify-onboarding', [\App\Http\Controllers\StripeController::class, 'verifyOnboarding']);
+
 
     // Campaign Actions (Create, Update, Delete)
     Route::post('/campaigns', [CampaignController::class, 'store']);
