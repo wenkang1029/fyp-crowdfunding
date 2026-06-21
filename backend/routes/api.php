@@ -24,6 +24,17 @@ Route::post('/chatbot/webhook', [\App\Http\Controllers\ChatbotController::class,
 Route::post('/webhooks/stripe/connect', [\App\Http\Controllers\StripeController::class, 'handleWebhook']);
 Route::post('/webhooks/stripe', [\App\Http\Controllers\StripeController::class, 'handleWebhook']);
 
+// Diagnostics Route (Public temporarily to debug 500 error)
+Route::get('/debug-logs', function() {
+    $path = storage_path('logs/laravel.log');
+    if (!file_exists($path)) {
+        return response()->json(['message' => 'No log file found.']);
+    }
+    $lines = file($path);
+    $lastLines = array_slice($lines, -100); // Get last 100 lines of error log
+    return response()->json($lastLines);
+});
+
 
 
 /*
