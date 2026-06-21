@@ -25,11 +25,11 @@ Based on the latest database schema, backend services, and React client routes, 
 | Module | Status | Completeness & Quality Rating | Notes |
 | :--- | :--- | :--- | :--- |
 | **Auth & Security** | Completed | **9.5/10 (Excellent)** | Strong Laravel Sanctum bearer token implementation. Role-gated route authorization is enforced on both Laravel routes (via middlewares) and React views (via `ProtectedRoute`). Account suspension middleware (`EnsureUserIsActive`) logs out suspended sessions instantly. |
-| **Campaign Management** | Completed | **9/10 (Excellent)** | Immutable start/end dates. Includes an automated scheduler command to transition campaign statuses (`pending`, `active`, `completed`). Gated donations validate that the campaign is currently open. |
+| **Campaign Management** | Completed | **9.5/10 (Excellent)** | Immutable start/end dates. Includes an automated scheduler command to transition campaign statuses (`pending`, `active`, `completed`). Form has been enhanced into a 3-step wizard stepper to optimize cognitive load. |
 | **Donation Flow & Payout** | In Progress | **7/10 (Functional)** | Core donation logic and automated PDF receipt generation are complete. However, the system currently uses a mock payment widget. Real Stripe Payment Intent integration is pending (next task in `plan.md`). |
 | **Fund Allocation & Payouts** | Completed | **8.5/10 (Very Good)** | Tracks allocations per campaign and validates that the sum of allocations equals the campaign target. NGO disbursement requests validate that the requested amount does not exceed the remaining campaign funds. |
 | **Chatbot Widget** | Completed | **8.5/10 (Good)** | Transitioned to Google's official **Dialogflow Messenger**. This ensures production security by routing natural language queries through Google's CDN, using webhook fulfillments to query the live DigitalOcean database for active campaigns. |
-| **Notifications UI** | Completed | **9/10 (Excellent)** | Floating badge system integrated in both the top Navbar and the Dashboard Sidebar (left bar). Employs optimistic UI state updates for immediate user feedback. Triggers 8 key platform events. |
+| **Notifications UI** | Completed | **9.5/10 (Excellent)** | Floating badge system integrated in both the top Navbar and the Dashboard Sidebar (left bar). Includes contextual routing (deep linking) to automatically navigate users to relevant pages on click, using optimistic UI updates for feedback. |
 | **LLM Reconciliation (L1-L3)** | Not Started | **0/10 (Pending)** | Scheduled for Phase 2. This will be the "hero feature" of the thesis. |
 
 ---
@@ -228,49 +228,43 @@ graph TD
 
 ---
 
-## 8. Crucial UI/UX Weaknesses & Redesign Specifications
+## 8. Crucial UI/UX Weaknesses & Redesign Specifications (RESOLVED)
 
-Below are the key user experience issues identified on the AidWise platform, along with design enhancements and specific UI/UX redesign specifications.
+The four key user experience issues identified on the AidWise platform have been successfully addressed. Below are the details of the problems and their technical resolution.
 
-### ⚠️ UX Weakness 1: Form Cognitive Fatigue (Campaign Creation Form)
-*   **The Problem:** NGOs must enter campaign details, dates, and dynamic fund allocations on a single long vertical form. This increases the user's cognitive load and increases the risk of error.
-*   **Design Enhancements:** Convert the creation page into a **Multi-Step Form Wizard (Stepper)**.
-*   **Visual/HCI Redesign Specification:**
-    *   *Visual Progress Bar:* Display a horizontal stepper indicating step stages: `1. Campaign Info` ➔ `2. Campaign Timeline` ➔ `3. Allocation Setup`.
-    *   *Step 1 (General Info):* Title, Description, and Category tags.
-    *   *Step 2 (Timeline):* Start Date and End Date.
-    *   *Step 3 (Allocations):* Dynamic list of allocations. The screen includes a calculator tallying allocation values, highlighting the remaining margin in red if they do not match the campaign goal, and turning green when the balance is zero.
-    *   *Transition Animation:* Use simple horizontal slide-in slide-out translations (`transform transition-transform duration-300`) to navigate between steps, giving the user a clear sense of progression.
+### ✅ Resolved 1: Form Cognitive Fatigue (Campaign Creation Form)
+*   **The Problem:** NGOs had to enter campaign details, dates, and dynamic fund allocations on a single long vertical form, increasing user cognitive load and input error rates.
+*   **Technical Resolution:** Refactored [CreateCampaign.jsx](file:///c:/Users/ASUS/Desktop/FYP/fyp-crowdfunding/frontend/src/pages/CreateCampaign.jsx) into a **Multi-Step Form Wizard (Stepper)** with 3 steps:
+    *   *Step 1: Campaign Info* (Title, Description)
+    *   *Step 2: Campaign Timeline* (Start Date, End Date)
+    *   *Step 3: Allocation Setup* (Dynamic item allocations, summing up the total goal amount automatically)
+    *   *Stepper Progress Indicator:* Added a horizontal stepper progress bar at the top showing step state transitions (active: blue outline highlight, completed: green with checkmark, pending).
+    *   *Frontend Validation Gating:* The user cannot step forward unless fields are verified (e.g. title/description are set, start date is prior to end date).
 
-```mermaid
-stateDiagram-v2
-    [*] --> Step1 : "Click Create"
-    Step1 --> Step2 : "Validate & Click Next (Slide Left)"
-    Step2 --> Step3 : "Validate & Click Next (Slide Left)"
-    Step3 --> [*] : "Submit (Confirm Modal)"
-    Step2 --> Step1 : "Click Back (Slide Right)"
-    Step3 --> Step2 : "Click Back (Slide Right)"
-```
+### ✅ Resolved 2: Asynchronous Action Feedback (PDF Receipt Download)
+*   **The Problem:** When a donor clicked "Download", the server compiled a PDF template (taking 1–3 seconds). During this compilation, there was no visual feedback, which often led to multiple duplicate download requests.
+*   **Technical Resolution:** Refactored [DonorDashboard.jsx](file:///c:/Users/ASUS/Desktop/FYP/fyp-crowdfunding/frontend/src/pages/DonorDashboard.jsx):
+    *   *Interactive Label:* Clicking the download button changes the label from `"Download"` to `"Generating PDF..."` and displays a spinning vector loader inline.
+    *   *Click-Blocker:* Disables all receipt download buttons across the ledger while a compilation is running to prevent duplicate download requests.
 
-### ⚠️ UX Weakness 2: Asynchronous Action Feedback (PDF Receipt Download)
-*   **The Problem:** When a donor clicks "Download Receipt", the server compiles a DOMPDF template and downloads the file. During this compilation (which can take 1–3 seconds), there is no visual feedback on the button (no spinner, no disabled state).
-*   **Design Enhancements:** Add an inline loading state to the button.
-*   **Visual/HCI Redesign Specification:**
-    *   Change button text from `"Download Receipt"` to `"Generating PDF..."` and render a small rotating spinner.
-    *   Disable the button temporarily to prevent duplicate download requests.
+### ✅ Resolved 3: Dashboard Chart Interactivity & Aesthetics
+*   **The Problem:** Analytical charts on the NGO Dashboard were visual canvas charts without interactive styling or RM currency calculations.
+*   **Technical Resolution:** Refactored [NgoDashboard.jsx](file:///c:/Users/ASUS/Desktop/FYP/fyp-crowdfunding/frontend/src/pages/NgoDashboard.jsx) options:
+    *   *Aesthetic Styling:* Configured chart dataset fields to use translucent background fills (`rgba(37, 99, 235, 0.85)` for Raised Funds, `rgba(229, 231, 235, 0.6)` for Target) and rounded borders.
+    *   *Interactive Tooltips:* Standardized tooltip and axis callback formatters to print values in RM currency (`RM 5,000.00`) instead of generic dollar formats.
+    *   *Animations:* Implemented a smooth `easeInOutQuart` entrance animation that renders dynamically over 1200ms on page load.
 
-### ⚠️ UX Weakness 3: Dashboard Chart Interactivity & Aesthetics
-*   **The Problem:** Analytical charts on the NGO Dashboard (like donation metrics and allocation progress) can feel static if they rely on raw canvas renders without micro-animations.
-*   **Design Enhancements:** Use SVG-based libraries (like **Recharts** or custom CSS canvas wrappers) configured with:
-    *   Vibrant, translucent gradients (e.g., `from-blue-500/20 to-blue-500/0`).
-    *   Active hover states (tooltips displaying detailed monetary values on cursor overlap).
-    *   Slide-up entrance animations on dashboard load.
-
-### ⚠️ UX Weakness 4: Contextual Deep-Linking from Notifications
-*   **The Problem:** Currently, clicking a notification item marks it as read but does not navigate the user anywhere. The user has to manually navigate to see the change.
-*   **Design Enhancements:** Implement contextual routing. Clicking a:
-    *   `campaign_approval` notification should redirect the NGO directly to the details page of that campaign.
-    *   `new_disbursement_request` notification should redirect the Admin directly to the payouts list.
+### ✅ Resolved 4: Contextual Deep-Linking from Notifications
+*   **The Problem:** Clicking a notification item marked it as read but did not navigate the user anywhere. The user had to manually find the relevant campaigns or payouts.
+*   **Technical Resolution:** Refactored [NotificationDropdown.jsx](file:///c:/Users/ASUS/Desktop/FYP/fyp-crowdfunding/frontend/src/components/ui/NotificationDropdown.jsx):
+    *   *Clickable Cards:* Wrapped notification items in an interactive `cursor-pointer` box.
+    *   *Context-Aware Routing:* Added a handler mapping notification types to deep links:
+        *   `campaign_approval`, `campaign_goal_reached`, `donation_received` ➔ Redirects NGO to `/ngo/campaigns`
+        *   `new_campaign_submitted`, `new_ngo_registered` ➔ Redirects Admin to `/admin/dashboard`
+        *   `new_disbursement_request` ➔ Redirects Admin to `/admin/disbursements`
+        *   `disbursement_decided` ➔ Redirects NGO to `/ngo/disbursements`
+        *   `donation_success` ➔ Redirects Donor to `/donor/dashboard`
+    *   *Event Bubbling Isolation:* Added `e.stopPropagation()` on the check button, allowing users to clear individual items from the dropdown without triggering page redirection.
 
 ---
 
