@@ -14,6 +14,8 @@ const Register = () => {
         password,
         passwordConfirmation,
         role,
+        orgName,
+        orgRegNumber,
         orgDescription,
         isTaxExempt,
         permitFile,
