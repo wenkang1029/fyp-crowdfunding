@@ -55,13 +55,23 @@ class CampaignController extends Controller
             'allocations.*.amount' => 'required_with:allocations|numeric|min:1',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:5120',
+            'use_default_image' => 'sometimes',
+            'images' => 'required_without:use_default_image|array|min:1|max:5',
+            'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
         ]);
 
-        if ($request->hasFile('image')) {
-            $path = $request->file('image')->store('campaigns', 'public');
-            $validated['image_path'] = '/storage/' . $path;
+        $imagePaths = [];
+        if ($request->input('use_default_image') === '1' || $request->input('use_default_image') === 'true' || $request->input('use_default_image') === true) {
+            $imagePaths[] = '/storage/campaigns/default-campaign.jpg';
+        } else if ($request->hasFile('images')) {
+            foreach ($request->file('images') as $file) {
+                $path = $file->store('campaigns', 'public');
+                $imagePaths[] = '/storage/' . $path;
+            }
         }
+
+        $validated['image_paths'] = $imagePaths;
+        $validated['image_path'] = !empty($imagePaths) ? $imagePaths[0] : null;
 
         $campaign = $this->campaignService->createForNgo($request->user(), $validated);
 

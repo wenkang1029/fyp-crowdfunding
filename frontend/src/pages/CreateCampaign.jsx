@@ -12,6 +12,8 @@ const CreateCampaign = () => {
         isLoading,
         errors,
         handleChange,
+        setImages,
+        toggleUseDefaultImage,
         allocationTotal,
         allocationValidation,
         isSubmitDisabled,
@@ -179,25 +181,61 @@ const CreateCampaign = () => {
                                 />
 
                                 <div>
-                                    <label className="block text-sm font-medium text-aidwise-text mb-1">Campaign Cover Image</label>
-                                    <input 
-                                        type="file" 
-                                        accept="image/*"
-                                        onChange={(e) => {
-                                            const file = e.target.files[0];
-                                            if (file) {
-                                                handleChange({ target: { name: 'image', value: file } });
-                                            }
-                                        }}
-                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-xl p-2 bg-gray-50/50"
-                                    />
-                                    {formData.image && (
-                                        <p className="text-xs text-emerald-600 mt-1 font-semibold flex items-center gap-1">
-                                            ✓ {formData.image.name} selected
+                                    <label className="block text-sm font-medium text-aidwise-text mb-1">
+                                        Campaign Images (Upload up to 5 images) <span className="text-red-500">*</span>
+                                    </label>
+                                    
+                                    <div className="flex flex-col sm:flex-row gap-3 mb-3">
+                                        <input 
+                                            id="images-uploader"
+                                            type="file" 
+                                            accept="image/*"
+                                            multiple
+                                            disabled={formData.useDefaultImage}
+                                            onChange={(e) => {
+                                                const files = Array.from(e.target.files);
+                                                // Limit to 5 files maximum
+                                                const selectedFiles = files.slice(0, 5);
+                                                setImages(selectedFiles);
+                                            }}
+                                            className="flex-1 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 cursor-pointer border border-gray-200 rounded-xl p-2 bg-gray-50/50 disabled:opacity-50"
+                                        />
+                                        
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                toggleUseDefaultImage(!formData.useDefaultImage);
+                                            }}
+                                            className={`px-4 py-2 text-sm font-bold rounded-xl transition-all duration-200 border ${
+                                                formData.useDefaultImage
+                                                    ? 'bg-emerald-50 text-emerald-700 border-emerald-250 ring-2 ring-emerald-100'
+                                                    : 'bg-white text-gray-600 hover:bg-gray-50 border-gray-250'
+                                            }`}
+                                        >
+                                            {formData.useDefaultImage ? '✓ Default Image Active' : 'Use Default Image'}
+                                        </button>
+                                    </div>
+
+                                    {/* Selected Files Preview List */}
+                                    {formData.images && formData.images.length > 0 && (
+                                        <div className="space-y-1.5 p-3.5 bg-blue-50/30 rounded-2xl border border-blue-100/50 mb-3 animate-in fade-in duration-200">
+                                            <p className="text-xs font-bold text-aidwise-blue">Selected Images ({formData.images.length} / 5):</p>
+                                            <ul className="text-xs text-gray-500 list-disc pl-5 space-y-0.5">
+                                                {formData.images.map((img, i) => (
+                                                    <li key={i} className="font-medium truncate">{img.name}</li>
+                                                ))}
+                                            </ul>
+                                        </div>
+                                    )}
+
+                                    {formData.useDefaultImage && (
+                                        <p className="text-xs text-emerald-600 font-semibold flex items-center gap-1 mb-3 animate-in fade-in duration-200">
+                                            ✓ Preloaded a professional testing campaign cover image.
                                         </p>
                                     )}
-                                    {getError('image') && (
-                                        <p className="text-xs text-red-600 mt-1">{getError('image')}</p>
+
+                                    {getError('images') && (
+                                        <p className="text-xs text-red-600 mt-1">{getError('images')}</p>
                                     )}
                                 </div>
                             </div>

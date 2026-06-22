@@ -20,11 +20,13 @@ class Campaign extends Model
         'start_date',
         'end_date',
         'image_path',
+        'image_paths',
     ];
 
     protected $casts = [
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'image_paths' => 'array',
     ];
 
     // This tells Laravel that every Campaign belongs to a User (NGO)

@@ -8,7 +8,8 @@ const initialFormData = {
     allocations: [{ purpose: '', amount: '' }],
     start_date: '',
     end_date: '',
-    image: null,
+    images: [],
+    useDefaultImage: false,
 };
 
 export const useCreateCampaign = () => {
@@ -36,6 +37,36 @@ export const useCreateCampaign = () => {
             setErrors((prev) => ({
                 ...prev,
                 allocations: null,
+            }));
+        }
+    };
+
+    const setImages = (imagesArray) => {
+        setFormData((prev) => ({
+            ...prev,
+            images: imagesArray,
+            useDefaultImage: false,
+        }));
+        
+        if (errors.images) {
+            setErrors((prev) => ({
+                ...prev,
+                images: null,
+            }));
+        }
+    };
+
+    const toggleUseDefaultImage = (val) => {
+        setFormData((prev) => ({
+            ...prev,
+            useDefaultImage: val,
+            images: val ? [] : prev.images,
+        }));
+
+        if (errors.images) {
+            setErrors((prev) => ({
+                ...prev,
+                images: null,
             }));
         }
     };
@@ -115,6 +146,12 @@ export const useCreateCampaign = () => {
                 return;
             }
 
+            if (!formData.useDefaultImage && formData.images.length === 0) {
+                setErrors({ images: ['Please upload at least one campaign image or use the default image.'] });
+                setIsLoading(false);
+                return;
+            }
+
             const totalAllocated = getAllocationTotal(formData.allocations);
 
             const data = new FormData();
@@ -130,8 +167,12 @@ export const useCreateCampaign = () => {
             }));
             data.append('allocations', JSON.stringify(formattedAllocations));
 
-            if (formData.image) {
-                data.append('image', formData.image);
+            if (formData.useDefaultImage) {
+                data.append('use_default_image', '1');
+            } else {
+                formData.images.forEach((img) => {
+                    data.append('images[]', img);
+                });
             }
 
             await createCampaign(data);
@@ -159,7 +200,8 @@ export const useCreateCampaign = () => {
     const allocationValidation = getAllocationValidation(formData.allocations);
     const isFormValid = Boolean(formData.title.trim() && formData.description.trim())
         && Boolean(formData.start_date && formData.end_date)
-        && allocationValidation.isValid;
+        && allocationValidation.isValid
+        && (formData.useDefaultImage || formData.images.length > 0);
     const isSubmitDisabled = isLoading || !isFormValid;
 
     return {
@@ -167,6 +209,8 @@ export const useCreateCampaign = () => {
         isLoading,
         errors,
         handleChange,
+        setImages,
+        toggleUseDefaultImage,
         allocationTotal,
         allocationValidation,
         isSubmitDisabled,

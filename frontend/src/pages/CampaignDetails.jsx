@@ -19,6 +19,7 @@ const CampaignDetails = () => {
     const [campaign, setCampaign] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isNgoModalOpen, setIsNgoModalOpen] = useState(false);
+    const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
     const fetchCampaign = useCallback(async () => {
         try {
@@ -143,19 +144,83 @@ const CampaignDetails = () => {
                             </p>
                         </div>
 
-                        {campaign.image_path ? (
-                            <div className="w-full h-80 rounded-3xl overflow-hidden border border-aidwise-border bg-gray-50">
-                                <img 
-                                    src={campaign.image_path.startsWith('http') ? campaign.image_path : `${backendUrl}${campaign.image_path}`} 
-                                    alt={campaign.title} 
-                                    className="w-full h-full object-cover"
-                                />
-                            </div>
-                        ) : (
-                            <div className="w-full h-80 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 rounded-3xl border border-aidwise-border flex items-center justify-center">
-                                <span className="text-gray-400 font-medium">No Image Provided</span>
-                            </div>
-                        )}
+                        {(() => {
+                            const images = Array.isArray(campaign.image_paths) && campaign.image_paths.length > 0
+                                ? campaign.image_paths
+                                : campaign.image_path
+                                    ? [campaign.image_path]
+                                    : [];
+
+                            if (images.length === 0) {
+                                return (
+                                    <div className="w-full h-80 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 rounded-3xl border border-aidwise-border flex items-center justify-center">
+                                        <span className="text-gray-400 font-medium">No Image Provided</span>
+                                    </div>
+                                );
+                            }
+
+                            if (images.length === 1) {
+                                return (
+                                    <div className="w-full h-80 rounded-3xl overflow-hidden border border-aidwise-border bg-gray-50 relative shadow-sm">
+                                        <img 
+                                            src={images[0].startsWith('http') ? images[0] : `${backendUrl}${images[0]}`} 
+                                            alt={campaign.title} 
+                                            className="w-full h-full object-cover"
+                                        />
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="w-full h-80 rounded-3xl overflow-hidden border border-aidwise-border bg-gray-50 relative group shadow-sm">
+                                    {/* Current Image */}
+                                    <img 
+                                        src={images[currentImageIndex].startsWith('http') ? images[currentImageIndex] : `${backendUrl}${images[currentImageIndex]}`} 
+                                        alt={`${campaign.title} - ${currentImageIndex + 1}`} 
+                                        className="w-full h-full object-cover transition-all duration-300"
+                                    />
+
+                                    {/* Prev Navigation Arrow */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-aidwise-text flex items-center justify-center shadow-md hover:scale-105 transition-all focus:outline-none opacity-0 group-hover:opacity-100 duration-300 font-bold text-xl select-none"
+                                        title="Previous Image"
+                                    >
+                                        ‹
+                                    </button>
+
+                                    {/* Next Navigation Arrow */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-aidwise-text flex items-center justify-center shadow-md hover:scale-105 transition-all focus:outline-none opacity-0 group-hover:opacity-100 duration-300 font-bold text-xl select-none"
+                                        title="Next Image"
+                                    >
+                                        ›
+                                    </button>
+
+                                    {/* Indicators (Dots) */}
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
+                                        {images.map((_, i) => (
+                                            <button
+                                                type="button"
+                                                key={i}
+                                                onClick={() => setCurrentImageIndex(i)}
+                                                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                                    i === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Image Counter Badge */}
+                                    <div className="absolute top-4 right-4 px-2.5 py-1 rounded-lg bg-black/40 backdrop-blur-sm text-white text-[10px] font-bold tracking-wider">
+                                        {currentImageIndex + 1} / {images.length}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                         <div>
                             <h2 className="text-2xl font-bold text-aidwise-text mb-4">About this campaign</h2>

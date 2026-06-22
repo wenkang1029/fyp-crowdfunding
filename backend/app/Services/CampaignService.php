@@ -61,6 +61,10 @@ class CampaignService
                 $campaignData['image_path'] = $data['image_path'];
             }
 
+            if (isset($data['image_paths'])) {
+                $campaignData['image_paths'] = $data['image_paths'];
+            }
+
             if (isset($data['start_date'])) {
                 $campaignData['start_date'] = $data['start_date'];
             }
