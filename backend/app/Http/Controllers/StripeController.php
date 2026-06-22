@@ -44,7 +44,7 @@ class StripeController extends Controller
                     'contact_email' => $user->email,
                     'display_name' => substr($orgName, 0, 32), // Stripe display name length limit
                     'identity' => [
-                        'country' => 'my', // Malaysia
+                        'country' => 'us', // Match US platform country for sandbox testing
                         'entity_type' => 'company', // NGOs operate as legal entities/companies
                         'business_details' => [
                             'registered_name' => $orgName,
