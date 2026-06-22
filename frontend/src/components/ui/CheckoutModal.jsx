@@ -21,14 +21,16 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
+    const isSubmitting = React.useRef(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!stripe || !elements) {
+        if (!stripe || !elements || isSubmitting.current || isProcessing) {
             return;
         }
 
+        isSubmitting.current = true;
         setIsProcessing(true);
         setErrorMessage('');
 
@@ -59,6 +61,7 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
             if (result.error) {
                 setErrorMessage(result.error.message || 'Payment failed.');
                 setIsProcessing(false);
+                isSubmitting.current = false;
             } else {
                 if (result.paymentIntent.status === 'succeeded') {
                     // Payment succeeded, invoke callback to update UI
@@ -75,6 +78,7 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
         } catch (err) {
             setErrorMessage(err?.response?.data?.message || 'Failed to initialize payment.');
             setIsProcessing(false);
+            isSubmitting.current = false;
         }
     };
 
