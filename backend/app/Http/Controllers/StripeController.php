@@ -65,7 +65,7 @@ class StripeController extends Controller
                             'losses_collector' => 'stripe'
                         ]
                     ],
-                    'dashboard' => 'express'
+                    'dashboard' => 'full'
                 ]);
                 $accountId = $account->id;
 
