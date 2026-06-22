@@ -32,6 +32,14 @@ export const getAuthenticatedUser = async () => {
 };
 
 export const registerUser = async (payload) => {
+    if (payload instanceof FormData) {
+        const response = await axiosInstance.post('/register', payload, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return extractData(response);
+    }
     const response = await axiosInstance.post('/register', payload);
     return extractData(response);
 };

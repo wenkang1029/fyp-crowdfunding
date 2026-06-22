@@ -22,14 +22,17 @@ export const useRegisterForm = () => {
     const [taxCertificateFile, setTaxCertificateFile] = useState(null);
 
     const [error, setError] = useState('');
+    const [fieldErrors, setFieldErrors] = useState({});
     const [isLoading, setIsLoading] = useState(false);
 
     const handleRegister = async (event) => {
         event.preventDefault();
         setError('');
+        setFieldErrors({});
 
         if (password !== passwordConfirmation) {
             setError('Passwords do not match.');
+            setFieldErrors({ password_confirmation: ['Passwords do not match.'] });
             return;
         }
 
@@ -72,6 +75,35 @@ export const useRegisterForm = () => {
         } catch (err) {
             const message = err?.response?.data?.message || 'Registration failed. Please check inputs.';
             setError(message);
+            if (err?.response?.data?.errors) {
+                const errors = err.response.data.errors;
+                setFieldErrors(errors);
+
+                // Auto-scroll to the first field with an error
+                const fieldMapping = {
+                    name: 'name',
+                    email: 'email',
+                    password: 'password',
+                    org_name: 'org_name',
+                    org_reg_number: 'org_reg_number',
+                    org_description: 'org_description',
+                    permit_file: 'permit_file',
+                    tax_exemption_file: 'tax_exemption_file'
+                };
+
+                setTimeout(() => {
+                    for (const key of Object.keys(fieldMapping)) {
+                        if (errors[key]) {
+                            const element = document.getElementById(fieldMapping[key]);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                                element.focus?.();
+                                break;
+                            }
+                        }
+                    }
+                }, 100);
+            }
         } finally {
             setIsLoading(false);
         }
@@ -90,6 +122,7 @@ export const useRegisterForm = () => {
         permitFile,
         taxCertificateFile,
         error,
+        fieldErrors,
         isLoading,
         setName,
         setEmail,
