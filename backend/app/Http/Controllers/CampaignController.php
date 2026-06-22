@@ -62,7 +62,7 @@ class CampaignController extends Controller
 
         $imagePaths = [];
         if ($request->input('use_default_image') === '1' || $request->input('use_default_image') === 'true' || $request->input('use_default_image') === true) {
-            $imagePaths[] = '/storage/campaigns/default-campaign.jpg';
+            $imagePaths[] = '/images/default-campaign.jpg';
         } else if ($request->hasFile('images')) {
             foreach ($request->file('images') as $file) {
                 $path = $file->store('campaigns', 'public');

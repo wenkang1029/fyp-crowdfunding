@@ -85,7 +85,7 @@ const Navbar = () => {
                                 className="flex items-center gap-1.5 px-4 py-2 bg-aidwise-blue/5 text-aidwise-blue text-xs font-extrabold uppercase tracking-wider rounded-xl hover:bg-aidwise-blue hover:text-white transition-all duration-200 border border-aidwise-blue/10 shadow-sm"
                             >
                                 <LayoutDashboard size={14} />
-                                <span className="hidden sm:inline">Dashboard</span>
+                                <span className="hidden sm:inline">{user.role === 'donor' ? 'My Impact' : 'Dashboard'}</span>
                             </Link>
 
                             <NotificationDropdown />
