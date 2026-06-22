@@ -59,6 +59,7 @@ class StripeController extends Controller
                             ]
                         ]
                     ],
+                    'dashboard' => 'full',
                     'defaults' => [
                         'responsibilities' => [
                             'fees_collector' => 'stripe',
