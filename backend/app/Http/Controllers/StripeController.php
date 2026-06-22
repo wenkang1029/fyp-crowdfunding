@@ -57,6 +57,15 @@ class StripeController extends Controller
                                     'requested' => true
                                 ]
                             ]
+                        ],
+                        'recipient' => [
+                            'capabilities' => [
+                                'stripe_balance' => [
+                                    'stripe_transfers' => [
+                                        'requested' => true
+                                    ]
+                                ]
+                            ]
                         ]
                     ],
                     'defaults' => [
