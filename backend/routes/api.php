@@ -35,6 +35,17 @@ Route::get('/debug-logs', function() {
     return response()->json($lastLines);
 });
 
+// Force Database Migration Endpoint
+Route::get('/migrate-db', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('migrate', ['--force' => true]);
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response()->json(['success' => true, 'output' => $output]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+});
+
 
 
 /*
