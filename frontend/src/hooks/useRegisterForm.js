@@ -15,6 +15,11 @@ export const useRegisterForm = () => {
     const [orgName, setOrgName] = useState('');
     const [orgRegNumber, setOrgRegNumber] = useState('');
     const [orgDescription, setOrgDescription] = useState('');
+    
+    // NGO Documents
+    const [isTaxExempt, setIsTaxExempt] = useState(false);
+    const [permitFile, setPermitFile] = useState(null);
+    const [taxCertificateFile, setTaxCertificateFile] = useState(null);
 
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -31,18 +36,24 @@ export const useRegisterForm = () => {
         setIsLoading(true);
 
         try {
-            const payload = {
-                name,
-                email,
-                password,
-                password_confirmation: passwordConfirmation,
-                role,
-            };
+            const payload = new FormData();
+            payload.append('name', name);
+            payload.append('email', email);
+            payload.append('password', password);
+            payload.append('password_confirmation', passwordConfirmation);
+            payload.append('role', role);
 
             if (role === 'ngo') {
-                payload.org_name = orgName;
-                payload.org_reg_number = orgRegNumber;
-                payload.org_description = orgDescription;
+                payload.append('org_name', orgName);
+                payload.append('org_reg_number', orgRegNumber);
+                payload.append('org_description', orgDescription);
+                payload.append('is_tax_exempt', isTaxExempt ? '1' : '0');
+                if (permitFile) {
+                    payload.append('permit_file', permitFile);
+                }
+                if (isTaxExempt && taxCertificateFile) {
+                    payload.append('tax_exemption_file', taxCertificateFile);
+                }
             }
 
             const { user, token } = await registerUser(payload);
@@ -75,6 +86,9 @@ export const useRegisterForm = () => {
         orgName,
         orgRegNumber,
         orgDescription,
+        isTaxExempt,
+        permitFile,
+        taxCertificateFile,
         error,
         isLoading,
         setName,
@@ -85,6 +99,9 @@ export const useRegisterForm = () => {
         setOrgName,
         setOrgRegNumber,
         setOrgDescription,
+        setIsTaxExempt,
+        setPermitFile,
+        setTaxCertificateFile,
         handleRegister,
     };
 };

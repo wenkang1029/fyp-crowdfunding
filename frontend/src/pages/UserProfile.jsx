@@ -10,6 +10,9 @@ import Modal from '../components/ui/Modal';
 import { useUserProfile } from '../hooks/useUserProfile';
 import { User, Mail, MapPin, Shield, Lock, Landmark, CheckCircle, LayoutDashboard } from 'lucide-react';
 
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
+
 const UserProfile = () => {
     const {
         user,
@@ -21,6 +24,8 @@ const UserProfile = () => {
         orgDescription, setOrgDescription,
         isTaxExempt, setIsTaxExempt,
         lhdnReference, setLhdnReference,
+        permitFile, setPermitFile,
+        taxCertificateFile, setTaxCertificateFile,
         mailingAddress, setMailingAddress,
         successMessage,
         errorMessage,
@@ -200,6 +205,48 @@ const UserProfile = () => {
                                         />
                                     </div>
                                 )}
+
+                                <div className="mt-4 pt-4 border-t border-gray-200/60 space-y-4">
+                                    <div className="space-y-2">
+                                        <label className="block text-sm font-bold text-aidwise-text">
+                                            Solicitation Permit Document (PDF / Image)
+                                        </label>
+                                        {user.permit_path && (
+                                            <div className="mb-2 text-xs text-aidwise-blue font-semibold">
+                                                <a href={user.permit_path.startsWith('http') ? user.permit_path : `${backendUrl}${user.permit_path}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                                    📄 View Current Permit Document
+                                                </a>
+                                            </div>
+                                        )}
+                                        <input 
+                                            type="file" 
+                                            accept=".pdf,image/*"
+                                            onChange={(e) => setPermitFile(e.target.files[0])}
+                                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-250 rounded-lg p-1.5 bg-white focus:outline-none"
+                                        />
+                                    </div>
+
+                                    {isTaxExempt && (
+                                        <div className="space-y-2 pt-2 animate-in fade-in duration-200">
+                                            <label className="block text-sm font-bold text-aidwise-text">
+                                                Tax Exemption Certificate (PDF / Image)
+                                            </label>
+                                            {user.tax_certificate_path && (
+                                                <div className="mb-2 text-xs text-aidwise-blue font-semibold">
+                                                    <a href={user.tax_certificate_path.startsWith('http') ? user.tax_certificate_path : `${backendUrl}${user.tax_certificate_path}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
+                                                        📄 View Current Tax Certificate
+                                                    </a>
+                                                </div>
+                                            )}
+                                            <input 
+                                                type="file" 
+                                                accept=".pdf,image/*"
+                                                onChange={(e) => setTaxCertificateFile(e.target.files[0])}
+                                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-250 rounded-lg p-1.5 bg-white focus:outline-none"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </Card>

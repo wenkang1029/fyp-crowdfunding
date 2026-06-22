@@ -22,6 +22,9 @@ class AuthController extends Controller
             'org_name' => 'required_if:role,ngo|nullable|string|max:255',
             'org_reg_number' => 'required_if:role,ngo|nullable|string|max:255',
             'org_description' => 'nullable|string',
+            'is_tax_exempt' => 'sometimes|nullable',
+            'permit_file' => 'required_if:role,ngo|nullable|file|mimes:pdf,jpg,png,jpeg|max:5120',
+            'tax_exemption_file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:5120',
         ]);
 
         $result = $this->authService->register($validated);

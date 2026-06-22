@@ -31,6 +31,8 @@ class User extends Authenticatable
         'mailing_address',
         'is_tax_exempt',
         'lhdn_reference',
+        'permit_path',
+        'tax_certificate_path',
     ];
 
     /**

@@ -47,12 +47,43 @@ const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
                         </div>
                     )}
 
-                    <div className="border-b border-gray-100 pb-3">
-                        <h3 className="text-xl font-bold text-aidwise-text">{ngo.org_name || ngo.name}</h3>
-                        <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mt-1">
-                            Registration No: {ngo.org_reg_number || 'N/A'}
-                        </span>
-                    </div>
+                    {(() => {
+                        const isProfileComplete = ngo.org_name && ngo.org_reg_number && ngo.org_description && ngo.mailing_address;
+                        const isVerified = isProfileComplete && ngo.permit_path;
+
+                        return (
+                            <div className="border-b border-gray-100 pb-3">
+                                <h3 className="text-xl font-bold text-aidwise-text">{ngo.org_name || ngo.name}</h3>
+                                <span className="text-xs font-semibold text-gray-400 uppercase tracking-wider block mt-1">
+                                    Registration No: {ngo.org_reg_number || 'N/A'}
+                                </span>
+
+                                <div className="flex flex-wrap gap-2 mt-3">
+                                    <span className={`px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full border ${
+                                        ngo.status === 'suspended'
+                                            ? 'bg-red-50 text-red-600 border-red-200'
+                                            : 'bg-green-50 text-green-700 border-green-200'
+                                    }`}>
+                                        {ngo.status === 'suspended' ? 'Suspended / Inactive' : 'Active'}
+                                    </span>
+
+                                    <span className={`px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full border ${
+                                        isVerified
+                                            ? 'bg-blue-50 text-blue-600 border-blue-200'
+                                            : 'bg-amber-50 text-amber-600 border-amber-200'
+                                    }`}>
+                                        {isVerified ? '✓ Verified NGO' : 'Pending Verification'}
+                                    </span>
+
+                                    {ngo.is_tax_exempt && (
+                                        <span className="px-2.5 py-1 text-[10px] font-extrabold uppercase tracking-wider rounded-full border bg-emerald-50 text-emerald-700 border-emerald-250">
+                                            Tax Exempt
+                                        </span>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    })()}
 
                     <div className="space-y-3">
                         <div>

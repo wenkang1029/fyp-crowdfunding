@@ -176,52 +176,31 @@ const NgoDashboard = () => {
 
                 {/* Dynamic Metric Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <StatCard title="Total Raised" value={`$${totalRaised.toLocaleString()}`} icon={DollarSign} />
+                    <StatCard title="Total Raised" value={`RM ${totalRaised.toLocaleString()}`} icon={DollarSign} />
                     <StatCard title="Total Campaigns" value={activeCampaigns} icon={Target} />
                     <StatCard title="Total Donors" value={donorCount.toString()} icon={Users} />
                     <StatCard title="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Main Bar Chart */}
+                <Card className="flex flex-col mb-8">
+                    <h3 className="text-lg font-bold text-aidwise-text mb-6">Campaign Funding Progress</h3>
                     
-                    {/* Main Bar Chart */}
-                    <Card className="lg:col-span-2 flex flex-col">
-                        <h3 className="text-lg font-bold text-aidwise-text mb-6">Campaign Funding Progress</h3>
-                        
-                        {/* HCI Empty State handling */}
-                        {campaigns.length === 0 ? (
-                            <div className="flex flex-col items-center justify-center flex-1 min-h-[300px] text-gray-400">
-                                <Target size={48} className="mb-4 opacity-20" />
-                                <p>No campaigns yet. Click "Create New Campaign" to start.</p>
-                            </div>
-                        ) : (
-                            <div className="relative flex-1 min-h-[300px]">
-                                <Bar options={chartOptions} data={chartData} />
-                            </div>
-                        )}
-                    </Card>
-
-                    {/* Quick Actions */}
-                    <Card>
-                        <h3 className="text-lg font-bold text-aidwise-text mb-4">Quick Actions</h3>
-                        <div className="space-y-3">
-                            <button 
-                                onClick={() => navigate('/ngo/campaigns/create')}
-                                className="w-full py-2.5 px-4 bg-aidwise-blue text-white font-semibold rounded-xl hover:bg-blue-700 transition-colors text-left flex items-center justify-between shadow-sm hover:shadow-apple"
-                            >
-                                <span>Create New Campaign</span>
-                                <span>+</span>
-                            </button>
-                            <button className="w-full py-2.5 px-4 bg-gray-50 text-aidwise-text border border-gray-200 font-semibold rounded-xl hover:bg-gray-100 transition-colors text-left flex items-center justify-between">
-                                <span>Download Reports (PDF)</span>
-                                <span>↓</span>
-                            </button>
+                    {/* HCI Empty State handling */}
+                    {campaigns.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center flex-1 min-h-[300px] text-gray-400">
+                            <Target size={48} className="mb-4 opacity-20" />
+                            <p>No campaigns yet. Click "Create New Campaign" to start.</p>
                         </div>
-                    </Card>
+                    ) : (
+                        <div className="relative flex-1 min-h-[300px]">
+                            <Bar options={chartOptions} data={chartData} />
+                        </div>
+                    )}
+                </Card>
 
-                </div>
                 {/* Place this below your existing charts and metric cards */}
-            <DonationLedger />
+                <DonationLedger />
             </div>
         </DashboardLayout>
     );

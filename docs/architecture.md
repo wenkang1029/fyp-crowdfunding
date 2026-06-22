@@ -14,8 +14,9 @@ Last updated: 2026-04-23
 | Auth | Laravel Sanctum | — | Bearer token, role-based |
 | PDF | barryvdh/laravel-dompdf | — | Receipt generation |
 | LLM | Google AI Studio (Gemini API) | — | Phase 2 only — not yet integrated |
+| Chatbot | Dialogflow | — | Integrated AI assistant for common queries |
 | Notifications | Laravel Database Notifications | — | FCM (Firebase) to be integrated in a later phase |
-| Payment | Stripe (`stripe/stripe-php`) | — | Sandbox: instant setup via test API keys — no approval needed |
+| Payment Gateway | Stripe (`stripe/stripe-php`) | — | Express Connect / Platform Escrow Model |
 
 ---
 
@@ -168,14 +169,18 @@ User Interaction
 
 ---
 
-## Environment
+## Infrastructure & Environment
 
-| Config | Value |
-|---|---|
-| `APP_ENV` | `local` (from .env.example) |
-| PHP | ^8.1 (composer constraint) |
-| Node | Locked via `.nvmrc` ✅ |
-| DB | MySQL (local) |
+| Component | Platform / Config | Notes |
+|---|---|---|
+| **Frontend Hosting** | Vercel | Auto-deploy from GitHub `main` branch, handles SPA routing |
+| **Backend Hosting** | DigitalOcean | Serves Laravel API and scheduled workers |
+| **Database** | MySQL | Hosted on DigitalOcean (Managed Database/Droplet) |
+| **Payment Gateway** | Stripe | Webhooks configured on DigitalOcean endpoint |
+| **Chatbot NLP** | Dialogflow | Embedded in frontend, requests proxied through backend |
+| `APP_ENV` | `local` / `production` | Defined in `.env` |
+| PHP | ^8.1 (composer constraint) | |
+| Node | Locked via `.nvmrc` ✅ | |
 
 ---
 

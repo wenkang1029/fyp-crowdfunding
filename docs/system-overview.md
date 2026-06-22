@@ -1,7 +1,7 @@
 # System Overview — Donation-Based Crowdfunding System
 
 
-**Stack:** React.js (frontend) · Laravel (backend API) · MySQL (database) · Google AI Studio (Gemini API) · Cloud-hosted
+**Stack:** React.js (Frontend on Vercel) · Laravel (Backend API on DigitalOcean) · MySQL (Database) · Dialogflow (Chatbot) · Stripe (Payment Gateway) · Google AI Studio (Gemini API)
 
 
 A web platform built for St. John Ambulans Malaysia (SJAM KMT) to manage, promote, and track donation campaigns online with transparency and donor engagement at its core.

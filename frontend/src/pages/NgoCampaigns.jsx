@@ -252,23 +252,25 @@ const NgoCampaigns = () => {
                     <div className="mb-4">
                         <label className="block mb-1.5 text-sm font-medium text-aidwise-text">Amount to Withdraw (RM)</label>
                         <input
+                            name="amount"
                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
                             type="number"
                             min="1"
                             placeholder="e.g. 500"
                             value={payoutForm.amount}
-                            onChange={(event) => handlePayoutChange('amount', event.target.value)}
+                            onChange={handlePayoutChange}
                             required
                         />
                     </div>
                     <div className="mb-4">
                         <label className="block mb-1.5 text-sm font-medium text-aidwise-text">Purpose of Funds</label>
                         <input
+                            name="purpose"
                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
                             type="text"
                             placeholder="e.g., Water filtration equipment"
                             value={payoutForm.purpose}
-                            onChange={(event) => handlePayoutChange('purpose', event.target.value)}
+                            onChange={handlePayoutChange}
                             required
                         />
                     </div>

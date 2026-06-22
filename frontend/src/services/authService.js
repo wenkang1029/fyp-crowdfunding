@@ -37,6 +37,15 @@ export const registerUser = async (payload) => {
 };
 
 export const updateProfile = async (payload) => {
+    if (payload instanceof FormData) {
+        payload.append('_method', 'PATCH');
+        const response = await axiosInstance.post('/profile', payload, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return extractData(response);
+    }
     const response = await axiosInstance.patch('/profile', payload);
     return extractData(response);
 };

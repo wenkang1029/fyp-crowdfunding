@@ -14,9 +14,10 @@ const Register = () => {
         password,
         passwordConfirmation,
         role,
-        orgName,
-        orgRegNumber,
         orgDescription,
+        isTaxExempt,
+        permitFile,
+        taxCertificateFile,
         error,
         isLoading,
         setName,
@@ -27,6 +28,9 @@ const Register = () => {
         setOrgName,
         setOrgRegNumber,
         setOrgDescription,
+        setIsTaxExempt,
+        setPermitFile,
+        setTaxCertificateFile,
         handleRegister,
     } = useRegisterForm();
 
@@ -161,6 +165,54 @@ const Register = () => {
                                     placeholder="Briefly describe your organization's mission and purpose..."
                                     rows={3}
                                 />
+
+                                <div className="space-y-2">
+                                    <label className="block text-sm font-bold text-aidwise-text">
+                                        Permit to Solicit Public Donation (PDF / Image) <span className="text-red-500">*</span>
+                                    </label>
+                                    <input 
+                                        type="file" 
+                                        accept=".pdf,image/*"
+                                        onChange={(e) => setPermitFile(e.target.files[0])}
+                                        className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-250 rounded-lg p-1.5 bg-gray-50/50 focus:outline-none"
+                                        required={role === 'ngo'}
+                                    />
+                                </div>
+
+                                <div className="space-y-4 p-4 bg-gray-50 rounded-2xl border border-gray-200">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="isTaxExempt"
+                                            checked={isTaxExempt}
+                                            onChange={(e) => setIsTaxExempt(e.target.checked)}
+                                            className="mt-1 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
+                                        />
+                                        <div>
+                                            <label htmlFor="isTaxExempt" className="font-bold text-sm text-aidwise-text block cursor-pointer">
+                                                LHDN Section 44(6) Tax Exemption Organisation
+                                            </label>
+                                            <p className="text-xs text-gray-500 mt-0.5">
+                                                Check this option if your organization is approved by LHDN to support tax exemption receipt generation.
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    {isTaxExempt && (
+                                        <div className="space-y-2 pt-2 border-t border-gray-200/60 animate-in fade-in duration-200">
+                                            <label className="block text-sm font-bold text-aidwise-text">
+                                                Tax Exemption Certificate (PDF / Image) <span className="text-red-500">*</span>
+                                            </label>
+                                            <input 
+                                                type="file" 
+                                                accept=".pdf,image/*"
+                                                onChange={(e) => setTaxCertificateFile(e.target.files[0])}
+                                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-250 rounded-lg p-1.5 bg-white focus:outline-none"
+                                                required={role === 'ngo' && isTaxExempt}
+                                            />
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         )}
 

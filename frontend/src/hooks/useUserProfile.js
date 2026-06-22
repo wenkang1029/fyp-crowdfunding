@@ -21,6 +21,8 @@ export const useUserProfile = () => {
     const [orgDescription, setOrgDescription] = useState('');
     const [isTaxExempt, setIsTaxExempt] = useState(false);
     const [lhdnReference, setLhdnReference] = useState('');
+    const [permitFile, setPermitFile] = useState(null);
+    const [taxCertificateFile, setTaxCertificateFile] = useState(null);
 
     // Shared fields
     const [mailingAddress, setMailingAddress] = useState('');
@@ -83,18 +85,29 @@ export const useUserProfile = () => {
         setErrorMessage('');
 
         try {
-            const payload = {
-                name,
-                identification_number: identificationNumber,
-                mailing_address: mailingAddress,
-            };
-
+            let payload;
             if (user?.role === 'ngo') {
-                payload.org_name = orgName;
-                payload.org_reg_number = orgRegNumber;
-                payload.org_description = orgDescription;
-                payload.is_tax_exempt = isTaxExempt;
-                payload.lhdn_reference = lhdnReference;
+                payload = new FormData();
+                payload.append('name', name);
+                payload.append('identification_number', identificationNumber);
+                payload.append('mailing_address', mailingAddress);
+                payload.append('org_name', orgName);
+                payload.append('org_reg_number', orgRegNumber);
+                payload.append('org_description', orgDescription);
+                payload.append('is_tax_exempt', isTaxExempt ? '1' : '0');
+                payload.append('lhdn_reference', lhdnReference);
+                if (permitFile) {
+                    payload.append('permit_file', permitFile);
+                }
+                if (isTaxExempt && taxCertificateFile) {
+                    payload.append('tax_exemption_file', taxCertificateFile);
+                }
+            } else {
+                payload = {
+                    name,
+                    identification_number: identificationNumber,
+                    mailing_address: mailingAddress,
+                };
             }
 
             const response = await updateProfile(payload);
@@ -160,6 +173,8 @@ export const useUserProfile = () => {
         orgDescription, setOrgDescription,
         isTaxExempt, setIsTaxExempt,
         lhdnReference, setLhdnReference,
+        permitFile, setPermitFile,
+        taxCertificateFile, setTaxCertificateFile,
         mailingAddress, setMailingAddress,
         // Profile save
         successMessage,

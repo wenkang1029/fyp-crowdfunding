@@ -43,11 +43,18 @@ class ProfileService
                 $user->org_description = $data['org_description'];
             }
             if (array_key_exists('is_tax_exempt', $data)) {
-                // Cast is already defined on the model; direct assignment is safe
-                $user->is_tax_exempt = (bool) $data['is_tax_exempt'];
+                $user->is_tax_exempt = filter_var($data['is_tax_exempt'], FILTER_VALIDATE_BOOLEAN);
             }
             if (isset($data['lhdn_reference'])) {
                 $user->lhdn_reference = $data['lhdn_reference'];
+            }
+            if (isset($data['permit_file'])) {
+                $path = $data['permit_file']->store('documents', 'public');
+                $user->permit_path = '/storage/' . $path;
+            }
+            if (isset($data['tax_exemption_file'])) {
+                $path = $data['tax_exemption_file']->store('documents', 'public');
+                $user->tax_certificate_path = '/storage/' . $path;
             }
         }
 
@@ -106,6 +113,9 @@ class ProfileService
                 'mailing_address',
                 'is_tax_exempt',
                 'lhdn_reference',
+                'status',
+                'permit_path',
+                'tax_certificate_path',
             ])
             ->findOrFail($ngoId);
     }

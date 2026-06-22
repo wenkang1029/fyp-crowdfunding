@@ -11,20 +11,35 @@ export const useNgoDashboardData = () => {
 
     useEffect(() => {
         const fetchDashboardData = async () => {
+            setIsLoading(true);
             try {
-                const [campaignData, ngoDashboardData, donationData] = await Promise.all([
-                    getCampaigns(),
-                    getNgoDashboard(),
-                    getDonations(),
-                ]);
+                // Fetch campaigns safely
+                let campaignData = [];
+                try {
+                    campaignData = await getCampaigns();
+                    setCampaigns(campaignData);
+                } catch (err) {
+                    console.error('Failed to fetch campaigns:', err);
+                }
 
-                setCampaigns(campaignData);
-                setDashboardMetrics(ngoDashboardData?.metrics || null);
+                // Fetch dashboard metrics safely
+                try {
+                    const ngoDashboardData = await getNgoDashboard();
+                    setDashboardMetrics(ngoDashboardData?.metrics || null);
+                } catch (err) {
+                    console.error('Failed to fetch dashboard metrics:', err);
+                }
 
-                const uniqueDonors = new Set(
-                    (donationData || []).map((donation) => donation.user_id || donation.donor_name)
-                );
-                setDonorCount(uniqueDonors.size);
+                // Fetch donations safely
+                try {
+                    const donationData = await getDonations();
+                    const uniqueDonors = new Set(
+                        (donationData || []).map((donation) => donation.user_id || donation.donor_name)
+                    );
+                    setDonorCount(uniqueDonors.size);
+                } catch (err) {
+                    console.error('Failed to fetch donations:', err);
+                }
             } catch (error) {
                 console.error('Failed to fetch dashboard data:', error);
             } finally {
