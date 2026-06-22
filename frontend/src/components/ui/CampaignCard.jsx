@@ -3,12 +3,8 @@ import { Link } from 'react-router-dom';
 import Card from './Card';
 import NgoProfileView from './NgoProfileView';
 
-const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
-const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
-
 const CampaignCard = ({ campaign }) => {
     const [isNgoModalOpen, setIsNgoModalOpen] = useState(false);
-    const [imgBroken, setImgBroken] = useState(false);
 
     // Ensure math works safely with fallbacks
     const target = Number(campaign.target_amount) || 1;
@@ -17,31 +13,9 @@ const CampaignCard = ({ campaign }) => {
     // Calculate percentage, capped at 100% so the visual bar doesn't overflow
     const progressPercentage = Math.min(Math.round((raised / target) * 100), 100);
 
-    const imageUrl = campaign.image_path
-        ? (campaign.image_path.startsWith('http') ? campaign.image_path : `${backendUrl}${campaign.image_path}`)
-        : null;
-
-    const showImage = imageUrl && !imgBroken;
-
     return (
         <>
             <Card className="flex flex-col h-full hover:shadow-apple transition-shadow duration-300 p-0 overflow-hidden">
-                {/* U3: image with onError fallback */}
-                {showImage ? (
-                    <div className="h-40 w-full overflow-hidden border-b border-aidwise-border bg-gray-50">
-                        <img
-                            src={imageUrl}
-                            alt={campaign.title}
-                            className="w-full h-full object-cover hover:scale-105 transition-transform duration-500"
-                            onError={() => setImgBroken(true)}
-                        />
-                    </div>
-                ) : (
-                    <div className="h-40 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 border-b border-aidwise-border flex items-center justify-center">
-                        <span className="text-4xl">🌍</span>
-                    </div>
-                )}
-
                 <div className="p-6 flex flex-col flex-1">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
                         {/* U2: NGO name is now a clickable entry point to NgoProfileView */}
