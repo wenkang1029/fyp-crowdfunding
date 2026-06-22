@@ -358,6 +358,7 @@ const CampaignDetails = () => {
                 amount={donationAmount}
                 onSuccessfulPayment={executeDonation} 
                 campaign={campaign}
+                allocationId={allocationId}
             />
 
             <Modal 

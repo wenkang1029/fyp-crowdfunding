@@ -16,7 +16,7 @@ import axiosInstance from '../../api/axios';
 // Initialize stripe outside component to avoid re-instantiation
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
-const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTaxReceipt, taxName, taxIdNumber, taxAddress }) => {
+const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTaxReceipt, taxName, taxIdNumber, taxAddress, allocationId }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -39,6 +39,7 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
             const response = await axiosInstance.post('/donations', {
                 campaign_id: Number(campaign?.id),
                 amount: Number(amount),
+                allocation_id: allocationId ? Number(allocationId) : null,
                 request_tax_receipt: requestTaxReceipt,
                 tax_name: requestTaxReceipt ? taxName : null,
                 tax_id_number: requestTaxReceipt ? taxIdNumber : null,
@@ -137,7 +138,7 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
     );
 };
 
-const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign }) => {
+const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign, allocationId }) => {
     const { user } = useAuth();
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -265,6 +266,7 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign 
                                 taxName={taxName}
                                 taxIdNumber={taxIdNumber}
                                 taxAddress={taxAddress}
+                                allocationId={allocationId}
                             />
                         </Elements>
                     </div>

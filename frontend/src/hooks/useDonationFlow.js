@@ -37,18 +37,6 @@ export const useDonationFlow = (campaign, onDonationSuccess) => {
         setError('');
 
         try {
-            await createDonation({
-                campaign_id: Number(campaign?.id),
-                amount: Number(donationAmount),
-                allocation_id: allocationId ? Number(allocationId) : undefined,
-                transaction_id: paymentDetails.transaction_id,
-                payment_method: paymentDetails.method,
-                request_tax_receipt: paymentDetails.request_tax_receipt,
-                tax_name: paymentDetails.tax_name,
-                tax_id_number: paymentDetails.tax_id_number,
-                tax_address: paymentDetails.tax_address,
-            });
-
             setLastCompletedPayment({
                 amount: donationAmount,
                 method: paymentDetails.method,
