@@ -15,11 +15,13 @@
 - 2026_04_23_120000_add_rejection_reason_to_disbursements_table.php: adds nullable rejection_reason to disbursements
 - 2026_06_18_100815_add_org_details_to_users_table.php: adds nullable org_name, org_reg_number, org_description to users table
 - 2026_06_18_200000_add_status_to_users_table.php: adds status column (default active) to users table
+- 2026_06_22_103710_add_document_paths_to_users_table.php: adds permit_path and tax_certificate_path to store uploaded NGO verification documents
+- 2026_06_22_155500_add_image_paths_to_campaigns_table.php: adds image_paths JSON column to store up to 5 campaign image links
 - EnsureUserIsActive.php: request-interception middleware to enforce status-based account suspension
 
 ## Models
-- User: hasMany Campaign, Donation added; org_name, org_reg_number, org_description fillable fields added
-- Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation
+- User: hasMany Campaign, Donation added; org_name, org_reg_number, org_description, permit_path, tax_certificate_path fillable fields added
+- Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation; image_paths casted as array for slideshows
 - Notification Database Classes:
 	- CampaignApprovedNotification: NGO campaign approval alert
 	- CampaignGoalReachedNotification: NGO fundraising goal hit alert
@@ -59,15 +61,16 @@
 - Chatbot: POST /chatbot/webhook
 
 ## Frontend Pages
-- Home.jsx: public campaign gallery and hero layout [done]
+- Home.jsx: public campaign gallery, hero layout, geometric/glow visuals, trust metrics grid, and professional copyright footer [done]
 - Login.jsx: login form and role-based redirect [done]
-- Register.jsx: public donor and NGO registration form [done]
-- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, and equal-split labeling [done]
-- CreateCampaign.jsx: NGO campaign creation form [done]
-- NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal, and view action [done]
+- Register.jsx: public donor and NGO registration form, with automated validation error scrolling and NGO document upload [done]
+- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, equal-split labeling, and interactive image slideshow carousel (navigation arrows, position dots, count badge) [done]
+- CreateCampaign.jsx: NGO campaign creation form supporting up to 5 image uploads and "Use Default Image" testing helper [done]
+- UserProfile.jsx: user profile settings page showing active account status badges (Active/Suspended, Verified NGO / Pending Verification, Tax Exempt) and document download links, plus "Back to Dashboard" navigation link for donors [done]
+- NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal (fixed typing freeze bug), and view action [done]
 - NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements, plus campaign/allocations editing [done]
 - DonorDashboard.jsx: donor impact stats, donation history, receipt download action [done]
-- NgoDashboard.jsx: NGO overview metrics and charts [partial]
+- NgoDashboard.jsx: NGO overview metrics and charts, updated to use RM currency and full-row width layout [done]
 - NgoDisbursements.jsx: NGO disbursement dashboard and request modal [done]
 - AdminDashboard.jsx: admin campaign moderation table [done]
 - AdminDisbursements.jsx: admin disbursement moderation table [done]
@@ -75,17 +78,18 @@
 ## Frontend Components
 - ProtectedRoute.jsx: role-based route guard
 - layout/DashboardLayout.jsx: sidebar dashboard shell
-- layout/Navbar.jsx: top navigation bar
+- layout/Navbar.jsx: top navigation bar redesigned with sticky backdrop-blur, custom profile capsules, and dynamic "My Impact" label for donors [done]
 - ui/Avatar.jsx: initials avatar
 - ui/Badge.jsx: status badge (includes completed styling)
 - ui/Button.jsx: styled button
 - ui/Card.jsx: card container
-- ui/CampaignCard.jsx: campaign summary card
+- ui/CampaignCard.jsx: campaign summary card, with cover images removed and NGO verification/tax status badges placed next to the organizer's name [done]
 - ui/ChatbotWidget.jsx: interactive AI chatbot widget for FAQs and active campaigns queries
 - ui/CheckoutModal.jsx: mock payment flow modal
 - ui/DonationLedger.jsx: donation ledger table
 - ui/Input.jsx: styled input
 - ui/Modal.jsx: generic modal
+- ui/NgoProfileView.jsx: NGO profile detail viewer updated with status, verification, and tax exempt badges [done]
 - ui/NotificationDropdown.jsx: bell trigger with unread badge, relative times, click-outside auto close, and optimistic card clear actions [done]
 - ui/StatCard.jsx: metric card
 - ui/Textarea.jsx: styled textarea

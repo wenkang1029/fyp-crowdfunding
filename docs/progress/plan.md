@@ -1,6 +1,6 @@
 # Development Plan
 
-Last updated: 2026-06-21
+Last updated: 2026-06-23
 
 ## Status Legend
 - [ ] Not started
@@ -11,13 +11,13 @@ Last updated: 2026-06-21
 ## Phase 1 — Core Modules
 
 ### 1. Auth & Profile
-- [x] Backend: AuthService and ProfileService added; AuthController/ProfileController now thin and service-backed; /user endpoint response standardized; AdminUserController store endpoint added for admin-driven user creation. Gated Donor Profile lookup with PDPA 2010 compliance.
+- [x] Backend: AuthService and ProfileService added; AuthController/ProfileController now thin and service-backed; /user endpoint response standardized; AdminUserController store endpoint added for admin-driven user creation. Gated Donor Profile lookup with PDPA 2010 compliance. Supports uploading and replacing NGO document credentials (solicitation permit and LHDN tax certificate) in local/cloud public storage.
 - [x] Frontend: authService + useAuthForm + useRegisterForm hooks added; Login/Register/AuthContext now use service/hook layers. Added UserProfile settings page for Donor and NGO details CRUD, and NgoProfileView modal.
-- Notes: Public registration restricted to donor and NGO roles; NGO details (org_name, org_reg_number, org_description) persisted in users table; Admin user creation supported via secure endpoint.
+- Notes: Public registration restricted to donor and NGO roles; NGO details (org_name, org_reg_number, org_description) persisted in users table; Admin user creation supported via secure endpoint. Added status badges in profile page showing Account status (Active/Suspended), Verification status (✓ Verified NGO / Pending Verification), and Tax Exemption status. Added "Back to Dashboard" navigation link for donors on the User Profile settings page.
 
 ### 2. Campaign Management
-- [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed; NGO campaign details endpoint added. Image uploads stored in public storage.
-- [x] Frontend: campaignService + useCreateCampaign hook added; Home/CampaignDetails/CreateCampaign/AdminDashboard/NgoDashboard integrated with service/hook; NGO campaign details page added. Step 1 of stepper wizard supports cover image selector, dynamically rendered across homepage and campaign details.
+- [x] Backend: CampaignService added; CampaignController CRUD moved to service-backed flow; campaign fillable typo fixed; NGO campaign details endpoint added. Multiple image uploads validation rules (`images.*`) and processing implemented; `image_paths` stored as JSON array; fallback routing added to serve files dynamically on environments where symlink is broken (e.g. DigitalOcean).
+- [x] Frontend: campaignService + useCreateCampaign hook added; Home/CampaignDetails/CreateCampaign/AdminDashboard/NgoDashboard integrated with service/hook; NGO campaign details page added. Stepping wizard stepper updated to support uploading up to 5 images; "Use Default Image" testing helper toggle added to bypass file selection; interactive slideshow carousel with left/right arrows, position dots, and counter badge added to Campaign Details page; cover images completely removed from the Active Campaign List cards.
 - Notes: Campaign start/end dates schema and validation implemented. Cover images mapped correctly.
 
 ### 3. Donation Flow
