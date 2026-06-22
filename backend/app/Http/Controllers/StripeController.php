@@ -34,47 +34,23 @@ class StripeController extends Controller
         try {
             $accountId = $user->stripe_account_id;
 
-            // If user doesn't have a Stripe account id, create one using V2 core API
+            // If user doesn't have a Stripe account id, create one using V1 API with pinned version
             if (!$accountId) {
-                $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
-                
                 $orgName = $user->org_name ?: $user->name;
-                
-                $account = $stripeClient->v2->core->accounts->create([
-                    'contact_email' => $user->email,
-                    'display_name' => substr($orgName, 0, 32), // Stripe display name length limit
-                    'identity' => [
-                        'country' => 'us', // Match US platform country for sandbox testing
-                        'entity_type' => 'company', // NGOs operate as legal entities/companies
-                        'business_details' => [
-                            'registered_name' => $orgName,
-                        ]
+                // Pin version to 2023-10-16 for this call to allow standard Express onboarding in Malaysia
+                $account = \Stripe\Account::create([
+                    'type' => 'express',
+                    'country' => 'MY',
+                    'email' => $user->email,
+                    'capabilities' => [
+                        'card_payments' => ['requested' => true],
+                        'transfers' => ['requested' => true],
                     ],
-                    'configuration' => [
-                        'merchant' => [
-                            'capabilities' => [
-                                'card_payments' => [
-                                    'requested' => true
-                                ]
-                            ]
-                        ],
-                        'recipient' => [
-                            'capabilities' => [
-                                'stripe_balance' => [
-                                    'stripe_transfers' => [
-                                        'requested' => true
-                                    ]
-                                ]
-                            ]
-                        ]
-                    ],
-                    'defaults' => [
-                        'responsibilities' => [
-                            'fees_collector' => 'stripe',
-                            'losses_collector' => 'stripe'
-                        ]
-                    ],
-                    'dashboard' => 'full'
+                    'business_profile' => [
+                        'name' => substr($orgName, 0, 32),
+                    ]
+                ], [
+                    'stripe_version' => '2023-10-16'
                 ]);
                 $accountId = $account->id;
 
@@ -210,15 +186,11 @@ class StripeController extends Controller
         }
 
         try {
-            $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
-            $account = $stripeClient->v2->core->accounts->retrieve($user->stripe_account_id);
+            $account = \Stripe\Account::retrieve($user->stripe_account_id, [
+                'stripe_version' => '2023-10-16'
+            ]);
 
-            // In V2, check if onboarding is complete. V2 core account indicates complete when requirements are clean
-            // or the merchant capability status shows as active.
-            // In Test mode, we can confirm onboarding submission check:
-            $isCompleted = ($account->closed === false); 
-
-            if ($isCompleted) {
+            if ($account->details_submitted) {
                 $user->stripe_onboarding_completed = true;
                 $user->save();
 
