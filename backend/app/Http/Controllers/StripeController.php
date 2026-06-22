@@ -37,7 +37,35 @@ class StripeController extends Controller
             // If user doesn't have a Stripe account id, create one using V2 core API
             if (!$accountId) {
                 $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
-                $account = $stripeClient->v2->core->accounts->create([]);
+                
+                $orgName = $user->org_name ?: $user->name;
+                
+                $account = $stripeClient->v2->core->accounts->create([
+                    'contact_email' => $user->email,
+                    'display_name' => substr($orgName, 0, 32), // Stripe display name length limit
+                    'identity' => [
+                        'country' => 'my', // Malaysia
+                        'entity_type' => 'company', // NGOs operate as legal entities/companies
+                        'business_details' => [
+                            'registered_name' => $orgName,
+                        ]
+                    ],
+                    'configuration' => [
+                        'merchant' => [
+                            'capabilities' => [
+                                'card_payments' => [
+                                    'requested' => true
+                                ]
+                            ]
+                        ]
+                    ],
+                    'defaults' => [
+                        'responsibilities' => [
+                            'fees_collector' => 'stripe',
+                            'losses_collector' => 'stripe'
+                        ]
+                    ]
+                ]);
                 $accountId = $account->id;
 
                 // Save to user model
