@@ -116,9 +116,6 @@ class DonationService
                     'donation_id' => $donation->id,
                     'campaign_id' => $campaign->id,
                 ],
-                'transfer_data' => [
-                    'destination' => $ngo->stripe_account_id,
-                ],
             ]);
 
             return [
