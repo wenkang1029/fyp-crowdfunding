@@ -43,7 +43,7 @@ const CampaignCard = ({ campaign }) => {
                 )}
 
                 <div className="p-6 flex flex-col flex-1">
-                    <div className="mb-2">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                         {/* U2: NGO name is now a clickable entry point to NgoProfileView */}
                         <button
                             type="button"
@@ -53,6 +53,30 @@ const CampaignCard = ({ campaign }) => {
                         >
                             {campaign.user?.org_name || campaign.user?.name || 'Verified NGO'}
                         </button>
+
+                        {campaign.user && (
+                            <div className="flex items-center gap-1">
+                                {(() => {
+                                    const u = campaign.user;
+                                    const isProfileComplete = u.org_name && u.org_reg_number && u.org_description && u.mailing_address;
+                                    const isVerified = isProfileComplete && u.permit_path;
+                                    return (
+                                        <span className={`px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide rounded-md border ${
+                                            isVerified
+                                                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                                                : 'bg-amber-50 text-amber-600 border-amber-200'
+                                        }`}>
+                                            {isVerified ? '✓ Verified' : 'Pending'}
+                                        </span>
+                                    );
+                                })()}
+                                {!!campaign.user.is_tax_exempt && (
+                                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide rounded-md border bg-emerald-50 text-emerald-700 border-emerald-250">
+                                        Tax Exempt
+                                    </span>
+                                )}
+                            </div>
+                        )}
                     </div>
 
                     <h3 className="text-xl font-bold text-aidwise-text mb-2 line-clamp-2">
