@@ -93,9 +93,33 @@ const UserProfile = () => {
                         <span className="text-xs uppercase tracking-wider text-gray-400 font-bold block">Account Role</span>
                         <span className="text-lg font-extrabold text-aidwise-text capitalize">{user.role}</span>
                     </div>
-                    <span className={`px-3 py-1 text-xs font-bold rounded-full border ${statusBadge.className}`}>
-                        {statusBadge.label}
-                    </span>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className={`px-3 py-1 text-xs font-bold rounded-full border ${statusBadge.className}`}>
+                            {statusBadge.label}
+                        </span>
+                        {user.role === 'ngo' && (
+                            <>
+                                {(() => {
+                                    const isProfileComplete = user.org_name && user.org_reg_number && user.org_description && user.mailing_address;
+                                    const isVerified = isProfileComplete && user.permit_path;
+                                    return (
+                                        <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
+                                            isVerified
+                                                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                                                : 'bg-amber-50 text-amber-600 border-amber-200'
+                                        }`}>
+                                            {isVerified ? '✓ Verified NGO' : 'Pending Verification'}
+                                        </span>
+                                    );
+                                })()}
+                                {user.is_tax_exempt && (
+                                    <span className="px-3 py-1 text-xs font-bold rounded-full border bg-emerald-50 text-emerald-700 border-emerald-250">
+                                        Tax Exempt
+                                    </span>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 {/* Section: Basic Information */}
