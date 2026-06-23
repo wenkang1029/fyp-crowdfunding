@@ -380,9 +380,6 @@ const CampaignDetails = () => {
                 title="Make a Donation"
             >
                 <form onSubmit={handleInitialSubmit} className="space-y-5">
-                    <div>
-                        <p className="text-sm text-gray-500">Every contribution directly supports SJAM KMT campaign objectives.</p>
-                    </div>
 
                     {successMessage && (
                         <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm font-semibold flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 text-center">
