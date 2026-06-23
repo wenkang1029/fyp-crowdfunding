@@ -152,6 +152,8 @@ const CreateCampaign = () => {
         return localErrors[fieldName]?.[0] || errors[fieldName]?.[0];
     };
 
+    const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
     const formatDateString = (dateTimeStr) => {
         if (!dateTimeStr) return '—';
         return new Date(dateTimeStr).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
