@@ -46,12 +46,32 @@ class DashboardService
 
         $totalPlatformFunds = Campaign::sum('current_amount');
 
+        // Fetch recent platform activities for live overview feed
+        $recentDonations = Donation::with('campaign:id,title')
+            ->where('status', 'success')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $recentCampaigns = Campaign::with('user:id,name')
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
+        $recentDisbursements = Disbursement::with(['campaign:id,title,user_id', 'campaign.user:id,name'])
+            ->orderBy('created_at', 'desc')
+            ->take(5)
+            ->get();
+
         return [
             'metrics' => [
                 'users' => ['total' => $totalUsers, 'ngos' => $totalNGOs, 'donors' => $totalDonors],
                 'campaigns' => ['total' => $totalCampaigns, 'pending_approval' => $pendingCampaigns, 'active' => $activeCampaigns],
                 'financials' => ['total_funds_raised' => $totalPlatformFunds],
             ],
+            'recent_donations' => $recentDonations,
+            'recent_campaigns' => $recentCampaigns,
+            'recent_disbursements' => $recentDisbursements,
         ];
     }
 

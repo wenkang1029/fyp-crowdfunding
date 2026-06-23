@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import Avatar from '../ui/Avatar';
-import { LayoutDashboard, LogOut, ChevronLeft, ChevronRight, Megaphone, Wallet, User } from 'lucide-react';
+import { LayoutDashboard, LogOut, ChevronLeft, ChevronRight, Megaphone, Wallet, User, Users } from 'lucide-react';
 import NotificationDropdown from '../ui/NotificationDropdown';
 
 const DashboardLayout = ({ children }) => {
@@ -69,18 +69,46 @@ const DashboardLayout = ({ children }) => {
                     </Link>
                     
                     {user?.role === 'admin' && (
-                        <Link 
-                            to="/admin/disbursements" 
-                            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
-                                location.pathname.includes('/admin/disbursements') 
-                                ? 'bg-aidwise-blue text-white shadow-sm'
-                                : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
-                            }`}
-                            title="Payout Requests"
-                        >
-                            <Wallet size={20} className="shrink-0" />
-                            {!isCollapsed && <span className="whitespace-nowrap">Payout Requests</span>}
-                        </Link>
+                        <>
+                            <Link 
+                                to="/admin/campaigns" 
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
+                                    location.pathname.startsWith('/admin/campaigns') 
+                                    ? 'bg-aidwise-blue text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
+                                }`}
+                                title="Campaigns"
+                            >
+                                <Megaphone size={20} className="shrink-0" />
+                                {!isCollapsed && <span className="whitespace-nowrap">Campaigns</span>}
+                            </Link>
+
+                            <Link 
+                                to="/admin/users" 
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
+                                    location.pathname.startsWith('/admin/users') 
+                                    ? 'bg-aidwise-blue text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
+                                }`}
+                                title="Users"
+                            >
+                                <Users size={20} className="shrink-0" />
+                                {!isCollapsed && <span className="whitespace-nowrap">Users</span>}
+                            </Link>
+
+                            <Link 
+                                to="/admin/disbursements" 
+                                className={`flex items-center gap-3 px-3 py-2.5 rounded-xl font-medium transition-colors ${
+                                    location.pathname.includes('/admin/disbursements') 
+                                    ? 'bg-aidwise-blue text-white shadow-sm'
+                                    : 'text-gray-600 hover:bg-gray-50 hover:text-aidwise-text'
+                                }`}
+                                title="Payout Requests"
+                            >
+                                <Wallet size={20} className="shrink-0" />
+                                {!isCollapsed && <span className="whitespace-nowrap">Payout Requests</span>}
+                            </Link>
+                        </>
                     )}
                     
                     {user?.role === 'ngo' && (

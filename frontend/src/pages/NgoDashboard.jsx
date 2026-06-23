@@ -4,7 +4,7 @@ import DashboardLayout from '../components/layout/DashboardLayout';
 import StatCard from '../components/ui/StatCard';
 import Card from '../components/ui/Card';
 import { useAuth } from '../context/AuthContext';
-import { Target, DollarSign, Users, TrendingUp } from 'lucide-react';
+import { Target, DollarSign, Users, TrendingUp, Calendar, ShieldAlert } from 'lucide-react';
 import DonationLedger from '../components/ui/DonationLedger';
 import { useNgoDashboardData } from '../hooks/useNgoDashboardData';
 
@@ -136,20 +136,28 @@ const NgoDashboard = () => {
         <DashboardLayout>
             <div className="max-w-7xl mx-auto">
                 
-                <div className="mb-8">
-                    <h1 className="text-3xl font-bold tracking-tight text-aidwise-text">Overview</h1>
-                    <p className="mt-1 text-gray-500">Welcome back, {user?.name}. Here is your real-time impact.</p>
+                <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 className="text-3xl font-extrabold tracking-tight text-aidwise-text">Overview</h1>
+                        <p className="mt-1 text-gray-500 text-sm">Welcome back, <span className="font-semibold text-aidwise-blue">{user?.name}</span>. Here is your real-time platform impact.</p>
+                    </div>
+                    <div className="flex items-center gap-2 text-xs bg-white border border-gray-200 px-3.5 py-2 rounded-xl shadow-apple-sm text-gray-500 shrink-0 font-medium">
+                        <Calendar size={14} className="text-aidwise-blue" />
+                        <span>Today is {new Date().toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                    </div>
                 </div>
 
                 {/* Stripe Connection Call to Action Banner */}
                 {!user?.stripe_onboarding_completed && (
-                    <div className="mb-6 bg-amber-50 border border-amber-200 rounded-2xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm animate-fade-in">
-                        <div className="flex items-start gap-3">
-                            <span className="text-2xl mt-0.5">⚠️</span>
+                    <div className="mb-8 bg-gradient-to-r from-amber-50 to-orange-50/20 border border-amber-200 rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm animate-fade-in">
+                        <div className="flex items-start gap-3.5">
+                            <div className="bg-amber-100 text-amber-700 p-2.5 rounded-xl mt-0.5 shrink-0">
+                                <ShieldAlert size={20} />
+                            </div>
                             <div>
-                                <h4 className="font-bold text-amber-900 text-sm md:text-base">Stripe Account Setup Required</h4>
-                                <p className="text-amber-700 text-xs md:text-sm mt-1 max-w-xl">
-                                    To receive direct donations from contributors, you must link your organization's bank account with Stripe. This takes less than 5 minutes.
+                                <h4 className="font-bold text-amber-900 text-sm md:text-base">Stripe Payment Account Required</h4>
+                                <p className="text-amber-700/85 text-xs md:text-sm mt-1 max-w-xl leading-relaxed">
+                                    To accept direct public contributions securely via credit card, you must link your organisation's financial account with Stripe. Setup takes less than 5 minutes.
                                 </p>
                             </div>
                         </div>
@@ -167,9 +175,9 @@ const NgoDashboard = () => {
                                     alert('Failed to connect to Stripe service. Please try again.');
                                 }
                             }}
-                            className="bg-amber-600 hover:bg-amber-700 text-white font-semibold py-2 px-5 rounded-xl transition-all shadow-sm hover:shadow-apple whitespace-nowrap text-sm"
+                            className="bg-amber-600 hover:bg-amber-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg hover:scale-[1.01] active:scale-[0.99] whitespace-nowrap text-xs md:text-sm"
                         >
-                            Link Stripe Account
+                            💳 Set Up Stripe Account
                         </button>
                     </div>
                 )}

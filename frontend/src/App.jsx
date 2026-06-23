@@ -8,6 +8,8 @@ import CreateCampaign from './pages/CreateCampaign';
 import NgoCampaigns from './pages/NgoCampaigns';
 import NgoCampaignDetails from './pages/NgoCampaignDetails';
 import AdminDashboard from './pages/AdminDashboard';
+import AdminCampaigns from './pages/AdminCampaigns';
+import AdminUsers from './pages/AdminUsers';
 import Home from './pages/Home';
 import CampaignDetails from './pages/CampaignDetails';
 import NgoDisbursements from './pages/NgoDisbursements';
@@ -47,6 +49,8 @@ function App() {
               } 
           />
           {/* Admin Routes */}
+          <Route path="/admin/campaigns" element={<ProtectedRoute allowedRoles={['admin']}><AdminCampaigns /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute allowedRoles={['admin']}><AdminUsers /></ProtectedRoute>} />
           <Route path="/admin/disbursements" element={<ProtectedRoute allowedRoles={['admin']}><AdminDisbursements /></ProtectedRoute>} />
 
           {/* STRICT NGO ROUTE */}
