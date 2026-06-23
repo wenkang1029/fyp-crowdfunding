@@ -82,13 +82,19 @@ class DashboardService
         $totalDisbursed = Disbursement::whereHas('campaign', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })
-            ->where('status', '!=', 'rejected')
+            ->where('status', 'approved')
+            ->sum('amount');
+
+        $totalPending = Disbursement::whereHas('campaign', function ($query) use ($userId) {
+            $query->where('user_id', $userId);
+        })
+            ->where('status', 'pending')
             ->sum('amount');
 
         $disbursementBreakdown = Disbursement::whereHas('campaign', function ($query) use ($userId) {
             $query->where('user_id', $userId);
         })
-            ->where('status', '!=', 'rejected')
+            ->where('status', 'approved')
             ->selectRaw('purpose, SUM(amount) as total_amount')
             ->groupBy('purpose')
             ->get();
@@ -105,6 +111,7 @@ class DashboardService
             'metrics' => [
                 'total_funds_raised' => $totalRaised,
                 'total_funds_disbursed' => $totalDisbursed,
+                'total_pending_disbursed' => $totalPending,
                 'remaining_balance' => $totalRaised - $totalDisbursed,
             ],
             'chart_data' => $disbursementBreakdown,

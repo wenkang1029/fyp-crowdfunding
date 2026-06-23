@@ -116,9 +116,30 @@ const AdminDisbursements = () => {
                                     disbursements.map((d) => (
                                         <tr key={d.id} className="hover:bg-gray-50/50 transition-colors">
                                             <td className="px-5 py-4 text-gray-500 whitespace-nowrap">{formatDate(d.created_at)}</td>
-                                            <td className="px-5 py-4 font-semibold text-aidwise-blue">{d.campaign?.user?.name || 'Unknown NGO'}</td>
-                                            <td className="px-5 py-4 font-medium text-aidwise-text truncate max-w-[150px]">{d.campaign?.title || 'Unknown'}</td>
-                                            <td className="px-5 py-4 text-gray-600 capitalize">{d.purpose}</td>
+                                            <td className="px-5 py-4">
+                                                <div 
+                                                    className="max-w-[150px] truncate font-semibold text-aidwise-blue" 
+                                                    title={d.campaign?.user?.name || 'Unknown NGO'}
+                                                >
+                                                    {d.campaign?.user?.name || 'Unknown NGO'}
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div 
+                                                    className="max-w-[180px] truncate font-medium text-aidwise-text" 
+                                                    title={d.campaign?.title || 'Unknown'}
+                                                >
+                                                    {d.campaign?.title || 'Unknown'}
+                                                </div>
+                                            </td>
+                                            <td className="px-5 py-4">
+                                                <div 
+                                                    className="max-w-[150px] truncate text-gray-600 capitalize font-medium" 
+                                                    title={d.purpose}
+                                                >
+                                                    {d.purpose}
+                                                </div>
+                                            </td>
                                             <td className="px-5 py-4 font-bold text-green-600 text-right whitespace-nowrap">{formatRM(d.amount)}</td>
                                             <td className="px-5 py-4 text-center whitespace-nowrap">
                                                 {d.receipt_path ? (

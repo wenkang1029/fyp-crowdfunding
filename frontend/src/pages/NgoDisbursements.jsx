@@ -7,7 +7,7 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
 import { useNgoDisbursements } from '../hooks/useNgoDisbursements';
-import { Wallet, ArrowDownRight, ArrowUpRight, ListOrdered, Plus, Upload, FileText } from 'lucide-react';
+import { Wallet, ArrowDownRight, ArrowUpRight, ListOrdered, Plus, Upload, FileText, Clock } from 'lucide-react';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
@@ -63,9 +63,10 @@ const NgoDisbursements = () => {
 
                 {error && <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl border border-red-100">{error}</div>}
 
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
                     <StatCard title="Total Raised" value={formatRM(metrics.total_funds_raised)} icon={ArrowUpRight} />
                     <StatCard title="Total Disbursed" value={formatRM(metrics.total_funds_disbursed)} icon={ArrowDownRight} />
+                    <StatCard title="Requested (Pending)" value={formatRM(metrics.total_pending_disbursed)} icon={Clock} />
                     <StatCard title="Escrow Balance" value={formatRM(metrics.remaining_balance)} icon={Wallet} />
                 </div>
 
