@@ -22,6 +22,7 @@ class CampaignService
 
         if ($user && $user->role === 'ngo') {
             return Campaign::where('user_id', $user->id)
+                ->with(['allocations'])
                 ->withSum([
                     'disbursements as disbursed_amount' => function ($query) {
                         $query->where('status', 'approved');

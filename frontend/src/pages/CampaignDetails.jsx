@@ -387,11 +387,11 @@ const CampaignDetails = () => {
                                                 <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
                                                     Your donation will go directly to: <span className="font-semibold text-aidwise-text">{selectedAllocation?.purpose}</span>.
                                                 </div>
-                                            ) : (
-                                                <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
-                                                    Choosing overall campaign splits your donation equally across all sub-goals.
-                                                </div>
-                                            )}
+                                             ) : (
+                                                 <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
+                                                     Choosing overall campaign splits your donation equally across all sub-goals. Any contributions exceeding a sub-goal's target are dynamically redirected to underfunded categories, with final overflows moved to the General Surplus. All donated funds are securely held in escrow, requiring the NGO to request verified disbursements before any funds are released.
+                                                 </div>
+                                             )}
                                         </div>
                                     )}
 

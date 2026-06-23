@@ -46,6 +46,17 @@ Route::get('/migrate-db', function() {
     }
 });
 
+// Force Storage Link Endpoint
+Route::get('/storage-link', function() {
+    try {
+        \Illuminate\Support\Facades\Artisan::call('storage:link');
+        $output = \Illuminate\Support\Facades\Artisan::output();
+        return response()->json(['success' => true, 'output' => $output]);
+    } catch (\Exception $e) {
+        return response()->json(['success' => false, 'message' => $e->getMessage()]);
+    }
+});
+
 
 
 /*
