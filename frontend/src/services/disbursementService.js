@@ -19,7 +19,8 @@ export const getAdminDisbursements = async () => {
 };
 
 export const createDisbursement = async (campaignId, payload) => {
-    const response = await axiosInstance.post(`/campaigns/${campaignId}/disbursements`, payload);
+    const headers = payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+    const response = await axiosInstance.post(`/campaigns/${campaignId}/disbursements`, payload, { headers });
     return extractData(response);
 };
 
