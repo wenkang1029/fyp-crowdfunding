@@ -342,123 +342,17 @@ const CampaignDetails = () => {
                                         </div>
                                     </div>
                                 )}
+                                
+                                <Button
+                                    onClick={() => setActiveModal('donate_form')}
+                                    variant="primary"
+                                    className="w-full mt-6 py-3.5 text-base font-bold shadow-lg shadow-aidwise-blue/20 hover:shadow-aidwise-blue/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
+                                    disabled={!(campaign.status === 'active' && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date)))}
+                                >
+                                    ❤️ Donate Now
+                                </Button>
                             </Card>
-
-                            {/* --- Donation Form Card --- */}
-                            <Card className="shadow-apple border-aidwise-border">
-                                <form onSubmit={handleInitialSubmit} className="space-y-4">
-                                    <div>
-                                        <h4 className="text-lg font-bold text-aidwise-text">Make a Donation</h4>
-                                        <p className="text-sm text-gray-500">Every contribution helps reach the goal.</p>
-                                    </div>
-
-                                    {successMessage && (
-                                        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm font-semibold flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 text-center">
-                                            ✅ {successMessage}
-                                        </div>
-                                    )}
-
-                                    {error && (
-                                        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
-                                            {error}
-                                        </div>
-                                    )}
-
-                                    {allocations.length > 0 && (
-                                        <div className="space-y-3">
-                                            <div className="flex items-center justify-between">
-                                                <label className="block text-sm font-medium text-aidwise-text">
-                                                    Direct to sub-goal (optional)
-                                                </label>
-                                                <span className="text-xs font-semibold text-gray-400">Step 1</span>
-                                            </div>
-                                            <select
-                                                value={allocationId}
-                                                onChange={(event) => setAllocationId(event.target.value)}
-                                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
-                                            >
-                                                <option value="">Overall campaign goal</option>
-                                                {allocations.map((allocation) => (
-                                                    <option key={allocation.id} value={allocation.id}>
-                                                        {allocation.purpose}
-                                                    </option>
-                                                ))}
-                                            </select>
-                                            {allocationId ? (
-                                                <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
-                                                    Your donation will go directly to: <span className="font-semibold text-aidwise-text">{selectedAllocation?.purpose}</span>.
-                                                </div>
-                                             ) : (
-                                                 <div className="rounded-xl border border-aidwise-border bg-gray-50/60 p-4 space-y-3">
-                                                     <p className="text-xs font-bold text-aidwise-text">
-                                                         Overall Campaign Terms & Funding Rules:
-                                                     </p>
-                                                     <ul className="list-disc pl-4 space-y-1.5 text-[11px] text-gray-500 leading-normal">
-                                                         <li>
-                                                             <span className="font-medium text-gray-600">Equal Distribution:</span> Your donation is split equally across all campaign sub-goals.
-                                                         </li>
-                                                         <li>
-                                                             <span className="font-medium text-gray-600">Surplus Waterfall:</span> Any contributions exceeding a sub-goal's target are dynamically redirected to remaining underfunded categories, with final overflows directed to the campaign's General Surplus.
-                                                         </li>
-                                                         <li>
-                                                             <span className="font-medium text-gray-600">Escrow Hold:</span> All donated funds are securely held in platform escrow, requiring the NGO to request verified disbursements before any funds are released.
-                                                         </li>
-                                                     </ul>
-                                                     <label className="flex items-start gap-2.5 pt-1.5 cursor-pointer select-none">
-                                                         <input
-                                                             type="checkbox"
-                                                             checked={hasAgreedTerms}
-                                                             onChange={(e) => setHasAgreedTerms(e.target.checked)}
-                                                             className="mt-0.5 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded cursor-pointer"
-                                                         />
-                                                         <span className="text-[11px] font-semibold text-aidwise-text leading-tight">
-                                                             I understand and agree to these donation distribution and escrow disbursement rules.
-                                                         </span>
-                                                     </label>
-                                                 </div>
-                                             )}
-                                        </div>
-                                    )}
-
-                                    <div>
-                                        <label className="mb-1.5 block text-sm font-medium text-aidwise-text">
-                                            Donation amount (RM)
-                                        </label>
-                                        <Input
-                                            type="number"
-                                            name="donationAmount"
-                                            value={donationAmount}
-                                            onChange={(e) => setDonationAmount(e.target.value)}
-                                            placeholder="e.g., 100"
-                                            required
-                                            min="1"
-                                        />
-                                        {allocations.length > 0 && !allocationId && donationAmountValue > 0 && (
-                                            <p className="mt-1 text-xs text-gray-400">
-                                                Overall campaign donations are split equally across {allocations.length} sub-goals
-                                                ({allocationShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each).
-                                            </p>
-                                        )}
-                                    </div>
-
-                                    <Button 
-                                        type="submit" 
-                                        variant="primary" 
-                                        className="w-full py-3 text-lg" 
-                                        disabled={
-                                            !(campaign.status === 'active' && 
-                                              (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && 
-                                              (!campaign.end_date || new Date() <= new Date(campaign.end_date))) || 
-                                            (!allocationId && !hasAgreedTerms)
-                                        }
-                                    >
-                                        Donate Now
-                                    </Button>
-                                    <p className="text-xs text-center text-gray-400">
-                                        Secure transaction powered by AidWise.
-                                    </p>
-                                </form>
-                            </Card>
+                            
                             {!((campaign.status === 'active') && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date))) && (
                                 <div className="mt-4 rounded-lg border border-yellow-100 bg-yellow-50 p-3 text-sm text-yellow-800">
                                     {campaign.start_date && new Date() < new Date(campaign.start_date) && (
@@ -479,6 +373,118 @@ const CampaignDetails = () => {
             </main>
 
             {/* --- STATE MACHINE MODALS --- */}
+
+            <Modal
+                isOpen={activeModal === 'donate_form'}
+                onClose={() => setActiveModal(null)}
+                title="Make a Donation"
+            >
+                <form onSubmit={handleInitialSubmit} className="space-y-5">
+                    <div>
+                        <p className="text-sm text-gray-500">Every contribution directly supports SJAM KMT campaign objectives.</p>
+                    </div>
+
+                    {successMessage && (
+                        <div className="p-4 bg-green-50 text-green-700 rounded-xl border border-green-200 text-sm font-semibold flex items-center justify-center gap-2 animate-in fade-in slide-in-from-top-2 text-center">
+                            ✅ {successMessage}
+                        </div>
+                    )}
+
+                    {error && (
+                        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                            {error}
+                        </div>
+                    )}
+
+                    {allocations.length > 0 && (
+                        <div className="space-y-3">
+                            <label className="block text-sm font-semibold text-aidwise-text">
+                                Fund Destination
+                            </label>
+                            <select
+                                value={allocationId}
+                                onChange={(event) => setAllocationId(event.target.value)}
+                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue text-sm"
+                            >
+                                <option value="">Support Overall Campaign (Equal split across all sub-goals)</option>
+                                {allocations.map((allocation) => (
+                                    <option key={allocation.id} value={allocation.id}>
+                                        {allocation.purpose} (Sub-goal)
+                                    </option>
+                                ))}
+                            </select>
+                            {allocationId ? (
+                                <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
+                                    Your donation will go directly to: <span className="font-semibold text-aidwise-text">{selectedAllocation?.purpose}</span>.
+                                </div>
+                             ) : (
+                                 <div className="rounded-xl border border-aidwise-border bg-gray-50/60 p-4 space-y-3">
+                                     <p className="text-xs font-bold text-aidwise-text">
+                                         Overall Campaign Terms & Funding Rules:
+                                     </p>
+                                     <ul className="list-disc pl-4 space-y-1.5 text-[11px] text-gray-500 leading-normal">
+                                         <li>
+                                             <span className="font-medium text-gray-600">Equal Distribution:</span> Your donation is split equally across all campaign sub-goals.
+                                         </li>
+                                         <li>
+                                             <span className="font-medium text-gray-600">Surplus Waterfall:</span> Any contributions exceeding a sub-goal's target are dynamically redirected to remaining underfunded categories, with final overflows directed to the campaign's General Surplus.
+                                         </li>
+                                         <li>
+                                             <span className="font-medium text-gray-600">Escrow Hold:</span> All donated funds are securely held in platform escrow, requiring the NGO to request verified disbursements before any funds are released.
+                                         </li>
+                                     </ul>
+                                     <label className="flex items-start gap-2.5 pt-1.5 cursor-pointer select-none">
+                                         <input
+                                             type="checkbox"
+                                             checked={hasAgreedTerms}
+                                             onChange={(e) => setHasAgreedTerms(e.target.checked)}
+                                             className="mt-0.5 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded cursor-pointer"
+                                         />
+                                         <span className="text-[11px] font-semibold text-aidwise-text leading-tight">
+                                             I understand and agree to these donation distribution and escrow disbursement rules.
+                                         </span>
+                                     </label>
+                                 </div>
+                             )}
+                        </div>
+                    )}
+
+                    <div>
+                        <label className="mb-1.5 block text-sm font-semibold text-aidwise-text">
+                            Donation Amount (RM)
+                        </label>
+                        <Input
+                            type="number"
+                            name="donationAmount"
+                            value={donationAmount}
+                            onChange={(e) => setDonationAmount(e.target.value)}
+                            placeholder="e.g., 100"
+                            required
+                            min="1"
+                        />
+                        {allocations.length > 0 && !allocationId && donationAmountValue > 0 && (
+                            <p className="mt-1.5 text-xs text-gray-400">
+                                Overall campaign donations are split equally across {allocations.length} sub-goals
+                                ({allocationShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each).
+                            </p>
+                        )}
+                    </div>
+
+                    <Button 
+                        type="submit" 
+                        variant="primary" 
+                        className="w-full py-3.5 text-base font-bold" 
+                        disabled={
+                            !(campaign.status === 'active' && 
+                              (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && 
+                              (!campaign.end_date || new Date() <= new Date(campaign.end_date))) || 
+                            (!allocationId && !hasAgreedTerms)
+                        }
+                    >
+                        Proceed to Payment
+                    </Button>
+                </form>
+            </Modal>
 
             <Modal 
                 isOpen={activeModal === 'confirm'} 

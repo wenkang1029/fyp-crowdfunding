@@ -115,7 +115,7 @@ class CampaignService
 
     public function getById(int $id): Campaign
     {
-        return Campaign::with(['user', 'allocations'])->findOrFail($id);
+        return Campaign::with(['user', 'allocations', 'disbursements'])->findOrFail($id);
     }
 
     public function getNgoDetails(User $user, int $id): Campaign
