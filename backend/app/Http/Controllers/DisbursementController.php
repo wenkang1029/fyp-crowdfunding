@@ -36,6 +36,7 @@ class DisbursementController extends Controller
         $validated = $request->validate([
             'purpose' => 'required|string|max:255',
             'amount' => 'required|numeric|min:1',
+            'details' => 'nullable|string|max:1000',
         ]);
 
         try {

@@ -24,6 +24,8 @@ const NgoDisbursements = () => {
         isSubmitting,
         formError,
         formData,
+        selectedAllocations,
+        setSelectedAllocations,
         handleOpenModal,
         closeModal,
         handleFieldChange,
@@ -187,7 +189,10 @@ const NgoDisbursements = () => {
                         <select 
                             className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
                             value={formData.campaign_id}
-                            onChange={(e) => handleFieldChange('campaign_id', e.target.value)}
+                            onChange={(e) => {
+                                handleFieldChange('campaign_id', e.target.value);
+                                setSelectedAllocations([]);
+                            }}
                             required
                         >
                             {campaigns.length === 0 && <option value="" disabled>No active campaigns available</option>}
@@ -200,10 +205,62 @@ const NgoDisbursements = () => {
                         label="Amount to Withdraw (RM)" type="number" min="1" placeholder="e.g. 500"
                         value={formData.amount} onChange={(e) => handleFieldChange('amount', e.target.value)} required
                     />
-                    <Input 
-                        label="Purpose of Funds" type="text" placeholder="e.g., Water filtration equipment"
-                        value={formData.purpose} onChange={(e) => handleFieldChange('purpose', e.target.value)} required
-                    />
+                    
+                    {(() => {
+                        const selectedCampaignObj = campaigns.find(camp => String(camp.id) === String(formData.campaign_id));
+                        return (
+                            <div className="mb-4">
+                                <label className="block mb-2 text-sm font-semibold text-aidwise-text">Purpose of Funds (Select allocations)</label>
+                                <div className="space-y-2 max-h-40 overflow-y-auto p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                                    {selectedCampaignObj?.allocations?.map((alloc) => (
+                                        <label key={alloc.id} className="flex items-center gap-2 text-sm text-aidwise-text cursor-pointer hover:bg-gray-100/50 p-1.5 rounded transition-colors select-none font-medium">
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedAllocations.includes(alloc.purpose)}
+                                                onChange={(e) => {
+                                                    if (e.target.checked) {
+                                                        setSelectedAllocations((prev) => [...prev, alloc.purpose]);
+                                                    } else {
+                                                        setSelectedAllocations((prev) => prev.filter((item) => item !== alloc.purpose));
+                                                    }
+                                                }}
+                                                className="h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
+                                            />
+                                            {alloc.purpose} (Target: RM {Number(alloc.amount).toLocaleString()})
+                                        </label>
+                                    ))}
+                                    <label className="flex items-center gap-2 text-sm text-amber-600 font-bold cursor-pointer hover:bg-gray-100/50 p-1.5 rounded transition-colors select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedAllocations.includes('General Surplus')}
+                                            onChange={(e) => {
+                                                if (e.target.checked) {
+                                                    setSelectedAllocations((prev) => [...prev, 'General Surplus']);
+                                                } else {
+                                                    setSelectedAllocations((prev) => prev.filter((item) => item !== 'General Surplus'));
+                                                }
+                                            }}
+                                            className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded"
+                                        />
+                                        General Surplus
+                                    </label>
+                                </div>
+                            </div>
+                        );
+                    })()}
+
+                    <div className="mb-4">
+                        <label className="block mb-1.5 text-sm font-semibold text-aidwise-text">Disbursement Details</label>
+                        <textarea
+                            name="details"
+                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue text-sm h-20 resize-none"
+                            placeholder="Provide specific details about this disbursement (e.g. supplier invoice or volunteer run)..."
+                            value={formData.details || ''}
+                            onChange={(e) => handleFieldChange('details', e.target.value)}
+                            required
+                        ></textarea>
+                    </div>
+
                     <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSubmitting}>
                         {isSubmitting ? 'Recording...' : 'Record Payout'}
                     </Button>

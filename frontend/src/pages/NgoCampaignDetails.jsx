@@ -310,37 +310,40 @@ const NgoCampaignDetails = () => {
 
                         {/* Funding Progress Card */}
                         <Card className="border border-gray-100">
-                            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                                <div className="flex items-center gap-2 text-sm font-semibold text-aidwise-text pt-1">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between border-b border-gray-50 pb-4 mb-4">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-aidwise-text">
                                     <Wallet size={17} className="text-aidwise-blue" />
                                     Funding Progress
                                 </div>
-                                <div className="grid grid-cols-4 gap-3 text-right sm:min-w-[550px]">
-                                    <div>
-                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Raised</div>
-                                        <div className="text-sm font-bold text-aidwise-text">{formatRM(raisedAmount)}</div>
+                                <span className="text-xs text-gray-500 font-medium">Capped progress bars represent allocated budgets</span>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-4 sm:grid-cols-4 mb-6">
+                                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Target</div>
+                                    <div className="text-base font-bold text-aidwise-text mt-0.5">{formatRM(campaign.target_amount)}</div>
+                                </div>
+                                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Total Collected</div>
+                                    <div className="text-base font-bold text-aidwise-blue mt-0.5 flex items-baseline gap-1">
+                                        {formatRM(raisedAmount)}
+                                        <span className="text-xs font-semibold text-aidwise-blue/80">({Math.round(rawRaisedPercent)}%)</span>
                                     </div>
-                                    <div>
-                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Withdrawn</div>
-                                        <div className="text-sm font-bold text-amber-600">{formatRM(disbursedAmount)}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Available</div>
-                                        <div className="text-sm font-bold text-emerald-600">{formatRM(availableAmount)}</div>
-                                    </div>
-                                    <div>
-                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Target</div>
-                                        <div className="text-sm font-bold text-aidwise-text">{formatRM(campaign.target_amount)}</div>
-                                    </div>
+                                </div>
+                                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Withdrawn</div>
+                                    <div className="text-base font-bold text-amber-600 mt-0.5">{formatRM(disbursedAmount)}</div>
+                                </div>
+                                <div className="p-3 bg-gray-50/50 rounded-xl border border-gray-100/50">
+                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Available</div>
+                                    <div className="text-base font-bold text-emerald-600 mt-0.5">{formatRM(availableAmount)}</div>
                                 </div>
                             </div>
 
                             <div className="mt-6 space-y-5">
                                 <div>
-                                    <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 text-sm">
-                                        <span className="font-semibold text-aidwise-text">Total Progress</span>
-                                        <span className="text-gray-500">{formatRM(raisedAmount)}</span>
-                                        <span className="w-12 text-right font-semibold text-aidwise-blue">{Math.round(rawRaisedPercent)}%</span>
+                                    <div className="mb-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+                                        Collection & Withdrawal Ratio
                                     </div>
                                     <div className="h-4 rounded-full bg-gray-100 overflow-hidden">
                                         <div className="h-full flex">
@@ -348,14 +351,14 @@ const NgoCampaignDetails = () => {
                                             <div className="h-full bg-aidwise-blue" style={{ width: `${Math.max(raisedPercent - disbursedPercent, 0)}%` }}></div>
                                         </div>
                                     </div>
-                                    <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-gray-500 border-t border-gray-50 pt-2">
+                                    <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-gray-500">
                                         <div className="flex items-center gap-1.5">
                                             <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
-                                            <span className="font-medium">Withdrawn: {formatRM(disbursedAmount)}</span>
+                                            <span className="font-semibold">Withdrawn (Used): {formatRM(disbursedAmount)}</span>
                                         </div>
                                         <div className="flex items-center gap-1.5">
                                             <span className="h-2.5 w-2.5 rounded-full bg-aidwise-blue"></span>
-                                            <span className="font-medium">Available: {formatRM(availableAmount)}</span>
+                                            <span className="font-semibold">Available Funds: {formatRM(availableAmount)}</span>
                                         </div>
                                     </div>
                                 </div>

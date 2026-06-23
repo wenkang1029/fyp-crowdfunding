@@ -17,9 +17,12 @@ const NgoCampaigns = () => {
         statusUpdateId,
         successMessage,
         isPayoutModalOpen,
+        payoutCampaign,
         payoutForm,
         payoutError,
         isPayoutSubmitting,
+        selectedAllocations,
+        setSelectedAllocations,
         handleStatusToggle,
         openPayoutModal,
         closePayoutModal,
@@ -263,16 +266,52 @@ const NgoCampaigns = () => {
                         />
                     </div>
                     <div className="mb-4">
-                        <label className="block mb-1.5 text-sm font-medium text-aidwise-text">Purpose of Funds</label>
-                        <input
-                            name="purpose"
-                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
-                            type="text"
-                            placeholder="e.g., Water filtration equipment"
-                            value={payoutForm.purpose}
+                        <label className="block mb-2 text-sm font-semibold text-aidwise-text">Purpose of Funds (Select allocations)</label>
+                        <div className="space-y-2 max-h-40 overflow-y-auto p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            {payoutCampaign?.allocations?.map((alloc) => (
+                                <label key={alloc.id} className="flex items-center gap-2 text-sm text-aidwise-text cursor-pointer hover:bg-gray-100/50 p-1.5 rounded transition-colors select-none font-medium">
+                                    <input
+                                        type="checkbox"
+                                        checked={selectedAllocations.includes(alloc.purpose)}
+                                        onChange={(e) => {
+                                            if (e.target.checked) {
+                                                setSelectedAllocations((prev) => [...prev, alloc.purpose]);
+                                            } else {
+                                                setSelectedAllocations((prev) => prev.filter((item) => item !== alloc.purpose));
+                                            }
+                                        }}
+                                        className="h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
+                                    />
+                                    {alloc.purpose} (Target: RM {Number(alloc.amount).toLocaleString()})
+                                </label>
+                            ))}
+                            <label className="flex items-center gap-2 text-sm text-amber-600 font-bold cursor-pointer hover:bg-gray-100/50 p-1.5 rounded transition-colors select-none">
+                                <input
+                                    type="checkbox"
+                                    checked={selectedAllocations.includes('General Surplus')}
+                                    onChange={(e) => {
+                                        if (e.target.checked) {
+                                            setSelectedAllocations((prev) => [...prev, 'General Surplus']);
+                                        } else {
+                                            setSelectedAllocations((prev) => prev.filter((item) => item !== 'General Surplus'));
+                                        }
+                                    }}
+                                    className="h-4 w-4 text-amber-500 focus:ring-amber-500 border-gray-300 rounded"
+                                />
+                                General Surplus
+                            </label>
+                        </div>
+                    </div>
+                    <div className="mb-4">
+                        <label className="block mb-1.5 text-sm font-semibold text-aidwise-text">Disbursement Details</label>
+                        <textarea
+                            name="details"
+                            className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue text-sm h-20 resize-none"
+                            placeholder="Provide specific details about this disbursement (e.g. supplier invoice or volunteer run)..."
+                            value={payoutForm.details || ''}
                             onChange={handlePayoutChange}
                             required
-                        />
+                        ></textarea>
                     </div>
                     <Button type="submit" variant="primary" className="w-full mt-4" disabled={isPayoutSubmitting}>
                         {isPayoutSubmitting ? 'Recording...' : 'Record Payout'}

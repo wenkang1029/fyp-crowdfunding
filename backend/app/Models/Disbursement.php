@@ -9,7 +9,7 @@ class Disbursement extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['campaign_id', 'purpose', 'amount', 'receipt_path', 'status', 'rejection_reason'];
+    protected $fillable = ['campaign_id', 'purpose', 'amount', 'receipt_path', 'status', 'rejection_reason', 'details'];
 
     public function campaign()
     {

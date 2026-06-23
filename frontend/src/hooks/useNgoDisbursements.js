@@ -12,6 +12,7 @@ const initialFormData = {
     campaign_id: '',
     amount: '',
     purpose: '',
+    details: '',
 };
 
 export const useNgoDisbursements = () => {
@@ -24,6 +25,7 @@ export const useNgoDisbursements = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formError, setFormError] = useState('');
     const [formData, setFormData] = useState(initialFormData);
+    const [selectedAllocations, setSelectedAllocations] = useState([]);
 
     const fetchDisbursementData = async () => {
         try {
@@ -43,6 +45,7 @@ export const useNgoDisbursements = () => {
     const handleOpenModal = async () => {
         setIsModalOpen(true);
         setFormError('');
+        setSelectedAllocations([]);
 
         try {
             const campaignData = await getCampaigns();
@@ -61,6 +64,7 @@ export const useNgoDisbursements = () => {
 
     const closeModal = () => {
         setIsModalOpen(false);
+        setSelectedAllocations([]);
     };
 
     const handleFieldChange = (field, value) => {
@@ -72,13 +76,18 @@ export const useNgoDisbursements = () => {
 
     const handleSubmitRequest = async (event) => {
         event.preventDefault();
+        if (selectedAllocations.length === 0) {
+            setFormError('Please select at least one Purpose of Funds.');
+            return;
+        }
         setFormError('');
         setIsSubmitting(true);
 
         try {
             await createDisbursement(formData.campaign_id, {
                 amount: Number(formData.amount),
-                purpose: formData.purpose,
+                purpose: selectedAllocations.join(', '),
+                details: formData.details || '',
             });
 
             setIsModalOpen(false);
@@ -86,7 +95,9 @@ export const useNgoDisbursements = () => {
                 campaign_id: campaigns[0] ? String(campaigns[0].id) : '',
                 amount: '',
                 purpose: '',
+                details: '',
             });
+            setSelectedAllocations([]);
             await fetchDisbursementData();
         } catch (err) {
             const details = err?.response?.data?.errors?.details;
@@ -106,6 +117,8 @@ export const useNgoDisbursements = () => {
         isSubmitting,
         formError,
         formData,
+        selectedAllocations,
+        setSelectedAllocations,
         handleOpenModal,
         closeModal,
         handleFieldChange,

@@ -59,6 +59,11 @@ const CampaignDetails = () => {
     const raised = Number(campaign.current_amount) || 0;
     const progressPercentage = Math.min(Math.round((raised / target) * 100), 100);
     const rawProgressPercentage = Math.round((raised / target) * 100);
+    const disbursements = Array.isArray(campaign.disbursements) ? campaign.disbursements : [];
+    const disbursedAmount = disbursements
+        .filter((item) => item.status === 'approved')
+        .reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    const disbursedPercent = Math.min((disbursedAmount / target) * 100, 100);
     const allocations = Array.isArray(campaign.allocations) ? campaign.allocations : [];
     const selectedAllocation = allocations.find((allocation) => allocation.id === Number(allocationId));
     const allocationTotal = allocations.reduce(
@@ -98,7 +103,7 @@ const CampaignDetails = () => {
     if (surplusAmount > 0.01) {
         displayAllocationProgressData.push({
             id: 'surplus',
-            purpose: 'General Campaign Surplus',
+            purpose: 'General Surplus',
             targetAmount: 0,
             raisedAmount: surplusAmount,
             progressPercent: 100,
@@ -253,20 +258,42 @@ const CampaignDetails = () => {
                         <div className="sticky top-8 space-y-6">
                             {/* --- Funding Breakdown & Progress Card --- */}
                             <Card className="shadow-apple border-aidwise-border">
-                                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400">Funding Breakdown</p>
-                                <div className="mt-2 flex items-baseline justify-between">
-                                    <h3 className="text-3xl font-extrabold text-aidwise-text">RM {raised.toLocaleString()}</h3>
-                                    <span className="text-sm text-gray-500">of RM {target.toLocaleString()}</span>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-gray-400 mb-3">Funding Breakdown</p>
+                                
+                                <div className="grid grid-cols-3 gap-2 text-center bg-gray-50/50 rounded-xl p-2.5 border border-gray-100/50 mb-4">
+                                    <div>
+                                        <div className="text-[9px] font-bold text-gray-400 uppercase">Target</div>
+                                        <div className="text-sm font-extrabold text-aidwise-text mt-0.5">RM {target.toLocaleString()}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[9px] font-bold text-gray-400 uppercase">Raised</div>
+                                        <div className="text-sm font-extrabold text-aidwise-blue mt-0.5">RM {raised.toLocaleString()}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[9px] font-bold text-gray-400 uppercase">Fund Used</div>
+                                        <div className="text-sm font-extrabold text-emerald-600 mt-0.5">RM {disbursedAmount.toLocaleString()}</div>
+                                    </div>
                                 </div>
-                                <div className="mt-4 w-full bg-gray-100 rounded-full h-2.5 overflow-hidden">
-                                    <div
-                                        className="bg-aidwise-blue h-2.5 rounded-full transition-all duration-1000 ease-out"
-                                        style={{ width: `${progressPercentage}%` }}
-                                    ></div>
+
+                                <div className="mt-4 w-full bg-gray-100 rounded-full h-3 overflow-hidden">
+                                    <div className="h-full flex">
+                                        <div className="h-full bg-emerald-500" style={{ width: `${disbursedPercent}%` }} title={`Fund Used: RM ${disbursedAmount.toLocaleString()}`}></div>
+                                        <div className="h-full bg-aidwise-blue" style={{ width: `${Math.max(progressPercentage - disbursedPercent, 0)}%` }} title={`Available: RM ${(raised - disbursedAmount).toLocaleString()}`}></div>
+                                    </div>
                                 </div>
                                 <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
-                                    <span>Overall progress</span>
-                                    <span>{rawProgressPercentage}% funded</span>
+                                    <span>Overall Progress</span>
+                                    <span className="font-semibold text-aidwise-blue">{rawProgressPercentage}% funded</span>
+                                </div>
+                                <div className="mt-2.5 flex flex-wrap gap-3 text-[11px] text-gray-500 border-t border-gray-50 pt-2">
+                                    <div className="flex items-center gap-1">
+                                        <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+                                        <span>Fund Used: RM {disbursedAmount.toLocaleString()}</span>
+                                    </div>
+                                    <div className="flex items-center gap-1">
+                                        <span className="h-2 w-2 rounded-full bg-aidwise-blue"></span>
+                                        <span>Available: RM {(raised - disbursedAmount).toLocaleString()}</span>
+                                    </div>
                                 </div>
 
                                 {allocations.length > 0 && (

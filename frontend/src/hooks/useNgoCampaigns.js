@@ -24,7 +24,8 @@ export const useNgoCampaigns = () => {
 
     const [isPayoutModalOpen, setIsPayoutModalOpen] = useState(false);
     const [payoutCampaign, setPayoutCampaign] = useState(null);
-    const [payoutForm, setPayoutForm] = useState({ amount: '', purpose: '' });
+    const [payoutForm, setPayoutForm] = useState({ amount: '', purpose: '', details: '' });
+    const [selectedAllocations, setSelectedAllocations] = useState([]);
     const [payoutError, setPayoutError] = useState('');
     const [isPayoutSubmitting, setIsPayoutSubmitting] = useState(false);
 
@@ -152,7 +153,8 @@ export const useNgoCampaigns = () => {
 
     const openPayoutModal = (campaign) => {
         setPayoutCampaign(campaign);
-        setPayoutForm({ amount: '', purpose: '' });
+        setPayoutForm({ amount: '', purpose: '', details: '' });
+        setSelectedAllocations([]);
         setPayoutError('');
         setIsPayoutModalOpen(true);
     };
@@ -160,7 +162,8 @@ export const useNgoCampaigns = () => {
     const closePayoutModal = () => {
         setIsPayoutModalOpen(false);
         setPayoutCampaign(null);
-        setPayoutForm({ amount: '', purpose: '' });
+        setPayoutForm({ amount: '', purpose: '', details: '' });
+        setSelectedAllocations([]);
         setPayoutError('');
     };
 
@@ -175,6 +178,10 @@ export const useNgoCampaigns = () => {
     const handlePayoutSubmit = async (event) => {
         event.preventDefault();
         if (!payoutCampaign?.id) return;
+        if (selectedAllocations.length === 0) {
+            setPayoutError('Please select at least one Purpose of Funds.');
+            return;
+        }
 
         setIsPayoutSubmitting(true);
         setPayoutError('');
@@ -182,7 +189,8 @@ export const useNgoCampaigns = () => {
         try {
             await createDisbursement(payoutCampaign.id, {
                 amount: Number(payoutForm.amount),
-                purpose: payoutForm.purpose,
+                purpose: selectedAllocations.join(', '),
+                details: payoutForm.details || '',
             });
             showToast('Payout request submitted successfully.');
             closePayoutModal();
@@ -210,6 +218,8 @@ export const useNgoCampaigns = () => {
         payoutForm,
         payoutError,
         isPayoutSubmitting,
+        selectedAllocations,
+        setSelectedAllocations,
         openEditModal,
         closeModal,
         handleChange,

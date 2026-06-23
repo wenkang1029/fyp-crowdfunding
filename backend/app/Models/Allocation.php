@@ -68,17 +68,24 @@ class Allocation extends Model
 
         $progress = [];
         $remaining = [];
+        $overflowFromDirect = 0.0;
 
         foreach ($allocations as $allocation) {
             $target = (float) ($allocation->amount ?? 0);
             $direct = (float) ($directTotals[$allocation->id] ?? 0.0);
-            $directCapped = min($direct, $target);
-            $progress[$allocation->id] = $directCapped;
-            $remaining[$allocation->id] = max($target - $directCapped, 0.0);
+
+            if ($direct >= $target) {
+                $progress[$allocation->id] = $target;
+                $remaining[$allocation->id] = 0.0;
+                $overflowFromDirect += ($direct - $target);
+            } else {
+                $progress[$allocation->id] = $direct;
+                $remaining[$allocation->id] = $target - $direct;
+            }
         }
 
         $remainingIds = array_keys(array_filter($remaining, fn ($value) => $value > 0.0));
-        $shared = $sharedTotal;
+        $shared = $sharedTotal + $overflowFromDirect;
 
         while ($shared > 0.0 && count($remainingIds) > 0) {
             $equalShare = $shared / count($remainingIds);

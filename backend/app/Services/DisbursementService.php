@@ -25,6 +25,7 @@ class DisbursementService
             'purpose' => $data['purpose'],
             'amount' => $data['amount'],
             'status' => 'pending',
+            'details' => $data['details'] ?? null,
         ]);
 
         // Notify admins of new disbursement request
