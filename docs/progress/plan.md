@@ -26,9 +26,9 @@ Last updated: 2026-06-23
 - Notes: Integrated with Stripe Payment Intent API and Stripe Connect onboarding for NGOs.
 
 ### 4. Fund Allocation & Disbursement
-- [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added. Added PDF campaign summary report generator streaming donations and payouts.
-- [x] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; NGO campaign details page enhanced with interactive slideshow carousel, Pencil edit icon for campaign images, locked allocation amounts (only purpose/name can be edited), and Withdrawn/Available metric layouts in Funding Progress. Added Export Campaign Report button downloading campaign summary layout.
-- Notes: Allocation deletion and listing APIs integrated. Allocation amount is restricted from being modified after creation.
+- [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason and disbursement details migrations/handling added. Added PDF campaign summary report generator streaming donations and payouts. Allocation model updated with an equal-share redistribution waterfall algorithm for direct overflow and shared campaign donations.
+- [x] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; NGO campaign details page enhanced with interactive slideshow carousel, Pencil edit icon for campaign images, locked allocation amounts (only purpose/name can be edited), and consolidated Withdrawn/Available/Target/Raised metric layouts in Funding Progress with a dual-color progress bar. Added Export Campaign Report button downloading campaign summary layout. Replaced "Purpose of Funds" text input with a checklist of campaign allocations (+ "General Surplus") and added a details textarea in the Record Payout modals.
+- Notes: Allocation deletion and listing APIs integrated. Allocation amount is restricted from being modified after creation. Equal redistribution waterfall algorithm directs excess allocations to underfunded sub-goals first, then to General Surplus.
 
 ### 5. Live Dashboard
 - [x] Backend: DashboardService added and DashboardController now thin/service-backed.
@@ -59,8 +59,9 @@ Last updated: 2026-06-23
 - [ ] Backend: No routes/services
 - [ ] Frontend: No upload/review UI
 
-## Open Decisions
-- Payment gateway: Stripe Payment Intents and Stripe Connect Express onboarding are fully implemented and verified
-- Notifications delivery: Firebase Cloud Messaging is deferred
-- Services layer structure: app/Services initialized and active across core modules
-- React hooks/services folders: hooks/ and services/ initialized and active across core modules
+## Open Decisions & Infrastructure Status
+- Payment gateway: Stripe Payment Intents and Stripe Connect Express onboarding are fully implemented and verified.
+- Database migration: DigitalOcean Production Database Migration has been successfully executed and resolved.
+- Notifications delivery: Firebase Cloud Messaging is deferred.
+- Services layer structure: app/Services initialized and active across core modules.
+- React hooks/services folders: hooks/ and services/ initialized and active across core modules.

@@ -17,11 +17,13 @@
 - 2026_06_18_200000_add_status_to_users_table.php: adds status column (default active) to users table
 - 2026_06_22_103710_add_document_paths_to_users_table.php: adds permit_path and tax_certificate_path to store uploaded NGO verification documents
 - 2026_06_22_155500_add_image_paths_to_campaigns_table.php: adds image_paths JSON column to store up to 5 campaign image links
+- 2026_06_23_032432_add_details_to_disbursements_table.php: adds nullable details text column to disbursements table
 - EnsureUserIsActive.php: request-interception middleware to enforce status-based account suspension
 
 ## Models
 - User: hasMany Campaign, Donation added; org_name, org_reg_number, org_description, permit_path, tax_certificate_path fillable fields added
 - Campaign: belongsTo User; hasMany Allocation, Disbursement, Donation; image_paths casted as array for slideshows
+- Disbursement: belongsTo Campaign; added details to $fillable array
 - Notification Database Classes:
 	- CampaignApprovedNotification: NGO campaign approval alert
 	- CampaignGoalReachedNotification: NGO fundraising goal hit alert
@@ -40,7 +42,7 @@
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
-- DisbursementController: store [done], indexAdmin [done], updateStatus [done] (service-backed, rejection_reason handled)
+- DisbursementController: store [done], indexAdmin [done], updateStatus [done] (service-backed, rejection_reason and details validation handled)
 - DonationController: store [done], index [done], receipt download [done] (service-backed)
 - NotificationController: index [done], markAsRead [done], markAllAsRead [done]
 - ProfileController: update [done] (service-backed)
@@ -66,14 +68,14 @@
 - Home.jsx: public campaign gallery, hero layout, geometric/glow visuals, trust metrics grid, and professional copyright footer [done]
 - Login.jsx: login form and role-based redirect [done]
 - Register.jsx: public donor and NGO registration form, with automated validation error scrolling and NGO document upload [done]
-- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, equal-split labeling, and interactive image slideshow carousel (navigation arrows, position dots, count badge) [done]
+- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, equal-split labeling, and interactive image slideshow carousel; redesigned progress bar to be dual-color (disbursed vs. available) and added 3-column stats list (Target, Raised, Fund Used) [done]
 - CreateCampaign.jsx: NGO campaign creation form supporting up to 5 image uploads and "Use Default Image" testing helper [done]
 - UserProfile.jsx: user profile settings page showing active account status badges (Active/Suspended, Verified NGO / Pending Verification, Tax Exempt) and document download links, plus "Back to Dashboard" navigation link for donors [done]
-- NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal (fixed typing freeze bug), and view action [done]
-- NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements, campaign/allocations editing, interactive image slideshow carousel with Pencil edit icon, restricted allocation amount editing, and Withdrawn metrics in Funding Progress [done]
+- NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal, checklist of campaign allocations (+ "General Surplus") for purpose of funds selection, and details notes field [done]
+- NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements, campaign/allocations editing, interactive image slideshow carousel with Pencil edit icon, restricted allocation amount editing, and consolidated Withdrawn/Available/Target/Raised metric layouts with dual-color progress bar [done]
 - DonorDashboard.jsx: donor impact stats, donation history, receipt download action [done]
 - NgoDashboard.jsx: NGO overview metrics and charts, updated to use RM currency and full-row width layout [done]
-- NgoDisbursements.jsx: NGO disbursement dashboard and request modal [done]
+- NgoDisbursements.jsx: NGO disbursement dashboard and request modal with checklist allocations selection and details notes field [done]
 - AdminDashboard.jsx: admin campaign moderation table [done]
 - AdminDisbursements.jsx: admin disbursement moderation table [done]
 - StripeCallback.jsx: NGO onboarding redirect verification handler [done]

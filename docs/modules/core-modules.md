@@ -89,24 +89,26 @@ Acceptance Criteria
 
 Module 4 — Fund Allocation & Disbursement
 What it does
-NGO allocates funds across sub-categories and tracks disbursement requests. NGO and Admin can generate a campaign summary report.
+NGO allocates funds across sub-categories and tracks disbursement requests. Campaign overfunding is dynamically redistributed to underfunded categories using an equal-share redistribution waterfall. Disbursed funds are visually tracked on both NGO and Donor campaign views with dual-color progress bars. Record payout modals allow checkbox checklists selection of campaign allocations (+ "General Surplus") for purpose of funds, and detail text notes. NGO and Admin can generate a campaign summary report.
 
 Backend
 - Routes: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}, POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status, GET /campaigns/{campaign_id}/reports/summary
-- Controller: AllocationController, DisbursementController, ReportController (campaignReport streams summary PDF of donations and disbursements)
-- Service: AllocationService, DisbursementService
-- Model: Allocation.php, Disbursement.php
+- Controller: AllocationController, DisbursementController (validates details field), ReportController (campaignReport streams summary PDF of donations and disbursements)
+- Service: AllocationService, DisbursementService (saves details field)
+- Model: Allocation.php (buildAllocationProgress implements equal-share overfunding redistribution waterfall), Disbursement.php (details field fillable)
 
 Frontend
-- Pages: NgoDisbursements.jsx, NgoCampaignDetails.jsx (Export Campaign Report button downloads PDF summary of allocations and payouts)
+- Pages: NgoDisbursements.jsx (Record Payout checklist & details input), NgoCampaignDetails.jsx (Slideshow image update, locked allocation amount, consolidated metrics, dual-color progress bar), CampaignDetails.jsx (dual-color progress bar, 3-column stats Target/Raised/Fund Used breakdown), Export Campaign Report button downloads PDF summary of allocations and payouts.
 - Components: ui/Modal.jsx, ui/Badge.jsx
-- Hook: useNgoDisbursements, useNgoCampaignDetails
+- Hook: useNgoDisbursements (joins checklist purpose, details field), useNgoCampaignDetails, useNgoCampaigns (joins checklist purpose, details field)
 - Service: disbursementService.js, campaignService.js (downloadCampaignReport)
 
 Acceptance Criteria
 ✓ NGO admin can set fund allocation breakdown per campaign sub-category
-✓ NGO admin can record a disbursement against an allocation
-✓ All disbursements are stored with an audit trail
+✓ NGO admin can record a disbursement against an allocation (with checklist purpose and details notes)
+✓ All disbursements are stored with an audit trail (including purpose and details)
+✓ Overfunding excess is automatically pooled and redistributed to underfunded sub-categories first, then to General Surplus
+✓ Campaign detail pages display clear visual progress bars with dual-color (disbursed vs available) segmentation and clean stats grids
 ✓ NGO admin/Admin can generate an export campaign report (PDF)
 
 Module 5 — Live Dashboard
