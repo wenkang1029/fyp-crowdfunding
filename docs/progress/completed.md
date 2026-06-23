@@ -68,7 +68,7 @@
 - Home.jsx: public campaign gallery, hero layout, geometric/glow visuals, trust metrics grid, and professional copyright footer [done]
 - Login.jsx: login form and role-based redirect [done]
 - Register.jsx: public donor and NGO registration form, with automated validation error scrolling and NGO document upload [done]
-- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, equal-split labeling, and interactive image slideshow carousel; redesigned progress bar to be dual-color (disbursed vs. available) and added 3-column stats list (Target, Raised, Fund Used) [done]
+- CampaignDetails.jsx: campaign details with donation flow, sub-goal donut progress, equal-split labeling, and interactive image slideshow carousel; redesigned progress bar to be dual-color (disbursed vs. available) and added 3-column stats list (Target, Raised, Fund Used); transitioned donation form into a clean modal with point-form consent agreement and checkout validation [done]
 - CreateCampaign.jsx: NGO campaign creation form supporting up to 5 image uploads and "Use Default Image" testing helper [done]
 - UserProfile.jsx: user profile settings page showing active account status badges (Active/Suspended, Verified NGO / Pending Verification, Tax Exempt) and document download links, plus "Back to Dashboard" navigation link for donors [done]
 - NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal, checklist of campaign allocations (+ "General Surplus") for purpose of funds selection, and details notes field [done]
