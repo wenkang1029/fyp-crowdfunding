@@ -82,8 +82,8 @@ Frontend
 Acceptance Criteria
 ✓ Donor can browse and filter active campaigns
 ✓ Donor can select a campaign and enter donation amount (blocks donations outside active timelines)
-✓ Payment is simulated securely via CheckoutModal (Card, FPX, QR)
-✓ Donation record and tax details are saved on successful payment
+✓ Payment is processed securely via CheckoutModal (Stripe Credit/Debit Card)
+✓ Donation record and tax details are saved on successful payment webhook confirmation
 ✓ Compliant PDF receipts with sequential formatting and words conversion are generated
 ✓ Donor can download receipt from history ledger with visual download feedback
 

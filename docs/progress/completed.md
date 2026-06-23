@@ -46,6 +46,7 @@
 - ProfileController: update [done] (service-backed)
 - ReportController: allocationReport [done], disbursementReport [done]
 - SettingController: index [done], store [done]
+- StripeController: connect [done], verifyOnboarding [done], handleWebhook [done] (Stripe Connect Express and PaymentIntents processing)
 
 ## Routes (api.php)
 - Auth: POST /register, POST /login, POST /logout, GET /user, PATCH /profile
@@ -59,6 +60,7 @@
 - Reports: GET /campaigns/{campaign_id}/reports/allocations, GET /campaigns/{campaign_id}/reports/disbursements
 - Notifications: GET /notifications, PATCH /notifications/{id}/read, PATCH /notifications/read-all
 - Chatbot: POST /chatbot/webhook
+- Stripe: GET /stripe/connect, POST /stripe/verify-onboarding, POST /webhooks/stripe, POST /webhooks/stripe/connect
 
 ## Frontend Pages
 - Home.jsx: public campaign gallery, hero layout, geometric/glow visuals, trust metrics grid, and professional copyright footer [done]
@@ -74,6 +76,7 @@
 - NgoDisbursements.jsx: NGO disbursement dashboard and request modal [done]
 - AdminDashboard.jsx: admin campaign moderation table [done]
 - AdminDisbursements.jsx: admin disbursement moderation table [done]
+- StripeCallback.jsx: NGO onboarding redirect verification handler [done]
 
 ## Frontend Components
 - ProtectedRoute.jsx: role-based route guard
@@ -85,7 +88,7 @@
 - ui/Card.jsx: card container
 - ui/CampaignCard.jsx: campaign summary card, with cover images removed and NGO verification/tax status badges placed next to the organizer's name [done]
 - ui/ChatbotWidget.jsx: interactive AI chatbot widget for FAQs and active campaigns queries
-- ui/CheckoutModal.jsx: mock payment flow modal
+- ui/CheckoutModal.jsx: Stripe Elements payment validation & LHDN tax exemption details modal [done]
 - ui/DonationLedger.jsx: donation ledger table
 - ui/Input.jsx: styled input
 - ui/Modal.jsx: generic modal

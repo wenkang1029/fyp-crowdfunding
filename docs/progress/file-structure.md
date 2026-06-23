@@ -185,7 +185,7 @@
 |   |   |       |-- Button.jsx  # Styled button
 |   |   |       |-- Card.jsx  # Card container
 |   |   |       |-- CampaignCard.jsx  # Campaign summary card
-|   |   |       |-- CheckoutModal.jsx  # Mock payment modal
+|   |   |       |-- CheckoutModal.jsx  # Stripe checkout modal
 |   |   |       |-- DonationLedger.jsx  # Donation history table
 |   |   |       |-- Input.jsx  # Styled text input
 |   |   |       |-- Modal.jsx  # Generic modal

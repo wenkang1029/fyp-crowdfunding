@@ -23,7 +23,7 @@ Last updated: 2026-06-23
 ### 3. Donation Flow
 - [x] Backend: DonationService added; DonationController + CampaignController donate now service-backed; donor_name now set and model fillable updated; allocation progress redistributes overall donations; PDF receipt download added with sequential receipt numbers, LHDN validation reference codes, and Ringgit Malaysia spell-out text.
 - [x] Frontend: donationService + useDonationFlow hook added; CampaignDetails/DonorDashboard/DonationLedger now use service/hook layer; receipt download wired into donor history with click blockers and loading indicators. CheckoutModal includes LHDN tax exemption request checkbox and fields pre-filled from Donor profile.
-- Notes: Mock payment flow supports Card, FPX, and QR methods.
+- Notes: Integrated with Stripe Payment Intent API and Stripe Connect onboarding for NGOs.
 
 ### 4. Fund Allocation & Disbursement
 - [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added. Added PDF campaign summary report generator streaming donations and payouts.
@@ -60,7 +60,7 @@ Last updated: 2026-06-23
 - [ ] Frontend: No upload/review UI
 
 ## Open Decisions
-- Payment gateway: Stripe is listed in architecture but not implemented (mocked payment flow active)
+- Payment gateway: Stripe Payment Intents and Stripe Connect Express onboarding are fully implemented and verified
 - Notifications delivery: Firebase Cloud Messaging is deferred
 - Services layer structure: app/Services initialized and active across core modules
 - React hooks/services folders: hooks/ and services/ initialized and active across core modules
