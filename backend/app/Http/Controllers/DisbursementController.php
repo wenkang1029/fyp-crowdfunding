@@ -37,10 +37,17 @@ class DisbursementController extends Controller
             'purpose' => 'required|string|max:255',
             'amount' => 'required|numeric|min:1',
             'details' => 'nullable|string|max:1000',
+            'receipt_file' => 'nullable|file|mimes:pdf,jpg,png,jpeg|max:5120',
         ]);
 
+        $receiptPath = null;
+        if ($request->hasFile('receipt_file')) {
+            $path = $request->file('receipt_file')->store('receipts', 'public');
+            $receiptPath = '/storage/' . $path;
+        }
+
         try {
-            $disbursement = $this->disbursementService->create($campaign, $validated);
+            $disbursement = $this->disbursementService->create($campaign, $validated, $receiptPath);
 
             return response()->json([
                 'success' => true,

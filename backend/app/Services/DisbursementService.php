@@ -8,7 +8,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DisbursementService
 {
-    public function create(Campaign $campaign, array $data): Disbursement
+    public function create(Campaign $campaign, array $data, ?string $receiptPath = null): Disbursement
     {
         $alreadyDisbursed = $campaign->disbursements()
             ->where('status', '!=', 'rejected')
@@ -26,6 +26,7 @@ class DisbursementService
             'amount' => $data['amount'],
             'status' => 'pending',
             'details' => $data['details'] ?? null,
+            'receipt_path' => $receiptPath,
         ]);
 
         // Notify admins of new disbursement request

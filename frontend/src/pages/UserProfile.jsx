@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/layout/Navbar';
 import DashboardLayout from '../components/layout/DashboardLayout';
@@ -8,7 +8,10 @@ import Button from '../components/ui/Button';
 import Textarea from '../components/ui/Textarea';
 import Modal from '../components/ui/Modal';
 import { useUserProfile } from '../hooks/useUserProfile';
-import { User, Mail, MapPin, Shield, Lock, Landmark, CheckCircle, LayoutDashboard } from 'lucide-react';
+import { 
+    User, Mail, MapPin, Shield, Lock, Landmark, CheckCircle, 
+    LayoutDashboard, FileText, ChevronRight, AlertCircle, Info 
+} from 'lucide-react';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
@@ -43,6 +46,8 @@ const UserProfile = () => {
         handlePasswordSubmit,
     } = useUserProfile();
 
+    const [activeSection, setActiveSection] = useState('profile');
+
     if (!user) {
         return (
             <div className="min-h-screen bg-aidwise-light font-sans flex items-center justify-center">
@@ -51,122 +56,101 @@ const UserProfile = () => {
         );
     }
 
-    // U1 fix: derive the badge text & colour from the actual account status field
     const statusBadge = user.status === 'suspended'
         ? { label: 'Suspended', className: 'bg-red-50 text-red-600 border-red-100' }
         : { label: 'Active Account', className: 'bg-green-50 text-green-700 border-green-100' };
 
-    // U4: determine the dashboard link for the donor's back-navigation
     const dashboardLink = user.role === 'ngo'
         ? '/ngo/dashboard'
         : user.role === 'admin'
         ? '/admin/dashboard'
         : '/donor/dashboard';
 
-    const renderFormContent = () => (
-        <div className="max-w-4xl mx-auto">
-            <div className="mb-8">
-                <h1 className="text-3xl font-extrabold tracking-tight text-aidwise-text flex items-center gap-2">
-                    <User className="text-aidwise-blue" size={32} />
-                    Profile Settings
-                </h1>
-                <p className="mt-1 text-gray-500">Update your account information and preferences.</p>
+    const renderTabsNav = () => {
+        const sections = [
+            { id: 'profile', label: 'Personal Profile', icon: User },
+            { id: 'organization', label: 'Organization Details', icon: Landmark, ngoOnly: true },
+            { id: 'documents', label: 'Verification Files', icon: Shield, ngoOnly: true },
+            { id: 'security', label: 'Security Settings', icon: Lock }
+        ];
+
+        return (
+            <div className="space-y-2">
+                {sections.map((section) => {
+                    if (section.ngoOnly && user.role !== 'ngo') return null;
+                    const Icon = section.icon;
+                    return (
+                        <button
+                            key={section.id}
+                            type="button"
+                            onClick={() => setActiveSection(section.id)}
+                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${
+                                activeSection === section.id
+                                    ? 'bg-aidwise-blue text-white shadow-apple-sm'
+                                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100 hover:text-gray-700'
+                            }`}
+                        >
+                            <span className="flex items-center gap-2.5">
+                                <Icon size={16} />
+                                {section.label}
+                            </span>
+                            <ChevronRight size={14} className={activeSection === section.id ? 'opacity-100' : 'opacity-30'} />
+                        </button>
+                    );
+                })}
             </div>
+        );
+    };
 
-            {successMessage && (
-                <div className="mb-6 p-4 bg-green-50 text-green-700 text-sm font-semibold rounded-xl border border-green-200 flex items-center gap-2 animate-in fade-in">
-                    <CheckCircle size={20} />
-                    {successMessage}
-                </div>
-            )}
-
-            {errorMessage && (
-                <div className="mb-6 p-4 bg-red-50 text-red-600 text-sm font-medium rounded-xl border border-red-100 animate-in fade-in">
-                    ⚠️ {errorMessage}
-                </div>
-            )}
-
-            <form onSubmit={handleSaveClick} className="space-y-8">
-                {/* Account Type Banner — U1: reflects actual account status */}
-                <div className="p-4 bg-white/60 backdrop-blur border border-aidwise-border/50 rounded-2xl flex items-center justify-between">
-                    <div>
-                        <span className="text-xs uppercase tracking-wider text-gray-400 font-bold block">Account Role</span>
-                        <span className="text-lg font-extrabold text-aidwise-text capitalize">{user.role}</span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2">
-                        <span className={`px-3 py-1 text-xs font-bold rounded-full border ${statusBadge.className}`}>
-                            {statusBadge.label}
-                        </span>
-                        {user.role === 'ngo' && (
-                            <>
-                                {(() => {
-                                    const isProfileComplete = user.org_name && user.org_reg_number && user.org_description && user.mailing_address;
-                                    const isVerified = isProfileComplete && user.permit_path;
-                                    return (
-                                        <span className={`px-3 py-1 text-xs font-bold rounded-full border ${
-                                            isVerified
-                                                ? 'bg-blue-50 text-blue-600 border-blue-200'
-                                                : 'bg-amber-50 text-amber-600 border-amber-200'
-                                        }`}>
-                                            {isVerified ? '✓ Verified NGO' : 'Pending Verification'}
-                                        </span>
-                                    );
-                                })()}
-                                {user.is_tax_exempt && (
-                                    <span className="px-3 py-1 text-xs font-bold rounded-full border bg-emerald-50 text-emerald-700 border-emerald-250">
-                                        Tax Exempt
-                                    </span>
-                                )}
-                            </>
-                        )}
-                    </div>
-                </div>
-
-                {/* Section: Basic Information */}
-                <Card className="p-8 shadow-apple border border-aidwise-border">
-                    <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
-                        <Shield className="text-aidwise-blue" size={20} />
-                        <h3 className="font-extrabold text-lg text-aidwise-text">Basic Information</h3>
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <Input
-                            label={user.role === 'ngo' ? 'Representative Name' : 'Full Name'}
-                            type="text"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
-                            required
-                        />
-
-                        <div>
-                            <label className="block text-sm font-medium text-aidwise-text mb-1">Email Address</label>
-                            <div className="flex items-center rounded-lg border border-gray-200 bg-gray-100 px-4 py-2.5 text-gray-500 cursor-not-allowed">
-                                <Mail className="mr-2 opacity-60" size={18} />
-                                <span>{email}</span>
-                            </div>
-                            <span className="text-[10px] text-gray-400 mt-1 block">Email address cannot be changed.</span>
+    const renderActiveSectionContent = () => {
+        switch (activeSection) {
+            case 'profile':
+                return (
+                    <Card className="p-8 shadow-apple border border-gray-100 space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-2">
+                            <User className="text-aidwise-blue" size={20} />
+                            <h3 className="font-extrabold text-lg text-aidwise-text">Personal Information</h3>
                         </div>
 
-                        {user.role === 'donor' && (
-                            <div className="md:col-span-2">
-                                <Input
-                                    label="Identification Number (IC / Passport)"
-                                    type="text"
-                                    value={identificationNumber}
-                                    onChange={(e) => setIdentificationNumber(e.target.value)}
-                                    placeholder="e.g. 960101-10-1234"
-                                />
-                            </div>
-                        )}
-                    </div>
-                </Card>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <Input
+                                label={user.role === 'ngo' ? 'Representative Full Name' : 'Full Name'}
+                                type="text"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                                required
+                            />
 
-                {/* Section: NGO Organisation Details */}
-                {user.role === 'ngo' && (
-                    <Card className="p-8 shadow-apple border border-aidwise-border">
-                        <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
+                            <div>
+                                <label className="block text-sm font-semibold text-aidwise-text mb-1.5">Email Address</label>
+                                <div className="flex items-center rounded-xl border border-gray-200 bg-gray-100 px-4 py-2.5 text-gray-400 cursor-not-allowed text-sm">
+                                    <Mail className="mr-2 opacity-60" size={16} />
+                                    <span>{email}</span>
+                                </div>
+                                <span className="text-[10px] text-gray-450 mt-1 block">Account logins are locked to this address.</span>
+                            </div>
+
+                            {user.role === 'donor' && (
+                                <div className="md:col-span-2">
+                                    <Input
+                                        label="Identification Number (IC / Passport)"
+                                        type="text"
+                                        value={identificationNumber}
+                                        onChange={(e) => setIdentificationNumber(e.target.value)}
+                                        placeholder="e.g. 960101-10-1234"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </Card>
+                );
+
+            case 'organization':
+                return (
+                    <Card className="p-8 shadow-apple border border-gray-100 space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-2">
                             <Landmark className="text-aidwise-blue" size={20} />
-                            <h3 className="font-extrabold text-lg text-aidwise-text">Organisation Details</h3>
+                            <h3 className="font-extrabold text-lg text-aidwise-text">Organisation Profile</h3>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -175,12 +159,12 @@ const UserProfile = () => {
                                 type="text"
                                 value={orgName}
                                 onChange={(e) => setOrgName(e.target.value)}
-                                placeholder="e.g. Helping Hands Trust"
+                                placeholder="e.g. SJAM KMT Selangor"
                                 required
                             />
 
                             <Input
-                                label="Registration Number"
+                                label="Registration Code Number"
                                 type="text"
                                 value={orgRegNumber}
                                 onChange={(e) => setOrgRegNumber(e.target.value)}
@@ -190,141 +174,287 @@ const UserProfile = () => {
 
                             <div className="md:col-span-2">
                                 <Textarea
-                                    label="Organisation Description"
+                                    label="Organisation Description / Mission"
                                     value={orgDescription}
                                     onChange={(e) => setOrgDescription(e.target.value)}
-                                    placeholder="Describe the mission and scope of your organisation..."
+                                    placeholder="Describe the scope, volunteers team and targets of your NGO..."
                                     rows={4}
                                 />
                             </div>
 
-                            <div className="md:col-span-2 space-y-4 p-4 bg-gray-50 rounded-2xl border border-gray-200">
-                                <div className="flex items-start gap-3">
-                                    <input
-                                        type="checkbox"
-                                        id="isTaxExempt"
-                                        checked={isTaxExempt}
-                                        onChange={(e) => setIsTaxExempt(e.target.checked)}
-                                        className="mt-1 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
-                                    />
+                            <div className="md:col-span-2">
+                                <Textarea
+                                    label="Mailing & Billing Address"
+                                    value={mailingAddress}
+                                    onChange={(e) => setMailingAddress(e.target.value)}
+                                    placeholder="Complete organizational street and city address..."
+                                    rows={3}
+                                />
+                            </div>
+                        </div>
+                    </Card>
+                );
+
+            case 'documents':
+                return (
+                    <div className="space-y-6 animate-fade-in">
+                        {/* Status Pipeline Timeline */}
+                        <div className="p-6 bg-white border border-gray-150 rounded-2xl shadow-apple-sm space-y-4">
+                            <h4 className="text-xs font-bold text-gray-450 uppercase tracking-wider mb-5">NGO Verification Pipeline Status</h4>
+                            <div className="relative border-l border-gray-200 ml-3.5 pl-6 space-y-6">
+                                <div className="relative">
+                                    <span className="absolute -left-[35px] top-0 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold ring-4 ring-emerald-100">
+                                        ✓
+                                    </span>
                                     <div>
-                                        <label htmlFor="isTaxExempt" className="font-bold text-sm text-aidwise-text block cursor-pointer">
-                                            LHDN Section 44(6) Tax Exemption Organisation
-                                        </label>
-                                        <p className="text-xs text-gray-500 mt-0.5">
-                                            Check this option if your organization is approved by LHDN to support tax exemption receipt generation.
+                                        <h5 className="font-bold text-xs text-aidwise-text uppercase tracking-wide">Account Registered</h5>
+                                        <p className="text-[10px] text-gray-400 mt-0.5 font-medium">Initial sign-up and organizer authentication completed.</p>
+                                    </div>
+                                </div>
+                                
+                                <div className="relative">
+                                    <span className={`absolute -left-[35px] top-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ring-4 ${
+                                        user.permit_path ? 'bg-emerald-500 text-white ring-emerald-100' : 'bg-blue-500 text-white ring-blue-100 animate-pulse'
+                                    }`}>
+                                        {user.permit_path ? '✓' : '2'}
+                                    </span>
+                                    <div>
+                                        <h5 className="font-bold text-xs text-aidwise-text uppercase tracking-wide">Solicitation Files Uploaded</h5>
+                                        <p className="text-[10px] text-gray-400 mt-0.5 font-medium">
+                                            {user.permit_path ? 'Permit documentation has been uploaded.' : 'Please upload your official solicitation permit to complete verification.'}
                                         </p>
                                     </div>
                                 </div>
 
-                                {isTaxExempt && (
-                                    <div className="pt-2 animate-in fade-in duration-200">
-                                        <Input
-                                            label="LHDN Reference Number"
-                                            type="text"
-                                            value={lhdnReference}
-                                            onChange={(e) => setLhdnReference(e.target.value)}
-                                            placeholder="e.g. LHDN.01/35/42/51/1798"
-                                            required={isTaxExempt}
-                                        />
+                                <div className="relative">
+                                    <span className={`absolute -left-[35px] top-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ring-4 ${
+                                        user.permit_path ? 'bg-blue-50 text-aidwise-blue ring-blue-100 animate-pulse' : 'bg-gray-250 text-gray-400 ring-gray-150'
+                                    }`}>
+                                        3
+                                    </span>
+                                    <div>
+                                        <h5 className="font-bold text-xs text-aidwise-text uppercase tracking-wide">Admin Audit Review</h5>
+                                        <p className="text-[10px] text-gray-400 mt-0.5 font-medium">SJAM KMT board moderating files before public fundraising access is opened.</p>
                                     </div>
-                                )}
+                                </div>
+                            </div>
+                        </div>
 
-                                <div className="mt-4 pt-4 border-t border-gray-200/60 space-y-4">
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-bold text-aidwise-text">
-                                            Solicitation Permit Document (PDF / Image)
-                                        </label>
-                                        {user.permit_path && (
-                                            <div className="mb-2 text-xs text-aidwise-blue font-semibold">
-                                                <a href={user.permit_path.startsWith('http') ? user.permit_path : `${backendUrl}${user.permit_path}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                                                    📄 View Current Permit Document
-                                                </a>
+                        {/* File Cards */}
+                        <Card className="p-8 shadow-apple border border-gray-100 space-y-6">
+                            <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
+                                <Shield className="text-aidwise-blue" size={20} />
+                                <h3 className="font-extrabold text-lg text-aidwise-text">Onboarding & Tax Files</h3>
+                            </div>
+
+                            <div className="space-y-4">
+                                <div>
+                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-450 mb-2">Solicitation Permit Document</label>
+                                    {user.permit_path && (
+                                        <div className="flex items-center justify-between p-3.5 bg-gray-50 border border-gray-150 rounded-2xl mb-3">
+                                            <div className="flex items-center gap-2.5 text-xs text-aidwise-text font-semibold">
+                                                <FileText size={16} className="text-aidwise-blue" />
+                                                <span>Solicitation_Permit.pdf</span>
                                             </div>
-                                        )}
-                                        <input 
-                                            type="file" 
-                                            accept=".pdf,image/*"
-                                            onChange={(e) => setPermitFile(e.target.files[0])}
-                                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-250 rounded-lg p-1.5 bg-white focus:outline-none"
+                                            <a 
+                                                href={user.permit_path.startsWith('http') ? user.permit_path : `${backendUrl}${user.permit_path}`} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-3 py-1.5 rounded-lg shadow-apple-sm"
+                                            >
+                                                View File
+                                            </a>
+                                        </div>
+                                    )}
+                                    <input 
+                                        type="file" 
+                                        accept=".pdf,image/*"
+                                        onChange={(e) => setPermitFile(e.target.files[0])}
+                                        className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
+                                    />
+                                </div>
+
+                                <div className="p-4 bg-gray-50 border border-gray-150 rounded-2xl space-y-4">
+                                    <div className="flex items-start gap-3">
+                                        <input
+                                            type="checkbox"
+                                            id="isTaxExempt"
+                                            checked={isTaxExempt}
+                                            onChange={(e) => setIsTaxExempt(e.target.checked)}
+                                            className="mt-1 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
                                         />
+                                        <div>
+                                            <label htmlFor="isTaxExempt" className="font-bold text-sm text-aidwise-text block cursor-pointer">
+                                                LHDN Section 44(6) Tax Exemption Active
+                                            </label>
+                                            <p className="text-xs text-gray-400 mt-0.5">
+                                                Check if SJAM KMT / LHDN authorized tax-exempt donation receipts on your campaigns.
+                                            </p>
+                                        </div>
                                     </div>
 
                                     {isTaxExempt && (
-                                        <div className="space-y-2 pt-2 animate-in fade-in duration-200">
-                                            <label className="block text-sm font-bold text-aidwise-text">
-                                                Tax Exemption Certificate (PDF / Image)
-                                            </label>
-                                            {user.tax_certificate_path && (
-                                                <div className="mb-2 text-xs text-aidwise-blue font-semibold">
-                                                    <a href={user.tax_certificate_path.startsWith('http') ? user.tax_certificate_path : `${backendUrl}${user.tax_certificate_path}`} target="_blank" rel="noopener noreferrer" className="hover:underline flex items-center gap-1">
-                                                        📄 View Current Tax Certificate
-                                                    </a>
-                                                </div>
-                                            )}
-                                            <input 
-                                                type="file" 
-                                                accept=".pdf,image/*"
-                                                onChange={(e) => setTaxCertificateFile(e.target.files[0])}
-                                                className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-250 rounded-lg p-1.5 bg-white focus:outline-none"
+                                        <div className="pt-2 border-t border-gray-200/60 space-y-4 animate-fade-in">
+                                            <Input
+                                                label="LHDN Reference Number"
+                                                type="text"
+                                                value={lhdnReference}
+                                                onChange={(e) => setLhdnReference(e.target.value)}
+                                                placeholder="e.g. LHDN.01/35/42/51/1798"
+                                                required={isTaxExempt}
                                             />
+
+                                            <div>
+                                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-450 mb-2">Tax Exemption Certificate File</label>
+                                                {user.tax_certificate_path && (
+                                                    <div className="flex items-center justify-between p-3.5 bg-white border border-gray-150 rounded-2xl mb-3">
+                                                        <div className="flex items-center gap-2.5 text-xs text-aidwise-text font-semibold">
+                                                            <FileText size={16} className="text-emerald-500" />
+                                                            <span>LHDN_Certificate.pdf</span>
+                                                        </div>
+                                                        <a 
+                                                            href={user.tax_certificate_path.startsWith('http') ? user.tax_certificate_path : `${backendUrl}${user.tax_certificate_path}`} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer" 
+                                                            className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-3 py-1.5 rounded-lg shadow-apple-sm"
+                                                        >
+                                                            View File
+                                                        </a>
+                                                    </div>
+                                                )}
+                                                <input 
+                                                    type="file" 
+                                                    accept=".pdf,image/*"
+                                                    onChange={(e) => setTaxCertificateFile(e.target.files[0])}
+                                                    className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
+                                                />
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             </div>
+                        </Card>
+                    </div>
+                );
+
+            case 'security':
+                return (
+                    <Card className="p-8 shadow-apple border border-gray-100 space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-2">
+                            <Lock className="text-aidwise-blue" size={20} />
+                            <h3 className="font-extrabold text-lg text-aidwise-text">Security Settings</h3>
+                        </div>
+
+                        <div className="p-5 bg-white border border-gray-150 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-apple-sm">
+                            <div className="flex items-center gap-3">
+                                <div className="p-3 bg-blue-50 text-aidwise-blue rounded-xl shrink-0">
+                                    <Lock size={20} />
+                                </div>
+                                <div>
+                                    <span className="font-bold text-sm text-aidwise-text block">Password Management</span>
+                                    <span className="text-xs text-gray-400 font-semibold">Change your dashboard password regularly to prevent unauthorized access.</span>
+                                </div>
+                            </div>
+                            <Button
+                                type="button"
+                                variant="secondary"
+                                onClick={() => setIsPasswordModalOpen(true)}
+                                className="flex items-center gap-2 text-xs font-bold rounded-xl border border-gray-250 shrink-0"
+                            >
+                                Change Password
+                            </Button>
                         </div>
                     </Card>
-                )}
+                );
 
-                {/* Section: Mailing Address */}
-                <Card className="p-8 shadow-apple border border-aidwise-border">
-                    <div className="flex items-center gap-2 border-b border-gray-100 pb-4 mb-6">
-                        <MapPin className="text-aidwise-blue" size={20} />
-                        <h3 className="font-extrabold text-lg text-aidwise-text">Mailing Address</h3>
-                    </div>
+            default:
+                return null;
+        }
+    };
 
+    const renderFormContent = () => (
+        <div className="max-w-6xl mx-auto">
+            <div className="mb-8 flex justify-between items-end">
+                <div>
+                    <h1 className="text-3xl font-extrabold tracking-tight text-aidwise-text flex items-center gap-2.5">
+                        <User className="text-aidwise-blue" size={32} />
+                        Profile Settings
+                    </h1>
+                    <p className="mt-1 text-gray-500">Update account credentials, representative data, LHDN settings and files.</p>
+                </div>
+            </div>
+
+            {successMessage && (
+                <div className="mb-6 p-4 bg-green-50 text-green-700 text-sm font-semibold rounded-xl border border-green-200 flex items-center gap-2 animate-in fade-in">
+                    <CheckCircle size={20} className="shrink-0" />
+                    <span>{successMessage}</span>
+                </div>
+            )}
+
+            {errorMessage && (
+                <div className="mb-6 p-4 bg-red-50 text-red-650 text-sm font-bold rounded-xl border border-red-100 animate-in fade-in flex items-center gap-2">
+                    <AlertCircle size={20} className="shrink-0" />
+                    <span>{errorMessage}</span>
+                </div>
+            )}
+
+            <form onSubmit={handleSaveClick} className="space-y-8">
+                {/* Account Status and Verification details */}
+                <div className="p-5 bg-white border border-gray-150 rounded-2xl flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-apple-sm">
                     <div>
-                        <Textarea
-                            label="Complete Mailing Address"
-                            value={mailingAddress}
-                            onChange={(e) => setMailingAddress(e.target.value)}
-                            placeholder="Enter your full mailing address..."
-                            rows={3}
-                        />
+                        <span className="text-[10px] uppercase tracking-wider text-gray-400 font-extrabold block">Account Role Type</span>
+                        <span className="text-lg font-extrabold text-aidwise-text capitalize">{user.role}</span>
                     </div>
-                </Card>
-
-                {/* Section: Change Password Trigger Banner */}
-                <div className="p-6 bg-white border border-aidwise-border rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm">
-                    <div className="flex items-center gap-3">
-                        <div className="p-3 bg-blue-50 rounded-xl text-aidwise-blue shrink-0">
-                            <Lock size={20} />
-                        </div>
-                        <div>
-                            <span className="font-bold text-sm text-aidwise-text block">Security Settings</span>
-                            <span className="text-xs text-gray-500">Update your account login password periodically.</span>
-                        </div>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <span className={`px-3 py-1 text-xs font-extrabold rounded-full border ${statusBadge.className}`}>
+                            {statusBadge.label}
+                        </span>
+                        {user.role === 'ngo' && (
+                            <>
+                                {(() => {
+                                    const isProfileComplete = user.org_name && user.org_reg_number && user.org_description && user.mailing_address;
+                                    const isVerified = isProfileComplete && user.permit_path;
+                                    return (
+                                        <span className={`px-3 py-1 text-xs font-extrabold rounded-full border ${
+                                            isVerified
+                                                ? 'bg-blue-50 text-blue-600 border-blue-200'
+                                                : 'bg-amber-50 text-amber-600 border-amber-200 animate-pulse'
+                                        }`}>
+                                            {isVerified ? '✓ Verified NGO' : 'Verification Required'}
+                                        </span>
+                                    );
+                                })()}
+                                {user.is_tax_exempt && (
+                                    <span className="px-3 py-1 text-xs font-extrabold rounded-full border bg-emerald-50 text-emerald-700 border-emerald-250">
+                                        Tax Exempt Section 44(6)
+                                    </span>
+                                )}
+                            </>
+                        )}
                     </div>
-                    <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() => setIsPasswordModalOpen(true)}
-                        className="flex items-center gap-2 text-sm font-semibold rounded-xl border border-gray-200 shrink-0"
-                    >
-                        Change Password
-                    </Button>
                 </div>
 
-                {/* Submit Actions */}
-                <div className="flex justify-end gap-4">
-                    <Button
-                        type="submit"
-                        variant="primary"
-                        className="px-8 py-3 font-bold rounded-2xl"
-                        disabled={isLoading}
-                    >
-                        {isLoading ? 'Saving Changes...' : 'Save Profile Details'}
-                    </Button>
+                {/* Tabbed Profile Grid Layout */}
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                    <div className="lg:col-span-1">
+                        {renderTabsNav()}
+                    </div>
+                    
+                    <div className="lg:col-span-3 space-y-6">
+                        {renderActiveSectionContent()}
+                        
+                        {/* Auto-save / Submission buttons */}
+                        <div className="flex justify-end gap-4 border-t border-gray-150 pt-6">
+                            <Button
+                                type="submit"
+                                variant="primary"
+                                className="px-8 py-3 font-bold rounded-xl shadow-apple-sm"
+                                disabled={isLoading}
+                            >
+                                {isLoading ? 'Saving Changes...' : 'Save Profile Settings'}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>
@@ -332,21 +462,21 @@ const UserProfile = () => {
 
     const renderModals = () => (
         <>
-            {/* Profile Update Confirmation Modal — H1: stays open while saving */}
+            {/* Confim modal */}
             <Modal
                 isOpen={isConfirmModalOpen}
                 onClose={() => setIsConfirmModalOpen(false)}
                 title="Confirm Profile Update"
             >
                 <div className="text-center">
-                    <p className="text-gray-600 mb-6">
-                        Are you sure you want to save the updated profile details?
+                    <p className="text-gray-600 text-sm mb-6">
+                        Are you sure you want to commit these settings updates to your profile ledger?
                     </p>
                     <div className="flex gap-3">
                         <Button
                             type="button"
                             variant="secondary"
-                            className="flex-1"
+                            className="flex-1 rounded-xl"
                             onClick={() => setIsConfirmModalOpen(false)}
                             disabled={isLoading}
                         >
@@ -355,7 +485,7 @@ const UserProfile = () => {
                         <Button
                             type="button"
                             variant="primary"
-                            className="flex-1"
+                            className="flex-1 rounded-xl"
                             onClick={executeProfileUpdate}
                             disabled={isLoading}
                         >
@@ -372,17 +502,17 @@ const UserProfile = () => {
                 title="Change Password"
             >
                 <form onSubmit={handlePasswordSubmit} className="space-y-4 text-left">
-                    <p className="text-xs text-gray-500 mb-4">
-                        Please enter your new login password. Password must be at least 8 characters long.
+                    <p className="text-xs text-gray-400 mb-4 font-semibold">
+                        Enter your new secure login password. Recommended minimum length is 8 characters.
                     </p>
 
                     {passwordError && (
-                        <div className="p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                        <div className="p-3 bg-red-50 text-red-650 text-xs font-bold rounded-xl border border-red-100">
                             {passwordError}
                         </div>
                     )}
                     {passwordSuccess && (
-                        <div className="p-3 bg-green-50 text-green-700 text-sm font-semibold rounded-xl border border-green-200">
+                        <div className="p-3 bg-green-50 text-green-700 text-xs font-bold rounded-xl border border-green-200">
                             {passwordSuccess}
                         </div>
                     )}
@@ -401,7 +531,7 @@ const UserProfile = () => {
                         type="password"
                         value={passwordConfirmation}
                         onChange={(e) => setPasswordConfirmation(e.target.value)}
-                        placeholder="Retype new password"
+                        placeholder="Retype password"
                         required
                     />
 
@@ -409,7 +539,7 @@ const UserProfile = () => {
                         <Button
                             type="button"
                             variant="secondary"
-                            className="flex-1"
+                            className="flex-1 rounded-xl text-xs font-bold"
                             onClick={handleClosePasswordModal}
                             disabled={isSavingPassword}
                         >
@@ -418,7 +548,7 @@ const UserProfile = () => {
                         <Button
                             type="submit"
                             variant="primary"
-                            className="flex-1"
+                            className="flex-1 rounded-xl text-xs font-bold"
                             disabled={isSavingPassword}
                         >
                             {isSavingPassword ? 'Updating...' : 'Update Password'}
@@ -440,15 +570,13 @@ const UserProfile = () => {
     }
 
     // Donors use the standard top navbar view
-    // U4: Add back navigation link to donor dashboard
     return (
         <div className="min-h-screen bg-aidwise-light font-sans">
             <Navbar />
-            <main className="max-w-4xl mx-auto px-6 py-12 lg:px-8">
-                {/* U4: Back navigation for donors */}
+            <main className="max-w-6xl mx-auto px-6 py-12 lg:px-8">
                 <Link
                     to={dashboardLink}
-                    className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-aidwise-blue mb-6"
+                    className="inline-flex items-center gap-2 text-sm font-semibold text-gray-500 hover:text-aidwise-blue mb-6 transition-colors"
                 >
                     <LayoutDashboard size={15} />
                     Back to Dashboard

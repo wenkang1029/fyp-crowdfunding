@@ -1,25 +1,13 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import StatCard from '../components/ui/StatCard';
 import Card from '../components/ui/Card';
+import Badge from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
-import { Target, DollarSign, Users, TrendingUp, Calendar, ShieldAlert } from 'lucide-react';
+import { Target, DollarSign, Users, TrendingUp, Calendar, ShieldAlert, Plus, Wallet, ArrowRight } from 'lucide-react';
 import DonationLedger from '../components/ui/DonationLedger';
 import { useNgoDashboardData } from '../hooks/useNgoDashboardData';
-
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend,
-} from 'chart.js';
-import { Bar } from 'react-chartjs-2';
-
-ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip, Legend);
 
 const NgoDashboard = () => {
     const { user } = useAuth();
@@ -33,93 +21,7 @@ const NgoDashboard = () => {
         completionRate,
     } = useNgoDashboardData();
 
-    // --- Dynamic Chart Configuration ---
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: {
-            duration: 1200,
-            easing: 'easeInOutQuart',
-        },
-        plugins: {
-            legend: { 
-                position: 'top', 
-                labels: { 
-                    font: { family: 'Inter', weight: '600', size: 12 }, 
-                    color: '#374151',
-                    usePointStyle: true,
-                    pointStyle: 'circle',
-                    padding: 20
-                } 
-            },
-            tooltip: { 
-                backgroundColor: '#1F2937', 
-                padding: 12, 
-                titleFont: { family: 'Inter', weight: 'bold', size: 13 },
-                bodyFont: { family: 'Inter', size: 12 },
-                cornerRadius: 12,
-                boxPadding: 6,
-                callbacks: {
-                    label: function(context) {
-                        let label = context.dataset.label || '';
-                        if (label) {
-                            label += ': ';
-                        }
-                        if (context.parsed.y !== null) {
-                            label += new Intl.NumberFormat('en-MY', { style: 'currency', currency: 'MYR' }).format(context.parsed.y);
-                        }
-                        return label;
-                    }
-                }
-            }
-        },
-        scales: {
-            y: { 
-                border: { display: false }, 
-                grid: { color: '#F3F4F6' }, 
-                ticks: { 
-                    color: '#9CA3AF', 
-                    font: { family: 'Inter', size: 11 },
-                    callback: function(value) {
-                        return 'RM ' + value.toLocaleString();
-                    }
-                } 
-            },
-            x: { 
-                grid: { display: false }, 
-                ticks: { 
-                    color: '#9CA3AF', 
-                    font: { family: 'Inter', size: 11 }, 
-                    maxRotation: 30, 
-                    minRotation: 30 
-                } 
-            }
-        }
-    };
-
-    const chartData = {
-        labels: campaigns.map(camp => camp.title), // Dynamic X-axis labels
-        datasets: [
-            {
-                label: 'Target Amount (RM)',
-                data: campaigns.map(camp => camp.target_amount),
-                backgroundColor: 'rgba(229, 231, 235, 0.6)', 
-                borderColor: '#D1D5DB',
-                borderWidth: 1,
-                borderRadius: 8,
-                hoverBackgroundColor: 'rgba(209, 213, 219, 0.8)',
-            },
-            {
-                label: 'Funds Raised (RM)',
-                data: campaigns.map(camp => camp.current_amount || 0),
-                backgroundColor: 'rgba(37, 99, 235, 0.85)', 
-                borderColor: '#2563EB',
-                borderWidth: 1,
-                borderRadius: 8,
-                hoverBackgroundColor: '#1D4ED8',
-            },
-        ],
-    };
+    const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
     // HCI: Loading State
     if (isLoading) {
@@ -136,6 +38,7 @@ const NgoDashboard = () => {
         <DashboardLayout>
             <div className="max-w-7xl mx-auto">
                 
+                {/* Header Section */}
                 <div className="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-4">
                     <div>
                         <h1 className="text-3xl font-extrabold tracking-tight text-aidwise-text">Overview</h1>
@@ -182,32 +85,153 @@ const NgoDashboard = () => {
                     </div>
                 )}
 
-                {/* Dynamic Metric Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <StatCard title="Total Raised" value={`RM ${totalRaised.toLocaleString()}`} icon={DollarSign} />
-                    <StatCard title="Total Campaigns" value={activeCampaigns} icon={Target} />
-                    <StatCard title="Total Donors" value={donorCount.toString()} icon={Users} />
-                    <StatCard title="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} />
+                {/* Quick Actions Panel */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
+                    <Link to="/ngo/campaigns/create" className="group p-5 bg-white border border-gray-100 rounded-2xl shadow-apple-sm hover:shadow-apple transition-all duration-300 flex items-center gap-4 hover:scale-[1.01]">
+                        <div className="p-3 bg-blue-50 text-aidwise-blue rounded-xl group-hover:bg-aidwise-blue group-hover:text-white transition-all duration-300">
+                            <Plus size={20} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-aidwise-text text-sm group-hover:text-aidwise-blue transition-colors">Launch Campaign</h4>
+                            <p className="text-xs text-gray-400 mt-0.5 font-medium">Start a new fundraising project</p>
+                        </div>
+                    </Link>
+                    
+                    <Link to="/ngo/disbursements" className="group p-5 bg-white border border-gray-100 rounded-2xl shadow-apple-sm hover:shadow-apple transition-all duration-300 flex items-center gap-4 hover:scale-[1.01]">
+                        <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
+                            <Wallet size={20} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-aidwise-text text-sm group-hover:text-emerald-600 transition-colors">Record Payout</h4>
+                            <p className="text-xs text-gray-400 mt-0.5 font-medium">Disburse raised escrow funds</p>
+                        </div>
+                    </Link>
+
+                    <Link to="/profile" className="group p-5 bg-white border border-gray-100 rounded-2xl shadow-apple-sm hover:shadow-apple transition-all duration-300 flex items-center gap-4 hover:scale-[1.01]">
+                        <div className="p-3 bg-purple-50 text-purple-600 rounded-xl group-hover:bg-purple-600 group-hover:text-white transition-all duration-300">
+                            <Users size={20} />
+                        </div>
+                        <div>
+                            <h4 className="font-bold text-aidwise-text text-sm group-hover:text-purple-600 transition-colors">NGO Settings</h4>
+                            <p className="text-xs text-gray-400 mt-0.5 font-medium">Manage verification documents</p>
+                        </div>
+                    </Link>
                 </div>
 
-                {/* Main Bar Chart */}
+                {/* Dynamic Metric Cards */}
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                    <StatCard title="Total Raised" value={`RM ${totalRaised.toLocaleString()}`} icon={DollarSign} trend={14.8} />
+                    <StatCard title="Total Campaigns" value={activeCampaigns} icon={Target} />
+                    <StatCard title="Total Donors" value={donorCount.toString()} icon={Users} trend={8.3} />
+                    <StatCard title="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} trend={2.5} />
+                </div>
+
+                {/* Campaign Funding Progress: Option B (Horizontal stacked cards) */}
                 <Card className="flex flex-col mb-8">
-                    <h3 className="text-lg font-bold text-aidwise-text mb-6">Campaign Funding Progress</h3>
+                    <div className="flex items-center justify-between border-b border-gray-100 pb-5 mb-6">
+                        <div>
+                            <h3 className="text-lg font-bold text-aidwise-text">Campaign Funding Progress</h3>
+                            <p className="text-xs text-gray-400 mt-0.5">Real-time breakdown of escrow balances and disbursement cycles.</p>
+                        </div>
+                        <div className="flex gap-4 text-xs font-semibold text-gray-500">
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
+                                <span>Withdrawn (Used)</span>
+                            </div>
+                            <div className="flex items-center gap-1.5">
+                                <span className="w-2.5 h-2.5 rounded-full bg-aidwise-blue"></span>
+                                <span>Available in Escrow</span>
+                            </div>
+                        </div>
+                    </div>
                     
-                    {/* HCI Empty State handling */}
                     {campaigns.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center flex-1 min-h-[300px] text-gray-400">
+                        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
                             <Target size={48} className="mb-4 opacity-20" />
-                            <p>No campaigns yet. Click "Create New Campaign" to start.</p>
+                            <p className="text-sm font-medium">No campaigns created yet.</p>
+                            <Link to="/ngo/campaigns/create" className="mt-3 text-xs font-bold text-aidwise-blue hover:underline">
+                                Launch your first campaign now &rarr;
+                            </Link>
                         </div>
                     ) : (
-                        <div className="relative flex-1 min-h-[300px]">
-                            <Bar options={chartOptions} data={chartData} />
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            {campaigns.map((campaign) => {
+                                const raisedAmount = Number(campaign.current_amount || 0);
+                                const goalAmount = Math.max(Number(campaign.target_amount || 0), 1);
+                                const disbursedAmount = Number(campaign.disbursed_amount || 0);
+                                const raisedPercent = Math.min((raisedAmount / goalAmount) * 100, 100);
+                                const disbursedPercent = Math.min((disbursedAmount / goalAmount) * 100, 100);
+                                const availablePercent = Math.max(raisedPercent - disbursedPercent, 0);
+                                const availableAmount = Math.max(raisedAmount - disbursedAmount, 0);
+                                const remainingAmount = Math.max(goalAmount - raisedAmount, 0);
+
+                                return (
+                                    <div key={campaign.id} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/30 hover:bg-gray-50/70 transition-colors flex flex-col justify-between">
+                                        <div className="mb-4">
+                                            <div className="flex items-start justify-between gap-3 mb-1">
+                                                <h4 className="font-bold text-aidwise-text text-sm line-clamp-1" title={campaign.title}>
+                                                    {campaign.title}
+                                                </h4>
+                                                <Badge status={campaign.status} />
+                                            </div>
+                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                                                Goal: {formatRM(campaign.target_amount)}
+                                            </p>
+                                        </div>
+
+                                        <div>
+                                            <div className="flex items-center justify-between text-xs mb-2">
+                                                <span className="font-bold text-aidwise-blue">{Math.round(raisedPercent)}% Funded</span>
+                                                <span className="text-gray-500 font-medium">{formatRM(raisedAmount)} raised</span>
+                                            </div>
+
+                                            {/* Stacked Progress Bar */}
+                                            <div className="h-3.5 rounded-full bg-gray-200/60 overflow-hidden flex mb-4">
+                                                <div 
+                                                    className="h-full bg-emerald-500 transition-all duration-500" 
+                                                    style={{ width: `${disbursedPercent}%` }}
+                                                    title={`Withdrawn: ${formatRM(disbursedAmount)}`}
+                                                ></div>
+                                                <div 
+                                                    className="h-full bg-aidwise-blue transition-all duration-500" 
+                                                    style={{ width: `${availablePercent}%` }}
+                                                    title={`Available Escrow: ${formatRM(availableAmount)}`}
+                                                ></div>
+                                            </div>
+
+                                            {/* Legend breakdown values */}
+                                            <div className="grid grid-cols-3 gap-2 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-t border-gray-100/80 pt-3">
+                                                <div>
+                                                    <span className="block text-gray-400 mb-0.5">Withdrawn</span>
+                                                    <span className="text-emerald-600 font-bold text-xs">{formatRM(disbursedAmount)}</span>
+                                                </div>
+                                                <div>
+                                                    <span className="block text-gray-400 mb-0.5">Escrow Balance</span>
+                                                    <span className="text-aidwise-blue font-bold text-xs">{formatRM(availableAmount)}</span>
+                                                </div>
+                                                <div className="text-right">
+                                                    <span className="block text-gray-400 mb-0.5">Remaining</span>
+                                                    <span className="text-gray-700 font-bold text-xs">{formatRM(remainingAmount)}</span>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        <div className="mt-4 pt-3 border-t border-gray-100/50 flex justify-end">
+                                            <Link 
+                                                to={`/ngo/campaigns/${campaign.id}`} 
+                                                className="inline-flex items-center gap-1 text-xs font-bold text-aidwise-blue hover:text-blue-700 transition-colors"
+                                            >
+                                                View Detailed Ledger <ArrowRight size={13} />
+                                            </Link>
+                                        </div>
+                                    </div>
+                                );
+                            })}
                         </div>
                     )}
                 </Card>
 
-                {/* Place this below your existing charts and metric cards */}
+                {/* Donation Ledger */}
                 <DonationLedger />
             </div>
         </DashboardLayout>

@@ -26,6 +26,7 @@ export const useNgoDisbursements = () => {
     const [formError, setFormError] = useState('');
     const [formData, setFormData] = useState(initialFormData);
     const [selectedAllocations, setSelectedAllocations] = useState([]);
+    const [receiptFile, setReceiptFile] = useState(null);
 
     const fetchDisbursementData = async () => {
         try {
@@ -46,6 +47,7 @@ export const useNgoDisbursements = () => {
         setIsModalOpen(true);
         setFormError('');
         setSelectedAllocations([]);
+        setReceiptFile(null);
 
         try {
             const campaignData = await getCampaigns();
@@ -65,6 +67,7 @@ export const useNgoDisbursements = () => {
     const closeModal = () => {
         setIsModalOpen(false);
         setSelectedAllocations([]);
+        setReceiptFile(null);
     };
 
     const handleFieldChange = (field, value) => {
@@ -84,11 +87,15 @@ export const useNgoDisbursements = () => {
         setIsSubmitting(true);
 
         try {
-            await createDisbursement(formData.campaign_id, {
-                amount: Number(formData.amount),
-                purpose: selectedAllocations.join(', '),
-                details: formData.details || '',
-            });
+            const payload = new FormData();
+            payload.append('amount', Number(formData.amount));
+            payload.append('purpose', selectedAllocations.join(', '));
+            payload.append('details', formData.details || '');
+            if (receiptFile) {
+                payload.append('receipt_file', receiptFile);
+            }
+
+            await createDisbursement(formData.campaign_id, payload);
 
             setIsModalOpen(false);
             setFormData({
@@ -98,6 +105,7 @@ export const useNgoDisbursements = () => {
                 details: '',
             });
             setSelectedAllocations([]);
+            setReceiptFile(null);
             await fetchDisbursementData();
         } catch (err) {
             const details = err?.response?.data?.errors?.details;
@@ -119,6 +127,8 @@ export const useNgoDisbursements = () => {
         formData,
         selectedAllocations,
         setSelectedAllocations,
+        receiptFile,
+        setReceiptFile,
         handleOpenModal,
         closeModal,
         handleFieldChange,
