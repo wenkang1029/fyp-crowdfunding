@@ -15,14 +15,16 @@ This applies to every module below without exception.
 |---|---|---|
 | Gemini API client | `app/Services/GeminiService.php` | [ ] Not started |
 | OCR extraction helper | `app/Services/OcrService.php` | [ ] Not started |
-| LLM result storage | `disbursement_reconciliations` table | [ ] Not started |
 
 > These are prerequisites. Build GeminiService and OcrService first
 > before implementing any individual LLM module.
 
 ---
 
-## L1 — Disbursement Reconciliation
+## L1 — Disbursement Reconciliation *(Deferred to Future Scope)*
+
+> [!NOTE]
+> This module is **deferred to Future Scope**. It will not be implemented in the current Phase 2 of this FYP to reduce system complexity and focus development efforts on L3.
 
 ### What it does
 NGO Admin uploads a quotation PDF and a receipt PDF.
@@ -98,8 +100,10 @@ pdfplumber for text-based PDFs, Tesseract as OCR fallback for scanned files
 OcrService is shared with L3 — build it once
 
 
-## L2 — NGO Verification Pre-Check
-Priority: Low — implement last
+## L2 — NGO Verification Pre-Check *(Deferred to Future Scope)*
+
+> [!NOTE]
+> This module is **deferred to Future Scope**. It will not be implemented in the current Phase 2 of this FYP to reduce system complexity and focus development efforts on L3.
 
 ### What it does
 When a new NGO registers, they upload their ROS (Registrar of Societies)
@@ -145,14 +149,14 @@ No ROS/SSM API integration — document sanity check only
 If document is image-based (photo of cert), Tesseract OCR handles it
 
 
-## L3 — Quotation-to-Allocation Generator
+## L3 — Budget-to-Allocation Generator
 
 ### What it does
-NGO Admin uploads one or more quotation PDFs when setting up fund allocation
-for a campaign. OCR extracts line items, vendor names, and amounts.
-Gemini maps extracted items to campaign sub-categories and generates
-a draft allocation breakdown. NGO Admin reviews, edits, and confirms —
-nothing is saved until the admin approves the draft.
+NGO Admin uploads one or more **budget reference documents** (such as a vendor quotation, project proposal, cost sheet, Excel export, program cost estimation sheet, etc. in PDF or image formats) when setting up fund allocation for a campaign. OCR extracts line items and amounts.
+Gemini maps these extracted items to campaign sub-categories and generates a draft fund allocation breakdown. The NGO Admin reviews, edits, and confirms this breakdown — nothing is saved until the admin reviews and manually submits the final campaign.
+
+> [!IMPORTANT]
+> **Optional Upload:** This step is entirely optional. NGOs are not strictly required to upload a vendor quotation or any other budget reference document. If they do not have these documents ready yet, they can skip this upload and manually define the allocation categories and target amounts.
 
 ### Status
 | Component | Status |
@@ -161,12 +165,12 @@ nothing is saved until the admin approves the draft.
 | AllocationController (upload + generate methods) | [ ] |
 | AllocationService (orchestration) | [ ] |
 | GeminiService (mapping prompt) | [ ] |
-| OcrService (reused from L1) | [ ] |
+| OcrService (shared parser) | [ ] |
 | Frontend upload step in allocation flow | [ ] |
 | Frontend draft allocation review form | [ ] |
 
 ### Flow
-NGO Admin uploads quotation PDF(s) during allocation setup
+NGO Admin uploads budget reference PDF(s)/Image(s) during allocation setup
 	→ OcrService extracts all line items across pages/files
 	→ AllocationService sends consolidated text to GeminiService
 	→ Gemini maps items to sub-categories, returns draft allocation JSON
@@ -193,8 +197,8 @@ Gemini Output Shape (expected JSON)
 
 Acceptance Criteria
 
- NGO admin can upload multiple quotation PDFs in the allocation setup flow
- OCR correctly extracts items and amounts across multi-page files
+ NGO admin can upload multiple budget reference documents in the allocation setup flow
+ OCR correctly extracts items and amounts across multi-page files or photos
  Gemini correctly maps items to the campaign's defined sub-categories
  Unclassified items are surfaced for manual categorisation
  Draft allocation form is fully editable before confirming
@@ -202,6 +206,5 @@ Acceptance Criteria
 
 Notes
 
-OcrService is shared with L1 — do not duplicate
-GeminiService prompt for this module differs from L1 — separate prompt method
-e.g. GeminiService::reconcile() for L1, GeminiService::mapToAllocation() for L3
+OcrService is shared — build it to handle text PDFs (via pdfplumber) and image/scanned documents (via Tesseract fallback)
+GeminiService prompt for this module focuses on category mapping (e.g. `GeminiService::mapToAllocation()`)

@@ -48,14 +48,12 @@ Last updated: 2026-06-23
 ## Phase 2 — LLM Modules
 
 ### L1. Disbursement Reconciliation
-- [ ] Backend: No routes/services/models/migrations
-- [ ] Frontend: No upload/report/confirmation UI
+- [x] Deferred (Moved to Future Scope / Out of Phase 2 Scope)
 
 ### L2. NGO Verification Pre-Check
-- [ ] Backend: No routes/services/migrations
-- [ ] Frontend: No admin review UI
+- [x] Deferred (Moved to Future Scope / Out of Phase 2 Scope)
 
-### L3. Quotation-to-Allocation Generator
+### L3. Budget-to-Allocation Generator (Re-targeted L3)
 - [ ] Backend: No routes/services
 - [ ] Frontend: No upload/review UI
 

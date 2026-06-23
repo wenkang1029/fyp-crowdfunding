@@ -79,6 +79,11 @@ export const useCreateCampaign = () => {
     };
 
     const updateAllocation = (index, field, value) => {
+        // Prevent negative values for amount
+        if (field === 'amount' && value !== '' && Number(value) < 0) {
+            return;
+        }
+
         setFormData((prev) => {
             const nextAllocations = prev.allocations.map((allocation, allocationIndex) => {
                 if (allocationIndex !== index) {
@@ -118,6 +123,12 @@ export const useCreateCampaign = () => {
         });
     };
 
+    const setAllocations = (allocationsArray) => {
+        setFormData((prev) => ({
+            ...prev,
+            allocations: allocationsArray,
+        }));
+    };
 
     const handleSubmit = async (event) => {
         event.preventDefault();
@@ -217,6 +228,7 @@ export const useCreateCampaign = () => {
         addAllocation,
         updateAllocation,
         removeAllocation,
+        setAllocations,
         handleSubmit,
         handleCancel,
     };
@@ -233,11 +245,11 @@ const getAllocationValidation = (allocations) => {
     }
 
     const invalidAllocation = allocations.some(
-        (allocation) => !allocation.purpose?.trim() || !Number(allocation.amount)
+        (allocation) => !allocation.purpose?.trim() || isNaN(allocation.amount) || Number(allocation.amount) <= 0
     );
 
     if (invalidAllocation) {
-        return { isValid: false, message: 'Each allocation needs a purpose and amount.' };
+        return { isValid: false, message: 'Each allocation needs a purpose and a positive amount.' };
     }
 
     const totalAllocated = getAllocationTotal(allocations);

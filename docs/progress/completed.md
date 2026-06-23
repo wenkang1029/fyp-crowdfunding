@@ -132,9 +132,11 @@
 	- useAuth (existing in AuthContext.jsx)
 
 ## Missing — Not Started Yet
-- L1 Disbursement Approval Assistant with Quotation-Receipt Reconciliation
-- L2 NGO Verification Pre-Check
-- L3 Quotation-to-Allocation Generator
+- L3 Budget-to-Allocation Generator (AI Module)
+
+## Deferred to Future Scope
+- L1 Disbursement Approval Assistant with Quotation-Receipt Reconciliation (Moved to Future Scope)
+- L2 NGO Verification Pre-Check (Moved to Future Scope)
 
 ## Inconsistencies Found
 - Previously found inconsistencies above have been resolved during service-layer refactor and frontend wiring.

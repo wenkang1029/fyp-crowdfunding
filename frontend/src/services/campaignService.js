@@ -66,3 +66,14 @@ export const downloadCampaignReport = async (campaignId) => {
     };
 };
 
+export const generateAllocations = async (file) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    const response = await axiosInstance.post('/campaigns/generate-allocations', formData, {
+        headers: {
+            'Content-Type': 'multipart/form-data',
+        },
+    });
+    return extractData(response);
+};
+

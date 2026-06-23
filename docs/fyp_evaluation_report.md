@@ -30,7 +30,7 @@ Based on the latest database schema, backend services, and React client routes, 
 | **Fund Allocation & Payouts** | Completed | **9.5/10 (Excellent)** | Tracks allocations per campaign and validates that the sum of allocations equals the campaign target. Includes an equal-share redistribution waterfall algorithm for overflow funds, dual-color progress metrics, and detailed checkbox-checklist purpose selection with textual audit logs. |
 | **Chatbot Widget** | Completed | **8.5/10 (Good)** | Transitioned to Google's official **Dialogflow Messenger**. This ensures production security by routing natural language queries through Google's CDN, using webhook fulfillments to query the live DigitalOcean database for active campaigns. |
 | **Notifications UI** | Completed | **9.5/10 (Excellent)** | Floating badge system integrated in both the top Navbar and the Dashboard Sidebar (left bar). Includes contextual routing (deep linking) to automatically navigate users to relevant pages on click, using optimistic UI updates for feedback. |
-| **LLM Reconciliation (L1-L3)** | Not Started | **0/10 (Pending)** | Scheduled for Phase 2. This will be the "hero feature" of the thesis. |
+| **LLM Budget-to-Allocation Generator (L3)** | Not Started | **0/10 (Pending)** | Scheduled for Phase 2. L1 & L2 are deferred to future scope; L3 is the primary AI feature. |
 
 ---
 
@@ -47,9 +47,9 @@ Based on the latest database schema, backend services, and React client routes, 
 ### Software Engineering Vulnerabilities (Backend & Database)
 During your FYP thesis defense, the academic panel will search for backend weaknesses. Below are the technical points to keep in mind:
 
-#### ⚠️ SE Weakness 1: Asynchronous Processing & Server Timeouts (L1 Module)
-*   **The Issue:** When you implement the **L1 Disbursement Reconciliation** module, the user will upload two PDF documents. Running OCR and LLM calls synchronously in a web request will block your server's thread and cause `504 Gateway Timeouts` on production hosts.
-*   **FYP Recommendation:** Implement **Laravel Queues**. Dispatch a background job (`ReconcileDisbursementJob`) and return a `202 Accepted` response. Use polling or real-time notification alerts (WebSockets) to update the UI when the reconciliation report is complete.
+#### ⚠️ SE Weakness 1: Asynchronous Processing & Server Timeouts (L3 Module)
+*   **The Issue:** When you implement the **L3 Budget-to-Allocation Generator** module, the user uploads a budget document. Running OCR and LLM calls synchronously in a web request could block your server's thread if the document is very large, potentially causing `504 Gateway Timeouts` or poor UX on production hosts due to the 5–10 second API round-trip latency.
+*   **FYP Recommendation:** For production-level scaling, implement **Laravel Queues** (dispatching background jobs) and WebSockets/polling to return results asynchronously. For a prototype, configure high server timeouts and implement an engaging, multi-step interactive loading indicator (e.g. "Extracting text...", "Mapping allocations with Gemini...") in the frontend to manage user expectation.
 
 #### ⚠️ SE Weakness 2: File Upload Vulnerabilities
 *   **The Issue:** Uploading quotations and receipts (PDFs) poses a security risk. If a user uploads a malicious PHP file disguised as a PDF, they can execute arbitrary shell code on your DigitalOcean server.

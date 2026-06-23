@@ -90,6 +90,7 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::get('/donations/{id}/receipt', [\App\Http\Controllers\DonationController::class, 'receipt']);
 
     // Allocation & Disbursement Routes
+    Route::post('/campaigns/generate-allocations', [\App\Http\Controllers\AllocationController::class, 'generate']);
     Route::post('/campaigns/{campaign_id}/allocations', [\App\Http\Controllers\AllocationController::class, 'store']); 
     Route::patch('/campaigns/{campaign_id}/allocations/{id}', [\App\Http\Controllers\AllocationController::class, 'update']);
     Route::post('/campaigns/{campaign_id}/disbursements', [\App\Http\Controllers\DisbursementController::class, 'store']);

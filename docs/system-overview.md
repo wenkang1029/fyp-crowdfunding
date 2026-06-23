@@ -44,7 +44,7 @@ A web platform built for St. John Ambulans Malaysia (SJAM KMT) to manage, promot
 > All LLM features connect to **Google AI Studio (Gemini API)**. Each module calls the API server-side from Laravel and stores the LLM output in the DB for human review. LLM output is always a draft — a human confirms before any data is persisted.
 
 
-### L1 · Disbursement Approval Assistant with Quotation-Receipt Reconciliation
+### L1 · Disbursement Approval Assistant with Quotation-Receipt Reconciliation *(Deferred to Future Scope)*
 
 
 **Purpose:** Automate financial reconciliation by mapping uploaded quotations against actual receipts, then using LLM to explain any discrepancies before a disbursement is approved.
@@ -82,7 +82,7 @@ Upload quotation PDF(s) + receipt PDF(s)
 ---
 
 
-### L2 · NGO Verification Pre-Check *(low priority)*
+### L2 · NGO Verification Pre-Check *(Deferred to Future Scope)*
 - **Trigger:** New NGO registers and uploads their ROS (Registrar of Societies) registration certificate or SSM document
 - **LLM Role:** OCR extracts text from uploaded doc → Gemini checks for expected fields (org name, reg number, registration date, signatory) and flags missing/suspicious info → generates a verification summary for admin
 - **Output:** Admin sees a structured pre-check report; makes the final approval decision manually
@@ -93,11 +93,12 @@ Upload quotation PDF(s) + receipt PDF(s)
 ---
 
 
-### L3 · Quotation-to-Allocation Generator
-- **Trigger:** ngo uploads one or more quotation PDFs (multi-page supported) when setting up a campaign's fund allocation
-- **LLM Role:** OCR extracts line items, vendor names, and amounts from all pages → Gemini consolidates and maps items to campaign sub-categories → generates a draft fund allocation breakdown
-- **Output:** Pre-filled allocation form for ngo to review, edit, and confirm
-- **Flow:** `Upload PDF(s) → batch OCR → concatenate extracted text → Gemini structures into allocation JSON → render editable allocation form → Admin confirms`
+### L3 · Budget-to-Allocation Generator
+- **Trigger:** NGO uploads one or more budget reference documents (vendor quotation, project proposal, cost sheet, Excel export, program cost estimation sheet, etc. - PDF or image) during campaign allocation setup [Optional].
+- **LLM Role:** OCR extracts line items and amounts → Gemini maps items to campaign sub-categories → generates a draft fund allocation breakdown.
+- **Output:** Pre-filled editable allocation form for the NGO to review, adjust, and confirm.
+- **Optional Nature:** This upload is completely optional. If the NGO has not obtained quotations or cost proposals yet, they can skip uploading and manually input their allocation categories and target amounts.
+- **Flow:** `Upload budget PDF(s)/Image(s) [Optional] → batch OCR → Gemini structures into allocation JSON → render pre-filled editable allocation form → NGO manually reviews/edits → NGO confirms/submits`
 
 
 ---

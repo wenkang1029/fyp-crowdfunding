@@ -5,6 +5,7 @@ import Input from '../components/ui/Input';
 import Textarea from '../components/ui/Textarea';
 import Button from '../components/ui/Button';
 import { useCreateCampaign } from '../hooks/useCreateCampaign';
+import { generateAllocations } from '../services/campaignService';
 
 const CreateCampaign = () => {
     const {
@@ -20,12 +21,69 @@ const CreateCampaign = () => {
         addAllocation,
         updateAllocation,
         removeAllocation,
+        setAllocations,
         handleSubmit,
         handleCancel,
     } = useCreateCampaign();
 
     const [step, setStep] = useState(1);
     const [localErrors, setLocalErrors] = useState({});
+
+    // AI Budget-to-Allocation Generator States
+    const [isAiGenerating, setIsAiGenerating] = useState(false);
+    const [aiError, setAiError] = useState(null);
+    const [aiSuccess, setAiSuccess] = useState(null);
+    const [loadingStep, setLoadingStep] = useState(0);
+
+    const loadingMessages = [
+        "Reading and optimizing document layout...",
+        "Scanning and extracting cost items with Gemini 2.5...",
+        "Mapping items to campaign funding categories...",
+        "Structuring draft allocations in RM...",
+        "Finalizing allocations preview..."
+    ];
+
+    React.useEffect(() => {
+        let interval;
+        if (isAiGenerating) {
+            setLoadingStep(0);
+            interval = setInterval(() => {
+                setLoadingStep((prev) => (prev < loadingMessages.length - 1 ? prev + 1 : prev));
+            }, 2500); // Change step message every 2.5 seconds
+        } else {
+            setLoadingStep(0);
+        }
+        return () => clearInterval(interval);
+    }, [isAiGenerating]);
+
+    const handleFileUpload = async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        setIsAiGenerating(true);
+        setAiError(null);
+        setAiSuccess(null);
+
+        try {
+            const result = await generateAllocations(file);
+            if (result && result.allocations && result.allocations.length > 0) {
+                // Pre-populate allocations
+                setAllocations(result.allocations);
+                setAiSuccess(`✓ Gemini AI successfully pre-filled ${result.allocations.length} allocations!`);
+            } else {
+                setAiError("The AI service could not identify any cost allocations in the uploaded document.");
+            }
+        } catch (err) {
+            console.error("AI Allocation generation failed:", err);
+            const msg = err?.response?.data?.message || "Could not connect to the AI service. Please try again or enter manually.";
+            setStep(3); // Ensure user stays on step 3 to see the error
+            setAiError(msg);
+        } finally {
+            setIsAiGenerating(false);
+            // Reset file input value
+            event.target.value = null;
+        }
+    };
 
     const validateStep1 = () => {
         const errs = {};
@@ -281,6 +339,63 @@ const CreateCampaign = () => {
                                     <p className="text-xs text-gray-400 mb-4">Add your allocations. The total funding goal is calculated automatically.</p>
                                 </div>
 
+                                {/* AI Budget-to-Allocation Upload Zone */}
+                                <div className="p-5 rounded-2xl border border-blue-100 bg-gradient-to-r from-blue-50/50 via-indigo-50/20 to-white shadow-sm mb-6 relative overflow-hidden">
+                                    <div className="flex items-start gap-4">
+                                        <div className="p-3 bg-blue-100/60 rounded-xl text-aidwise-blue font-bold text-lg animate-pulse">
+                                            ✨
+                                        </div>
+                                        <div className="flex-1">
+                                            <h4 className="text-sm font-bold text-aidwise-text flex items-center gap-1.5">
+                                                AI Budget-to-Allocation Generator
+                                                <span className="text-[10px] bg-blue-100 text-aidwise-blue px-2 py-0.5 rounded-full font-bold uppercase tracking-wider">Gemini Powered</span>
+                                            </h4>
+                                            <p className="text-xs text-gray-500 mt-1">
+                                                Upload any budget plan, proposal, Excel file, or supplier quotation (PDF or Image) to automatically extract and pre-fill allocation items.
+                                            </p>
+                                            
+                                            <div className="mt-4">
+                                                <label className={`inline-flex items-center justify-center px-4 py-2 text-xs font-bold text-white bg-aidwise-blue hover:bg-blue-700 rounded-xl cursor-pointer transition-all duration-200 shadow-sm ${
+                                                    isAiGenerating ? 'opacity-50 pointer-events-none' : ''
+                                                }`}>
+                                                    <span>{isAiGenerating ? 'AI is processing...' : 'Upload Budget Reference'}</span>
+                                                    <input
+                                                        type="file"
+                                                        accept="application/pdf, image/*"
+                                                        className="hidden"
+                                                        onChange={handleFileUpload}
+                                                        disabled={isAiGenerating}
+                                                    />
+                                                </label>
+                                                <span className="text-[10px] text-gray-400 ml-2 font-medium italic">PDF, JPG, PNG (Max 10MB) • Optional</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Inline Status Alerts */}
+                                    {isAiGenerating && (
+                                        <div className="mt-4 p-3 bg-blue-50/80 border border-blue-100 rounded-xl flex items-center gap-2.5 text-xs text-aidwise-blue font-semibold">
+                                            <svg className="animate-spin h-4 w-4 text-aidwise-blue flex-shrink-0" fill="none" viewBox="0 0 24 24">
+                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                            </svg>
+                                            <span className="animate-pulse">{loadingMessages[loadingStep]}</span>
+                                        </div>
+                                    )}
+
+                                    {aiError && (
+                                        <div className="mt-4 p-3 bg-red-50/80 border border-red-100 text-red-600 rounded-xl text-xs font-medium animate-in slide-in-from-top duration-300">
+                                            ⚠️ {aiError}
+                                        </div>
+                                    )}
+
+                                    {aiSuccess && (
+                                        <div className="mt-4 p-3 bg-emerald-50/80 border border-emerald-100 text-emerald-700 rounded-xl text-xs font-semibold animate-in slide-in-from-top duration-300">
+                                            {aiSuccess}
+                                        </div>
+                                    )}
+                                </div>
+
                                 {errors.allocations && (
                                     <div className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600">
                                         {errors.allocations}
@@ -291,7 +406,7 @@ const CreateCampaign = () => {
                                     <div className="flex flex-col gap-4 rounded-xl border border-aidwise-border p-4 sm:flex-row sm:items-end bg-gray-50/30">
                                         <div className="flex-1">
                                             <Input
-                                                label="Default purpose"
+                                                label={formData.allocations.length > 1 ? "Purpose 1" : "Default purpose"}
                                                 type="text"
                                                 value={formData.allocations[0]?.purpose || ''}
                                                 onChange={(event) =>
@@ -304,6 +419,7 @@ const CreateCampaign = () => {
                                             <Input
                                                 label="Amount (RM)"
                                                 type="number"
+                                                min="0"
                                                 value={formData.allocations[0]?.amount || ''}
                                                 onChange={(event) =>
                                                     updateAllocation(0, 'amount', event.target.value)
@@ -336,6 +452,7 @@ const CreateCampaign = () => {
                                                     <Input
                                                         label="Amount (RM)"
                                                         type="number"
+                                                        min="0"
                                                         value={allocation.amount}
                                                         onChange={(event) =>
                                                             updateAllocation(allocationIndex, 'amount', event.target.value)
