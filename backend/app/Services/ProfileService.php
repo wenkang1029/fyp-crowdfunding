@@ -107,6 +107,7 @@ class ProfileService
             ->select([
                 'id',
                 'name',
+                'email',
                 'org_name',
                 'org_reg_number',
                 'org_description',

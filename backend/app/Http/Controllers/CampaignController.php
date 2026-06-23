@@ -98,10 +98,10 @@ class CampaignController extends Controller
     {
         $user = $request->user('sanctum');
 
-        if ($user->role !== 'ngo') {
+        if ($user->role !== 'ngo' && $user->role !== 'admin') {
             return response()->json([
                 'success' => false,
-                'message' => 'Only NGOs can view this campaign details page.',
+                'message' => 'Unauthorized access.',
             ], 403);
         }
 
@@ -235,11 +235,19 @@ class CampaignController extends Controller
 
         $campaign = Campaign::findOrFail($id);
 
-        if ($user->role === 'ngo' && $campaign->user_id !== $user->id) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Unauthorized. You can only delete your own campaigns.',
-            ], 403);
+        if ($user->role === 'ngo') {
+            if ($campaign->user_id !== $user->id) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Unauthorized. You can only delete your own campaigns.',
+                ], 403);
+            }
+            if ($campaign->status !== 'pending') {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'You can only delete campaigns with pending status.',
+                ], 400);
+            }
         }
 
         $this->campaignService->delete($campaign);

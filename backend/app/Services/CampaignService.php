@@ -120,8 +120,11 @@ class CampaignService
 
     public function getNgoDetails(User $user, int $id): Campaign
     {
-        return Campaign::where('user_id', $user->id)
-            ->with([
+        $query = Campaign::query();
+        if ($user->role !== 'admin') {
+            $query->where('user_id', $user->id);
+        }
+        return $query->with([
                 'user:id,name,email',
                 'allocations',
                 'donations' => function ($query) {

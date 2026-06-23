@@ -4,9 +4,12 @@ import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import { getAdminDisbursements, updateDisbursementStatus } from '../services/disbursementService';
-import { Wallet, CheckCircle, XCircle, MessageSquareWarning} from 'lucide-react';
+import { Wallet, CheckCircle, XCircle, MessageSquareWarning, FileText } from 'lucide-react';
 import Modal from '../components/ui/Modal';
 import Input from '../components/ui/Input';
+
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
 
 const AdminDisbursements = () => {
     const [disbursements, setDisbursements] = useState([]);
@@ -99,6 +102,7 @@ const AdminDisbursements = () => {
                                     <th className="px-5 py-3">Campaign</th>
                                     <th className="px-5 py-3">Purpose</th>
                                     <th className="px-5 py-3 text-right">Amount</th>
+                                    <th className="px-5 py-3 text-center">Attachment</th>
                                     <th className="px-5 py-3 text-center">Status</th>
                                     <th className="px-5 py-3 text-right">Actions</th>
                                 </tr>
@@ -106,7 +110,7 @@ const AdminDisbursements = () => {
                             <tbody className="divide-y divide-gray-100">
                                 {disbursements.length === 0 ? (
                                     <tr>
-                                        <td colSpan="7" className="px-5 py-8 text-center text-gray-400">No payout requests found.</td>
+                                        <td colSpan="8" className="px-5 py-8 text-center text-gray-400">No payout requests found.</td>
                                     </tr>
                                 ) : (
                                     disbursements.map((d) => (
@@ -116,6 +120,22 @@ const AdminDisbursements = () => {
                                             <td className="px-5 py-4 font-medium text-aidwise-text truncate max-w-[150px]">{d.campaign?.title || 'Unknown'}</td>
                                             <td className="px-5 py-4 text-gray-600 capitalize">{d.purpose}</td>
                                             <td className="px-5 py-4 font-bold text-green-600 text-right whitespace-nowrap">{formatRM(d.amount)}</td>
+                                            <td className="px-5 py-4 text-center whitespace-nowrap">
+                                                {d.receipt_path ? (
+                                                    <a 
+                                                        href={d.receipt_path.startsWith('http') ? d.receipt_path : `${backendUrl}${d.receipt_path}`} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer" 
+                                                        className="inline-flex items-center gap-1 text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-250 px-2.5 py-1.5 rounded-lg shadow-apple-sm"
+                                                        title="View Invoice Document"
+                                                    >
+                                                        <FileText size={14} />
+                                                        <span>View File</span>
+                                                    </a>
+                                                ) : (
+                                                    <span className="text-xs text-gray-400 italic">None</span>
+                                                )}
+                                            </td>
                                             <td className="px-5 py-4 text-center">
                                                 <Badge status={d.status} />
                                             </td>

@@ -8,11 +8,12 @@ import Badge from '../components/ui/Badge';
 import { useNgoCampaigns } from '../hooks/useNgoCampaigns';
 import { 
     ListOrdered, Plus, Wallet, PauseCircle, PlayCircle, Eye, 
-    MoreVertical, Search, ArrowUpDown, SlidersHorizontal, AlertCircle 
+    MoreVertical, Search, ArrowUpDown, SlidersHorizontal, AlertCircle, Trash2 
 } from 'lucide-react';
 
 const NgoCampaigns = () => {
     const [statusModal, setStatusModal] = useState({ isOpen: false, campaign: null, nextStatus: null });
+    const [deleteModal, setDeleteModal] = useState({ isOpen: false, campaign: null });
     const [activeTab, setActiveTab] = useState('all');
     const [searchQuery, setSearchQuery] = useState('');
     const [sortBy, setSortBy] = useState('newest');
@@ -37,7 +38,23 @@ const NgoCampaigns = () => {
         closePayoutModal,
         handlePayoutChange,
         handlePayoutSubmit,
+        handleDeleteCampaign,
     } = useNgoCampaigns();
+
+    const openDeleteModal = (campaign) => {
+        setDeleteModal({ isOpen: true, campaign });
+        setOpenMenuId(null);
+    };
+
+    const closeDeleteModal = () => {
+        setDeleteModal({ isOpen: false, campaign: null });
+    };
+
+    const confirmDeleteCampaign = async () => {
+        if (!deleteModal.campaign) return;
+        await handleDeleteCampaign(deleteModal.campaign.id);
+        closeDeleteModal();
+    };
 
     // Close action menus when clicking outside
     useEffect(() => {
@@ -366,6 +383,16 @@ const NgoCampaigns = () => {
                                                                 )}
                                                             </button>
                                                         )}
+
+                                                        {campaign.status === 'pending' && (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => openDeleteModal(campaign)}
+                                                                className="w-full flex items-center gap-2 px-3 py-2 text-xs font-bold text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                            >
+                                                                <Trash2 size={14} /> Delete Campaign
+                                                            </button>
+                                                        )}
                                                     </div>
                                                 )}
                                             </td>
@@ -394,6 +421,26 @@ const NgoCampaigns = () => {
                         disabled={statusUpdateId === statusModal.campaign?.id}
                     >
                         {statusUpdateId === statusModal.campaign?.id ? 'Updating...' : statusModalTitle}
+                    </Button>
+                </div>
+            </Modal>
+ 
+            {/* Campaign Deletion Confirmation Modal */}
+            <Modal isOpen={deleteModal.isOpen} onClose={closeDeleteModal} title="Delete Campaign">
+                <div className="text-sm text-gray-600 mb-6">
+                    Are you sure you want to permanently delete this pending campaign? This action is irreversible.
+                </div>
+                <div className="flex justify-end gap-3">
+                    <Button variant="secondary" type="button" onClick={closeDeleteModal}>
+                        Cancel
+                    </Button>
+                    <Button
+                        type="button"
+                        variant="danger"
+                        onClick={confirmDeleteCampaign}
+                        disabled={statusUpdateId === deleteModal.campaign?.id}
+                    >
+                        {statusUpdateId === deleteModal.campaign?.id ? 'Deleting...' : 'Delete Campaign'}
                     </Button>
                 </div>
             </Modal>

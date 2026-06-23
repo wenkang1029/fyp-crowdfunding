@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { getCampaigns, updateCampaign } from '../services/campaignService';
+import { getCampaigns, updateCampaign, deleteCampaign } from '../services/campaignService';
 import { createDisbursement } from '../services/disbursementService';
 
 const initialFormData = {
@@ -150,6 +150,24 @@ export const useNgoCampaigns = () => {
             setStatusUpdateId(null);
         }
     };
+    const handleDeleteCampaign = async (campaignId) => {
+        if (!campaignId) return false;
+
+        setStatusUpdateId(campaignId);
+        setError('');
+        try {
+            await deleteCampaign(campaignId);
+            setCampaigns((prev) => prev.filter((item) => item.id !== campaignId));
+            showToast('Campaign deleted successfully.');
+            return true;
+        } catch (err) {
+            const message = err?.response?.data?.message || 'Failed to delete campaign.';
+            setError(message);
+            return false;
+        } finally {
+            setStatusUpdateId(null);
+        }
+    };
 
     const openPayoutModal = (campaign) => {
         setPayoutCampaign(campaign);
@@ -229,5 +247,6 @@ export const useNgoCampaigns = () => {
         closePayoutModal,
         handlePayoutChange,
         handlePayoutSubmit,
+        handleDeleteCampaign,
     };
 };

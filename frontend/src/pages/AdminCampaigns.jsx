@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import Input from '../components/ui/Input';
 import Button from '../components/ui/Button';
 import { getCampaigns, updateCampaign, deleteCampaign } from '../services/campaignService';
-import { CheckCircle, XCircle, Trash2, Megaphone, AlertCircle, Search, ShieldAlert } from 'lucide-react';
+import { CheckCircle, XCircle, Trash2, Megaphone, AlertCircle, Search, ShieldAlert, Eye } from 'lucide-react';
 
 const AdminCampaigns = () => {
     const [campaigns, setCampaigns] = useState([]);
@@ -173,6 +174,13 @@ const AdminCampaigns = () => {
                                             </td>
                                             <td className="px-6 py-4">
                                                 <div className="flex justify-end items-center gap-2">
+                                                    <Link
+                                                        to={`/ngo/campaigns/${camp.id}`}
+                                                        className="p-1.5 text-aidwise-blue hover:bg-blue-50 rounded-lg transition-colors border border-transparent hover:border-blue-200"
+                                                        title="View Campaign Details"
+                                                    >
+                                                        <Eye size={18} />
+                                                    </Link>
                                                     {camp.status === 'pending' && (
                                                         <>
                                                             <button

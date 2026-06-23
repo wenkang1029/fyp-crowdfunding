@@ -14,12 +14,14 @@ import {
 } from 'lucide-react';
 import { downloadCampaignReport } from '../services/campaignService';
 import DonorProfileView from '../components/ui/DonorProfileView';
+import { useAuth } from '../context/AuthContext';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
 
 const NgoCampaignDetails = () => {
     const { id } = useParams();
+    const { user } = useAuth();
     const {
         campaign,
         isLoading,
@@ -174,7 +176,7 @@ const NgoCampaignDetails = () => {
             <div className="max-w-7xl mx-auto">
                 {/* Header and Back Link */}
                 <div className="mb-6 space-y-3">
-                    <Link to="/ngo/campaigns" className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-aidwise-blue transition-colors">
+                    <Link to={user?.role === 'admin' ? '/admin/campaigns' : '/ngo/campaigns'} className="inline-flex items-center text-sm font-semibold text-gray-500 hover:text-aidwise-blue transition-colors">
                         <ArrowLeft size={16} className="mr-2" /> Back to Campaigns
                     </Link>
                     <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
@@ -196,9 +198,11 @@ const NgoCampaignDetails = () => {
                             >
                                 <FileText size={16} /> Export Financial PDF
                             </Button>
-                            <Button variant="secondary" className="flex items-center gap-2 rounded-xl" onClick={openCampaignModal}>
-                                <Pencil size={16} /> Edit Details
-                            </Button>
+                            {user?.role !== 'admin' && (
+                                <Button variant="secondary" className="flex items-center gap-2 rounded-xl" onClick={openCampaignModal}>
+                                    <Pencil size={16} /> Edit Details
+                                </Button>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -258,9 +262,11 @@ const NgoCampaignDetails = () => {
                                     return (
                                         <div className="w-full h-80 bg-gray-50 rounded-2xl border border-gray-150 flex flex-col items-center justify-center relative shadow-apple-sm">
                                             <span className="text-gray-400 font-bold text-sm">No Images Provided</span>
-                                            <button onClick={openImagesModal} className="absolute top-4 right-4 p-2 bg-white hover:bg-gray-50 text-gray-600 rounded-xl shadow-apple border border-gray-100">
-                                                <Pencil size={14} />
-                                            </button>
+                                            {user?.role !== 'admin' && (
+                                                 <button onClick={openImagesModal} className="absolute top-4 right-4 p-2 bg-white hover:bg-gray-50 text-gray-600 rounded-xl shadow-apple border border-gray-100">
+                                                     <Pencil size={14} />
+                                                 </button>
+                                             )}
                                         </div>
                                     );
                                 }
@@ -272,9 +278,11 @@ const NgoCampaignDetails = () => {
                                             alt={campaign.title} 
                                             className="w-full h-full object-cover"
                                         />
-                                        <button onClick={openImagesModal} className="absolute top-4 right-4 p-2.5 bg-white/95 hover:bg-white text-aidwise-text rounded-full shadow-apple border border-gray-150 transition-transform hover:scale-105">
-                                            <Pencil size={14} />
-                                        </button>
+                                         {user?.role !== 'admin' && (
+                                             <button onClick={openImagesModal} className="absolute top-4 right-4 p-2.5 bg-white/95 hover:bg-white text-aidwise-text rounded-full shadow-apple border border-gray-150 transition-transform hover:scale-105">
+                                                 <Pencil size={14} />
+                                             </button>
+                                         )}
                                         {images.length > 1 && (
                                             <>
                                                 <button onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))} className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white flex items-center justify-center shadow-apple text-xl font-bold text-gray-700 opacity-0 group-hover:opacity-100 transition-opacity">‹</button>
@@ -373,9 +381,11 @@ const NgoCampaignDetails = () => {
                                                 <span className="text-xs font-bold text-aidwise-blue bg-blue-50 px-2.5 py-1 rounded-lg">
                                                     {Math.round(allocation.allocationPercent)}% Funded
                                                 </span>
-                                                <Button variant="secondary" className="px-2.5 py-2 text-xs flex items-center border border-gray-250 hover:bg-gray-50 rounded-xl" onClick={() => openAllocationEditModal(allocation)}>
-                                                    <Pencil size={13} />
-                                                </Button>
+                                                {user?.role !== 'admin' && (
+                                                     <Button variant="secondary" className="px-2.5 py-2 text-xs flex items-center border border-gray-250 hover:bg-gray-50 rounded-xl" onClick={() => openAllocationEditModal(allocation)}>
+                                                         <Pencil size={13} />
+                                                     </Button>
+                                                 )}
                                             </div>
                                         </div>
 

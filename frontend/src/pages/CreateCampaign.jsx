@@ -620,6 +620,7 @@ const CreateCampaign = () => {
                             <div>
                                 {step === 1 ? (
                                     <Button 
+                                        key="cancel-btn"
                                         variant="secondary" 
                                         onClick={handleCancel}
                                         disabled={isLoading}
@@ -630,6 +631,7 @@ const CreateCampaign = () => {
                                     </Button>
                                 ) : (
                                     <Button 
+                                        key="back-btn"
                                         variant="secondary" 
                                         onClick={handleBack}
                                         disabled={isLoading}
@@ -645,6 +647,7 @@ const CreateCampaign = () => {
                             <div>
                                 {step < 4 ? (
                                     <Button 
+                                        key="next-btn"
                                         type="button"
                                         variant="primary"
                                         onClick={handleNext}
@@ -658,6 +661,7 @@ const CreateCampaign = () => {
                                     </Button>
                                 ) : (
                                     <Button 
+                                        key="submit-btn"
                                         type="submit" 
                                         variant="primary"
                                         disabled={isSubmitDisabled || isLoading}

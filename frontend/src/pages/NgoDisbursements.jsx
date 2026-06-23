@@ -7,12 +7,7 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
 import { useNgoDisbursements } from '../hooks/useNgoDisbursements';
-import { Wallet, ArrowDownRight, ArrowUpRight, PieChart, ListOrdered, Plus, Upload, FileText } from 'lucide-react';
-
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from 'chart.js';
-import { Doughnut } from 'react-chartjs-2';
-
-ChartJS.register(ArcElement, Tooltip, Legend);
+import { Wallet, ArrowDownRight, ArrowUpRight, ListOrdered, Plus, Upload, FileText } from 'lucide-react';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
@@ -51,31 +46,7 @@ const NgoDisbursements = () => {
     const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
     const formatDate = (dateString) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
 
-    const doughnutChartData = {
-        labels: chart_data.map(item => item.purpose.charAt(0).toUpperCase() + item.purpose.slice(1)), // Capitalize labels
-        datasets: [
-            {
-                data: chart_data.map(item => item.total_amount),
-                backgroundColor: [
-                    '#3b82f6', // AidWise Blue
-                    '#10b981', // Emerald Green
-                    '#f59e0b', // Amber
-                    '#8b5cf6', // Violet
-                    '#ec4899', // Pink
-                    '#64748b', // Slate
-                ],
-                borderWidth: 0, // Clean Apple-style look without borders
-                hoverOffset: 4
-            }
-        ]
-    };
 
-    const chartOptions = {
-        cutout: '70%', // Makes it a sleek doughnut instead of a solid pie
-        plugins: {
-            legend: { display: false } // We will keep our custom HTML legend below it
-        }
-    };
 
     return (
         <DashboardLayout>
@@ -98,106 +69,60 @@ const NgoDisbursements = () => {
                     <StatCard title="Escrow Balance" value={formatRM(metrics.remaining_balance)} icon={Wallet} />
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div className="lg:col-span-1">
-                        <Card className="h-full p-0 overflow-hidden border border-gray-100 shadow-apple-sm">
-                            <div className="p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
-                                <PieChart className="text-aidwise-blue" size={20} />
-                                <h3 className="font-bold text-aidwise-text">Utilization Breakdown</h3>
-                            </div>
-                            <div className="p-6 flex flex-col items-center justify-center">
-                                {chart_data.length === 0 ? (
-                                    <p className="text-sm text-gray-405 text-center py-12 font-medium">No approved disbursements yet.</p>
-                                ) : (
-                                    <>
-                                        {/* The Actual Visual Chart */}
-                                        <div className="w-48 h-48 mb-6 relative">
-                                            <Doughnut data={doughnutChartData} options={chartOptions} />
-                                            {/* Center Text in the Doughnut */}
-                                            <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                                <span className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">Total</span>
-                                                <span className="text-sm font-extrabold text-aidwise-blue">
-                                                    {formatRM(metrics.total_funds_disbursed)}
-                                                </span>
-                                            </div>
-                                        </div>
-
-                                        {/* The Custom Legend */}
-                                        <ul className="w-full space-y-3">
-                                            {chart_data.map((item, index) => (
-                                                <li key={index} className="flex justify-between items-center text-xs font-semibold">
-                                                    <div className="flex items-center gap-2">
-                                                        <span 
-                                                            className="w-2.5 h-2.5 rounded-full" 
-                                                            style={{ backgroundColor: doughnutChartData.datasets[0].backgroundColor[index % 6] }}
-                                                        ></span>
-                                                        <span className="text-gray-500 capitalize">{item.purpose}</span>
-                                                    </div>
-                                                    <span className="text-aidwise-text font-bold">{formatRM(item.total_amount)}</span>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </>
-                                )}
-                            </div>
-                        </Card>
-                    </div>
-
-                    <div className="lg:col-span-2">
-                        <Card className="h-full p-0 overflow-hidden border border-gray-100 shadow-apple-sm">
-                            <div className="p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
-                                <ListOrdered className="text-aidwise-blue" size={20} />
-                                <h3 className="font-bold text-aidwise-text">Recent Payouts</h3>
-                            </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full text-left text-sm text-aidwise-text">
-                                    <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-100">
+                <div className="w-full">
+                    <Card className="p-0 overflow-hidden border border-gray-100 shadow-apple-sm">
+                        <div className="p-5 border-b border-gray-100 flex items-center gap-2 bg-gray-50/50">
+                            <ListOrdered className="text-aidwise-blue" size={20} />
+                            <h3 className="font-bold text-aidwise-text">Recent Payouts</h3>
+                        </div>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-left text-sm text-aidwise-text">
+                                <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-100">
+                                    <tr>
+                                        <th className="px-5 py-3">Date</th>
+                                        <th className="px-5 py-3">Campaign</th>
+                                        <th className="px-5 py-3">Purpose</th>
+                                        <th className="px-5 py-3 text-right">Amount</th>
+                                        <th className="px-5 py-3 text-center">Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-gray-100">
+                                    {recent_activity.length === 0 ? (
                                         <tr>
-                                            <th className="px-5 py-3">Date</th>
-                                            <th className="px-5 py-3">Campaign</th>
-                                            <th className="px-5 py-3">Purpose</th>
-                                            <th className="px-5 py-3 text-right">Amount</th>
-                                            <th className="px-5 py-3 text-center">Status</th>
+                                            <td colSpan="5" className="px-5 py-8 text-center text-gray-400 font-medium">No disbursements recorded yet.</td>
                                         </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-100">
-                                        {recent_activity.length === 0 ? (
-                                            <tr>
-                                                <td colSpan="5" className="px-5 py-8 text-center text-gray-400 font-medium">No disbursements recorded yet.</td>
+                                    ) : (
+                                        recent_activity.map((activity) => (
+                                            <tr key={activity.id} className="hover:bg-gray-50/30 transition-colors">
+                                                <td className="px-5 py-4 text-gray-400 font-semibold text-xs whitespace-nowrap">{formatDate(activity.created_at)}</td>
+                                                <td className="px-5 py-4 font-bold text-aidwise-text truncate max-w-[200px]" title={activity.campaign?.title}>
+                                                    {activity.campaign?.title || 'Unknown'}
+                                                </td>
+                                                <td className="px-5 py-4 text-gray-600 font-semibold text-xs capitalize">{activity.purpose}</td>
+                                                <td className="px-5 py-4 font-extrabold text-blue-600 text-right whitespace-nowrap">
+                                                    {formatRM(activity.amount)}
+                                                    {activity.receipt_path && (
+                                                        <a 
+                                                            href={activity.receipt_path.startsWith('http') ? activity.receipt_path : `${backendUrl}${activity.receipt_path}`} 
+                                                            target="_blank" 
+                                                            rel="noopener noreferrer" 
+                                                            className="inline-flex items-center ml-2 text-gray-400 hover:text-aidwise-blue"
+                                                            title="View Invoice Document"
+                                                        >
+                                                            <FileText size={13} />
+                                                        </a>
+                                                    )}
+                                                </td>
+                                                <td className="px-5 py-4 text-center">
+                                                    <Badge status={activity.status || 'pending'} />
+                                                </td>
                                             </tr>
-                                        ) : (
-                                            recent_activity.map((activity) => (
-                                                <tr key={activity.id} className="hover:bg-gray-50/30 transition-colors">
-                                                    <td className="px-5 py-4 text-gray-400 font-semibold text-xs whitespace-nowrap">{formatDate(activity.created_at)}</td>
-                                                    <td className="px-5 py-4 font-bold text-aidwise-text truncate max-w-[200px]" title={activity.campaign?.title}>
-                                                        {activity.campaign?.title || 'Unknown'}
-                                                    </td>
-                                                    <td className="px-5 py-4 text-gray-600 font-semibold text-xs capitalize">{activity.purpose}</td>
-                                                    <td className="px-5 py-4 font-extrabold text-blue-600 text-right whitespace-nowrap">
-                                                        {formatRM(activity.amount)}
-                                                        {activity.receipt_path && (
-                                                            <a 
-                                                                href={activity.receipt_path.startsWith('http') ? activity.receipt_path : `${backendUrl}${activity.receipt_path}`} 
-                                                                target="_blank" 
-                                                                rel="noopener noreferrer" 
-                                                                className="inline-flex items-center ml-2 text-gray-400 hover:text-aidwise-blue"
-                                                                title="View Invoice Document"
-                                                            >
-                                                                <FileText size={13} />
-                                                            </a>
-                                                        )}
-                                                    </td>
-                                                    <td className="px-5 py-4 text-center">
-                                                        <Badge status={activity.status || 'pending'} />
-                                                    </td>
-                                                </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </Card>
-                    </div>
+                                        ))
+                                    )}
+                                </tbody>
+                            </table>
+                        </div>
+                    </Card>
                 </div>
             </div>
 

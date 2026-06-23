@@ -75,7 +75,7 @@ const UserProfile = () => {
         ];
 
         return (
-            <div className="space-y-2">
+            <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-3">
                 {sections.map((section) => {
                     if (section.ngoOnly && user.role !== 'ngo') return null;
                     const Icon = section.icon;
@@ -84,17 +84,14 @@ const UserProfile = () => {
                             key={section.id}
                             type="button"
                             onClick={() => setActiveSection(section.id)}
-                            className={`w-full text-left px-4 py-3 rounded-xl text-sm font-bold transition-all flex items-center justify-between ${
+                            className={`px-4 py-2.5 rounded-xl text-sm font-bold transition-all flex items-center gap-2 border ${
                                 activeSection === section.id
-                                    ? 'bg-aidwise-blue text-white shadow-apple-sm'
-                                    : 'bg-white text-gray-500 hover:bg-gray-50 border border-gray-100 hover:text-gray-700'
+                                    ? 'bg-aidwise-blue text-white border-aidwise-blue shadow-apple-sm'
+                                    : 'bg-white text-gray-500 hover:bg-gray-50 border-gray-150 hover:text-gray-700'
                             }`}
                         >
-                            <span className="flex items-center gap-2.5">
-                                <Icon size={16} />
-                                {section.label}
-                            </span>
-                            <ChevronRight size={14} className={activeSection === section.id ? 'opacity-100' : 'opacity-30'} />
+                            <Icon size={16} />
+                            {section.label}
                         </button>
                     );
                 })}
@@ -197,144 +194,99 @@ const UserProfile = () => {
 
             case 'documents':
                 return (
-                    <div className="space-y-6 animate-fade-in">
-                        {/* Status Pipeline Timeline */}
-                        <div className="p-6 bg-white border border-gray-150 rounded-2xl shadow-apple-sm space-y-4">
-                            <h4 className="text-xs font-bold text-gray-450 uppercase tracking-wider mb-5">NGO Verification Pipeline Status</h4>
-                            <div className="relative border-l border-gray-200 ml-3.5 pl-6 space-y-6">
-                                <div className="relative">
-                                    <span className="absolute -left-[35px] top-0 w-6 h-6 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs font-bold ring-4 ring-emerald-100">
-                                        ✓
-                                    </span>
-                                    <div>
-                                        <h5 className="font-bold text-xs text-aidwise-text uppercase tracking-wide">Account Registered</h5>
-                                        <p className="text-[10px] text-gray-400 mt-0.5 font-medium">Initial sign-up and organizer authentication completed.</p>
+                    <Card className="p-8 shadow-apple border border-gray-100 space-y-6 animate-fade-in">
+                        <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
+                            <Shield className="text-aidwise-blue" size={20} />
+                            <h3 className="font-extrabold text-lg text-aidwise-text">Onboarding & Tax Files</h3>
+                        </div>
+
+                        <div className="space-y-4">
+                            <div>
+                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-450 mb-2">Solicitation Permit Document</label>
+                                {user.permit_path && (
+                                    <div className="flex items-center justify-between p-3.5 bg-gray-50 border border-gray-150 rounded-2xl mb-3">
+                                        <div className="flex items-center gap-2.5 text-xs text-aidwise-text font-semibold">
+                                            <FileText size={16} className="text-aidwise-blue" />
+                                            <span>Solicitation_Permit.pdf</span>
+                                        </div>
+                                        <a 
+                                            href={user.permit_path.startsWith('http') ? user.permit_path : `${backendUrl}${user.permit_path}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-3 py-1.5 rounded-lg shadow-apple-sm"
+                                        >
+                                            View File
+                                        </a>
                                     </div>
-                                </div>
-                                
-                                <div className="relative">
-                                    <span className={`absolute -left-[35px] top-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ring-4 ${
-                                        user.permit_path ? 'bg-emerald-500 text-white ring-emerald-100' : 'bg-blue-500 text-white ring-blue-100 animate-pulse'
-                                    }`}>
-                                        {user.permit_path ? '✓' : '2'}
-                                    </span>
+                                )}
+                                <input 
+                                    type="file" 
+                                    accept=".pdf,image/*"
+                                    onChange={(e) => setPermitFile(e.target.files[0])}
+                                    className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
+                                />
+                            </div>
+
+                            <div className="p-4 bg-gray-50 border border-gray-150 rounded-2xl space-y-4">
+                                <div className="flex items-start gap-3">
+                                    <input
+                                        type="checkbox"
+                                        id="isTaxExempt"
+                                        checked={isTaxExempt}
+                                        onChange={(e) => setIsTaxExempt(e.target.checked)}
+                                        className="mt-1 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
+                                    />
                                     <div>
-                                        <h5 className="font-bold text-xs text-aidwise-text uppercase tracking-wide">Solicitation Files Uploaded</h5>
-                                        <p className="text-[10px] text-gray-400 mt-0.5 font-medium">
-                                            {user.permit_path ? 'Permit documentation has been uploaded.' : 'Please upload your official solicitation permit to complete verification.'}
+                                        <label htmlFor="isTaxExempt" className="font-bold text-sm text-aidwise-text block cursor-pointer">
+                                            LHDN Section 44(6) Tax Exemption Active
+                                        </label>
+                                        <p className="text-xs text-gray-400 mt-0.5">
+                                            Check if SJAM KMT / LHDN authorized tax-exempt donation receipts on your campaigns.
                                         </p>
                                     </div>
                                 </div>
 
-                                <div className="relative">
-                                    <span className={`absolute -left-[35px] top-0 w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ring-4 ${
-                                        user.permit_path ? 'bg-blue-50 text-aidwise-blue ring-blue-100 animate-pulse' : 'bg-gray-250 text-gray-400 ring-gray-150'
-                                    }`}>
-                                        3
-                                    </span>
-                                    <div>
-                                        <h5 className="font-bold text-xs text-aidwise-text uppercase tracking-wide">Admin Audit Review</h5>
-                                        <p className="text-[10px] text-gray-400 mt-0.5 font-medium">SJAM KMT board moderating files before public fundraising access is opened.</p>
+                                {isTaxExempt && (
+                                    <div className="pt-2 border-t border-gray-200/60 space-y-4 animate-fade-in">
+                                        <Input
+                                            label="LHDN Reference Number"
+                                            type="text"
+                                            value={lhdnReference}
+                                            onChange={(e) => setLhdnReference(e.target.value)}
+                                            placeholder="e.g. LHDN.01/35/42/51/1798"
+                                            required={isTaxExempt}
+                                        />
+
+                                        <div>
+                                            <label className="block text-xs font-bold uppercase tracking-wider text-gray-450 mb-2">Tax Exemption Certificate File</label>
+                                            {user.tax_certificate_path && (
+                                                <div className="flex items-center justify-between p-3.5 bg-white border border-gray-150 rounded-2xl mb-3">
+                                                    <div className="flex items-center gap-2.5 text-xs text-aidwise-text font-semibold">
+                                                        <FileText size={16} className="text-emerald-500" />
+                                                        <span>LHDN_Certificate.pdf</span>
+                                                    </div>
+                                                    <a 
+                                                        href={user.tax_certificate_path.startsWith('http') ? user.tax_certificate_path : `${backendUrl}${user.tax_certificate_path}`} 
+                                                        target="_blank" 
+                                                        rel="noopener noreferrer" 
+                                                        className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-3 py-1.5 rounded-lg shadow-apple-sm"
+                                                    >
+                                                        View File
+                                                    </a>
+                                                </div>
+                                            )}
+                                            <input 
+                                                type="file" 
+                                                accept=".pdf,image/*"
+                                                onChange={(e) => setTaxCertificateFile(e.target.files[0])}
+                                                className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
+                                            />
+                                        </div>
                                     </div>
-                                </div>
+                                )}
                             </div>
                         </div>
-
-                        {/* File Cards */}
-                        <Card className="p-8 shadow-apple border border-gray-100 space-y-6">
-                            <div className="flex items-center gap-2 border-b border-gray-100 pb-4">
-                                <Shield className="text-aidwise-blue" size={20} />
-                                <h3 className="font-extrabold text-lg text-aidwise-text">Onboarding & Tax Files</h3>
-                            </div>
-
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="block text-xs font-bold uppercase tracking-wider text-gray-450 mb-2">Solicitation Permit Document</label>
-                                    {user.permit_path && (
-                                        <div className="flex items-center justify-between p-3.5 bg-gray-50 border border-gray-150 rounded-2xl mb-3">
-                                            <div className="flex items-center gap-2.5 text-xs text-aidwise-text font-semibold">
-                                                <FileText size={16} className="text-aidwise-blue" />
-                                                <span>Solicitation_Permit.pdf</span>
-                                            </div>
-                                            <a 
-                                                href={user.permit_path.startsWith('http') ? user.permit_path : `${backendUrl}${user.permit_path}`} 
-                                                target="_blank" 
-                                                rel="noopener noreferrer" 
-                                                className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-3 py-1.5 rounded-lg shadow-apple-sm"
-                                            >
-                                                View File
-                                            </a>
-                                        </div>
-                                    )}
-                                    <input 
-                                        type="file" 
-                                        accept=".pdf,image/*"
-                                        onChange={(e) => setPermitFile(e.target.files[0])}
-                                        className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
-                                    />
-                                </div>
-
-                                <div className="p-4 bg-gray-50 border border-gray-150 rounded-2xl space-y-4">
-                                    <div className="flex items-start gap-3">
-                                        <input
-                                            type="checkbox"
-                                            id="isTaxExempt"
-                                            checked={isTaxExempt}
-                                            onChange={(e) => setIsTaxExempt(e.target.checked)}
-                                            className="mt-1 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
-                                        />
-                                        <div>
-                                            <label htmlFor="isTaxExempt" className="font-bold text-sm text-aidwise-text block cursor-pointer">
-                                                LHDN Section 44(6) Tax Exemption Active
-                                            </label>
-                                            <p className="text-xs text-gray-400 mt-0.5">
-                                                Check if SJAM KMT / LHDN authorized tax-exempt donation receipts on your campaigns.
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {isTaxExempt && (
-                                        <div className="pt-2 border-t border-gray-200/60 space-y-4 animate-fade-in">
-                                            <Input
-                                                label="LHDN Reference Number"
-                                                type="text"
-                                                value={lhdnReference}
-                                                onChange={(e) => setLhdnReference(e.target.value)}
-                                                placeholder="e.g. LHDN.01/35/42/51/1798"
-                                                required={isTaxExempt}
-                                            />
-
-                                            <div>
-                                                <label className="block text-xs font-bold uppercase tracking-wider text-gray-450 mb-2">Tax Exemption Certificate File</label>
-                                                {user.tax_certificate_path && (
-                                                    <div className="flex items-center justify-between p-3.5 bg-white border border-gray-150 rounded-2xl mb-3">
-                                                        <div className="flex items-center gap-2.5 text-xs text-aidwise-text font-semibold">
-                                                            <FileText size={16} className="text-emerald-500" />
-                                                            <span>LHDN_Certificate.pdf</span>
-                                                        </div>
-                                                        <a 
-                                                            href={user.tax_certificate_path.startsWith('http') ? user.tax_certificate_path : `${backendUrl}${user.tax_certificate_path}`} 
-                                                            target="_blank" 
-                                                            rel="noopener noreferrer" 
-                                                            className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-3 py-1.5 rounded-lg shadow-apple-sm"
-                                                        >
-                                                            View File
-                                                        </a>
-                                                    </div>
-                                                )}
-                                                <input 
-                                                    type="file" 
-                                                    accept=".pdf,image/*"
-                                                    onChange={(e) => setTaxCertificateFile(e.target.files[0])}
-                                                    className="w-full text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
-                                                />
-                                            </div>
-                                        </div>
-                                    )}
-                                </div>
-                            </div>
-                        </Card>
-                    </div>
+                    </Card>
                 );
 
             case 'security':
@@ -434,13 +386,13 @@ const UserProfile = () => {
                     </div>
                 </div>
 
-                {/* Tabbed Profile Grid Layout */}
-                <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                    <div className="lg:col-span-1">
+                {/* Tabbed Profile Layout */}
+                <div className="space-y-6">
+                    <div>
                         {renderTabsNav()}
                     </div>
                     
-                    <div className="lg:col-span-3 space-y-6">
+                    <div className="space-y-6">
                         {renderActiveSectionContent()}
                         
                         {/* Auto-save / Submission buttons */}

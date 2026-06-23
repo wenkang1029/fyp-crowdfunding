@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Modal from './Modal';
 import axiosInstance from '../../api/axios';
 
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
+
 const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
     const [ngo, setNgo] = useState(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -85,16 +88,27 @@ const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
                         );
                     })()}
 
+                    <div className="grid grid-cols-2 gap-4 border-b border-gray-100 pb-3">
+                        <div>
+                            <span className="text-[10px] text-gray-450 font-bold uppercase block">Representative Name</span>
+                            <span className="text-sm font-bold text-aidwise-text block mt-0.5">{ngo.name}</span>
+                        </div>
+                        <div>
+                            <span className="text-[10px] text-gray-450 font-bold uppercase block">Email Address</span>
+                            <span className="text-sm font-bold text-aidwise-text block mt-0.5">{ngo.email}</span>
+                        </div>
+                    </div>
+
                     <div className="space-y-3">
                         <div>
-                            <span className="text-xs font-bold text-gray-400 uppercase block mb-0.5">Description / Mission</span>
+                            <span className="text-xs font-bold text-gray-450 uppercase block mb-0.5">Description / Mission</span>
                             <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
                                 {ngo.org_description || 'No description provided by the organization.'}
                             </p>
                         </div>
 
                         <div>
-                            <span className="text-xs font-bold text-gray-400 uppercase block mb-0.5">Mailing Address</span>
+                            <span className="text-xs font-bold text-gray-450 uppercase block mb-0.5">Mailing Address</span>
                             <p className="text-sm text-gray-600 leading-relaxed whitespace-pre-wrap">
                                 {ngo.mailing_address || 'No mailing address configured.'}
                             </p>
@@ -106,6 +120,50 @@ const NgoProfileView = ({ isOpen, onClose, ngoId }) => {
                                 Approval Code: <span className="font-bold font-mono">{ngo.lhdn_reference || 'N/A'}</span>
                             </div>
                         )}
+
+                        <div className="space-y-3 pt-3 border-t border-gray-100">
+                            <span className="text-xs font-bold text-gray-450 uppercase block mb-1">Uploaded Verification Files</span>
+                            
+                            <div>
+                                <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Solicitation Permit</span>
+                                {ngo.permit_path ? (
+                                    <div className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-150 rounded-xl">
+                                        <span className="text-xs font-semibold text-aidwise-text">Solicitation_Permit.pdf</span>
+                                        <a 
+                                            href={ngo.permit_path.startsWith('http') ? ngo.permit_path : `${backendUrl}${ngo.permit_path}`} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-2.5 py-1 rounded-lg shadow-apple-sm"
+                                        >
+                                            View File
+                                        </a>
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-400 italic">No solicitation permit uploaded.</p>
+                                )}
+                            </div>
+
+                            {ngo.is_tax_exempt && (
+                                <div className="mt-2">
+                                    <span className="text-[10px] text-gray-400 font-bold uppercase block mb-1.5">Tax Exemption Certificate</span>
+                                    {ngo.tax_certificate_path ? (
+                                        <div className="flex items-center justify-between p-2.5 bg-gray-50 border border-gray-150 rounded-xl">
+                                            <span className="text-xs font-semibold text-aidwise-text">Tax_Certificate.pdf</span>
+                                            <a 
+                                                href={ngo.tax_certificate_path.startsWith('http') ? ngo.tax_certificate_path : `${backendUrl}${ngo.tax_certificate_path}`} 
+                                                target="_blank" 
+                                                rel="noopener noreferrer" 
+                                                className="text-xs font-bold text-aidwise-blue hover:underline bg-white border border-gray-150 px-2.5 py-1 rounded-lg shadow-apple-sm"
+                                            >
+                                                View File
+                                            </a>
+                                        </div>
+                                    ) : (
+                                        <p className="text-xs text-gray-400 italic">No tax certificate uploaded.</p>
+                                    )}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             ) : null}

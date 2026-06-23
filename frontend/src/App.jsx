@@ -85,7 +85,7 @@ function App() {
             <Route 
               path="/ngo/campaigns/:id" 
               element={
-                <ProtectedRoute allowedRoles={['ngo']}>
+                <ProtectedRoute allowedRoles={['ngo', 'admin']}>
                   <NgoCampaignDetails />
                 </ProtectedRoute>
               } 
