@@ -122,6 +122,7 @@ const NgoCampaignDetails = () => {
         .filter((item) => item.status === 'approved')
         .reduce((sum, item) => sum + Number(item.amount || 0), 0);
     const raisedPercent = Math.min((raisedAmount / targetAmount) * 100, 100);
+    const rawRaisedPercent = (raisedAmount / targetAmount) * 100;
     const disbursedPercent = Math.min((disbursedAmount / targetAmount) * 100, 100);
     const availableAmount = Math.max(raisedAmount - disbursedAmount, 0);
     const allocationProgressItems = allocations.map((allocation) => {
@@ -138,6 +139,8 @@ const NgoCampaignDetails = () => {
             remainingAmount,
         };
     });
+    const totalCappedAllocationRaised = allocationProgressItems.reduce((sum, item) => sum + item.allocationRaised, 0);
+    const surplusAmount = Math.max(raisedAmount - totalCappedAllocationRaised, 0);
 
     return (
         <>
@@ -337,7 +340,7 @@ const NgoCampaignDetails = () => {
                                     <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 text-sm">
                                         <span className="font-semibold text-aidwise-text">Total Progress</span>
                                         <span className="text-gray-500">{formatRM(raisedAmount)}</span>
-                                        <span className="w-12 text-right font-semibold text-aidwise-blue">{Math.round(raisedPercent)}%</span>
+                                        <span className="w-12 text-right font-semibold text-aidwise-blue">{Math.round(rawRaisedPercent)}%</span>
                                     </div>
                                     <div className="h-4 rounded-full bg-gray-100 overflow-hidden">
                                         <div className="h-full flex">
@@ -345,41 +348,72 @@ const NgoCampaignDetails = () => {
                                             <div className="h-full bg-aidwise-blue" style={{ width: `${Math.max(raisedPercent - disbursedPercent, 0)}%` }}></div>
                                         </div>
                                     </div>
+                                    <div className="mt-2.5 flex flex-wrap gap-4 text-xs text-gray-500 border-t border-gray-50 pt-2">
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="h-2.5 w-2.5 rounded-full bg-emerald-500"></span>
+                                            <span className="font-medium">Withdrawn: {formatRM(disbursedAmount)}</span>
+                                        </div>
+                                        <div className="flex items-center gap-1.5">
+                                            <span className="h-2.5 w-2.5 rounded-full bg-aidwise-blue"></span>
+                                            <span className="font-medium">Available: {formatRM(availableAmount)}</span>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div className="space-y-3">
+                                <div className="space-y-3 pt-3 border-t border-gray-100">
                                     {allocationProgressItems.length === 0 ? (
                                         <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-400">
                                             No allocations recorded.
                                         </div>
                                     ) : (
-                                        allocationProgressItems.map((allocation) => (
-                                            <div key={allocation.id}>
-                                                <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 text-sm">
-                                                    <span className="truncate font-medium text-aidwise-text" title={allocation.purpose}>
-                                                        {allocation.purpose}
-                                                    </span>
-                                                    <span className="hidden text-gray-500 sm:inline">
-                                                        {formatRM(allocation.allocationRaised)} / {formatRM(allocation.allocationTarget)}
-                                                    </span>
-                                                    <span className="w-12 text-right font-semibold text-aidwise-blue">
-                                                        {Math.round(allocation.allocationPercent)}%
-                                                    </span>
-                                                    <Button
-                                                        variant="secondary"
-                                                        className="px-2.5 py-2 text-xs flex items-center shadow-none"
-                                                        onClick={() => openAllocationEditModal(allocation)}
-                                                        title="Edit allocation"
-                                                        aria-label="Edit allocation"
-                                                    >
-                                                        <Pencil size={13} />
-                                                    </Button>
+                                        <>
+                                            {allocationProgressItems.map((allocation) => (
+                                                <div key={allocation.id}>
+                                                    <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 text-sm">
+                                                        <span className="truncate font-medium text-aidwise-text" title={allocation.purpose}>
+                                                            {allocation.purpose}
+                                                        </span>
+                                                        <span className="hidden text-gray-500 sm:inline">
+                                                            {formatRM(allocation.allocationRaised)} / {formatRM(allocation.allocationTarget)}
+                                                        </span>
+                                                        <span className="w-12 text-right font-semibold text-aidwise-blue">
+                                                            {Math.round(allocation.allocationPercent)}%
+                                                        </span>
+                                                        <Button
+                                                            variant="secondary"
+                                                            className="px-2.5 py-2 text-xs flex items-center shadow-none border border-gray-200"
+                                                            onClick={() => openAllocationEditModal(allocation)}
+                                                            title="Edit allocation"
+                                                            aria-label="Edit allocation"
+                                                        >
+                                                            <Pencil size={13} />
+                                                        </Button>
+                                                    </div>
+                                                    <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+                                                        <div className="h-full bg-aidwise-blue" style={{ width: `${allocation.allocationPercent}%` }}></div>
+                                                    </div>
                                                 </div>
-                                                <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
-                                                    <div className="h-full bg-aidwise-blue" style={{ width: `${allocation.allocationPercent}%` }}></div>
+                                            ))}
+                                            {surplusAmount > 0.01 && (
+                                                <div>
+                                                    <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 text-sm">
+                                                        <span className="truncate font-bold text-amber-600" title="General Campaign Surplus (Unallocated Overflow)">
+                                                            General Campaign Surplus
+                                                        </span>
+                                                        <span className="hidden text-gray-500 sm:inline font-semibold">
+                                                            {formatRM(surplusAmount)}
+                                                        </span>
+                                                        <span className="w-12 text-right font-bold text-amber-600">
+                                                            —
+                                                        </span>
+                                                        <span className="w-8"></span>
+                                                    </div>
+                                                    <div className="h-3 rounded-full bg-amber-50 overflow-hidden">
+                                                        <div className="h-full bg-amber-500" style={{ width: '100%' }}></div>
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        ))
+                                            )}
+                                        </>
                                     )}
                                 </div>
                             </div>

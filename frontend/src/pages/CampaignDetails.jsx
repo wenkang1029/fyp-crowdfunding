@@ -58,6 +58,7 @@ const CampaignDetails = () => {
     const target = Number(campaign.target_amount) || 1;
     const raised = Number(campaign.current_amount) || 0;
     const progressPercentage = Math.min(Math.round((raised / target) * 100), 100);
+    const rawProgressPercentage = Math.round((raised / target) * 100);
     const allocations = Array.isArray(campaign.allocations) ? campaign.allocations : [];
     const selectedAllocation = allocations.find((allocation) => allocation.id === Number(allocationId));
     const allocationTotal = allocations.reduce(
@@ -91,6 +92,20 @@ const CampaignDetails = () => {
         (sum, item) => sum + item.raisedAmount,
         0
     );
+
+    const surplusAmount = Math.max(raised - totalAllocationRaised, 0);
+    const displayAllocationProgressData = [...allocationProgressData];
+    if (surplusAmount > 0.01) {
+        displayAllocationProgressData.push({
+            id: 'surplus',
+            purpose: 'General Campaign Surplus',
+            targetAmount: 0,
+            raisedAmount: surplusAmount,
+            progressPercent: 100,
+            isSurplus: true
+        });
+    }
+
     const donutColors = [
         '#2563eb',
         '#22c55e',
@@ -101,19 +116,21 @@ const CampaignDetails = () => {
         '#84cc16',
         '#f97316',
     ];
+    const donutDenominator = Math.max(raised, totalAllocationRaised) || 1;
     let donutCursor = 0;
-    const donutStops = totalAllocationTarget > 0
-        ? allocationProgressData.map((item, index) => {
-            const portion = item.raisedAmount / totalAllocationTarget;
+    const donutStops = donutDenominator > 0
+        ? displayAllocationProgressData.map((item, index) => {
+            const portion = item.raisedAmount / donutDenominator;
             const start = donutCursor;
             donutCursor += portion * 100;
-            return `${donutColors[index % donutColors.length]} ${start}% ${donutCursor}%`;
+            const color = item.isSurplus ? '#d97706' : donutColors[index % donutColors.length];
+            return `${color} ${start}% ${donutCursor}%`;
         })
         : [];
     const donutRemainder = donutCursor < 100
         ? [`#e5e7eb ${donutCursor}% 100%`]
         : [];
-    const donutStyle = totalAllocationTarget > 0
+    const donutStyle = donutDenominator > 0
         ? { background: `conic-gradient(${[...donutStops, ...donutRemainder].join(', ')})` }
         : { background: '#e5e7eb' };
     const totalAllocationProgress = totalAllocationTarget > 0
@@ -249,7 +266,7 @@ const CampaignDetails = () => {
                                 </div>
                                 <div className="mt-2 flex items-center justify-between text-xs text-gray-400">
                                     <span>Overall progress</span>
-                                    <span>{progressPercentage}% funded</span>
+                                    <span>{rawProgressPercentage}% funded</span>
                                 </div>
 
                                 {allocations.length > 0 && (
@@ -261,32 +278,38 @@ const CampaignDetails = () => {
                                         </div>
                                         <div className="mt-4 space-y-3">
                                             <div className="flex items-center gap-4">
-                                                <div className="relative h-28 w-28 rounded-full" style={donutStyle}>
-                                                    <div className="absolute inset-3 rounded-full bg-white flex items-center justify-center text-xs font-semibold text-aidwise-text">
-                                                        {totalAllocationProgress}%
+                                                <div className="relative h-28 w-28 rounded-full shrink-0" style={donutStyle}>
+                                                    <div className="absolute inset-2.5 rounded-full bg-white flex flex-col items-center justify-center text-center p-1">
+                                                        <span className="text-[8px] font-extrabold text-aidwise-blue tracking-wider leading-none">RAISED</span>
+                                                        <span className="text-[10px] font-extrabold text-aidwise-text mt-0.5 leading-none shrink-0 truncate max-w-full" title={`RM ${raised.toLocaleString()}`}>
+                                                            RM {raised.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                                                        </span>
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1 text-xs text-gray-500">
                                                     <div className="text-sm font-semibold text-aidwise-text">
-                                                        RM {totalAllocationRaised.toLocaleString()} / RM {totalAllocationTarget.toLocaleString()}
+                                                        RM {(totalAllocationRaised + surplusAmount).toLocaleString()} / RM {totalAllocationTarget.toLocaleString()}
                                                     </div>
-                                                    <div className="text-[11px] text-gray-400">Total</div>
+                                                    <div className="text-[11px] text-gray-400">Total Campaign Raised</div>
                                                 </div>
                                             </div>
 
                                             <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto pr-1 text-xs text-gray-500">
-                                                {allocationProgressData.map((item, index) => (
-                                                    <div key={item.id} className="flex items-center gap-2">
-                                                        <span
-                                                            className="h-2.5 w-2.5 rounded-full"
-                                                            style={{ backgroundColor: donutColors[index % donutColors.length] }}
-                                                        ></span>
-                                                        <span className="truncate" title={item.purpose}>{item.purpose}</span>
-                                                        <span className="ml-auto text-[11px] text-gray-400">
-                                                            {item.progressPercent}%
-                                                        </span>
-                                                    </div>
-                                                ))}
+                                                {displayAllocationProgressData.map((item, index) => {
+                                                    const color = item.isSurplus ? '#d97706' : donutColors[index % donutColors.length];
+                                                    return (
+                                                        <div key={item.id} className="flex items-center gap-2">
+                                                            <span
+                                                                className="h-2.5 w-2.5 rounded-full shrink-0"
+                                                                style={{ backgroundColor: color }}
+                                                            ></span>
+                                                            <span className="truncate text-aidwise-text font-medium" title={item.purpose}>{item.purpose}</span>
+                                                            <span className="ml-auto text-[11px] text-gray-400 font-semibold">
+                                                                {item.isSurplus ? '—' : `${item.progressPercent}%`}
+                                                            </span>
+                                                        </div>
+                                                    );
+                                                })}
                                             </div>
                                         </div>
                                     </div>
