@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -61,6 +62,7 @@ class RegistrationTest extends TestCase
             'org_name' => 'Aid NGO',
             'org_reg_number' => 'NGO-999',
             'org_description' => 'Helping kids.',
+            'permit_file' => UploadedFile::fake()->create('permit.pdf', 100),
         ]);
 
         $response->assertStatus(201);

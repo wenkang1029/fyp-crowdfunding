@@ -25,6 +25,8 @@ class DonationController extends Controller
             'campaign_id' => 'required|exists:campaigns,id',
             'amount' => 'required|numeric|min:1',
             'allocation_id' => 'nullable|exists:allocations,id',
+            'allocation_ids' => 'nullable|array',
+            'allocation_ids.*' => 'exists:allocations,id',
             'transaction_id' => 'nullable|string',
             'payment_method' => 'nullable|string',
             'donor_name' => 'nullable|string|max:255',

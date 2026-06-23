@@ -61,13 +61,15 @@ class DisbursementService
 
             // Trigger Stripe Transfer from Platform Balance (Escrow) to Connected NGO account
             try {
-                $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
-                $stripeClient->transfers->create([
-                    'amount' => intval($disbursement->amount * 100), // Convert to cents
-                    'currency' => 'myr',
-                    'destination' => $ngo->stripe_account_id,
-                    'description' => "Disbursement Payout: Campaign #{$campaign->id} - {$disbursement->purpose}",
-                ]);
+                if (!app()->environment('testing')) {
+                    $stripeClient = new \Stripe\StripeClient(config('services.stripe.secret'));
+                    $stripeClient->transfers->create([
+                        'amount' => intval($disbursement->amount * 100), // Convert to cents
+                        'currency' => 'myr',
+                        'destination' => $ngo->stripe_account_id,
+                        'description' => "Disbursement Payout: Campaign #{$campaign->id} - {$disbursement->purpose}",
+                    ]);
+                }
             } catch (\Exception $e) {
                 throw new HttpException(400, 'Stripe Escrow Release Payout Failed: ' . $e->getMessage());
             }

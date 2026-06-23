@@ -16,7 +16,7 @@ import axiosInstance from '../../api/axios';
 // Initialize stripe outside component to avoid re-instantiation
 const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY || '');
 
-const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTaxReceipt, taxName, taxIdNumber, taxAddress, allocationId }) => {
+const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTaxReceipt, taxName, taxIdNumber, taxAddress, allocationId, allocationIds }) => {
     const stripe = useStripe();
     const elements = useElements();
     const [isProcessing, setIsProcessing] = useState(false);
@@ -35,16 +35,23 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
         setErrorMessage('');
 
         try {
-            // 1. Create donation draft & get client_secret from backend
-            const response = await axiosInstance.post('/donations', {
+            const payload = {
                 campaign_id: Number(campaign?.id),
                 amount: Number(amount),
-                allocation_id: allocationId ? Number(allocationId) : null,
                 request_tax_receipt: requestTaxReceipt,
                 tax_name: requestTaxReceipt ? taxName : null,
                 tax_id_number: requestTaxReceipt ? taxIdNumber : null,
                 tax_address: requestTaxReceipt ? taxAddress : null
-            });
+            };
+
+            if (allocationIds && allocationIds.length > 0) {
+                payload.allocation_ids = allocationIds.map(Number);
+            } else if (allocationId) {
+                payload.allocation_id = Number(allocationId);
+            }
+
+            // 1. Create donation draft & get client_secret from backend
+            const response = await axiosInstance.post('/donations', payload);
 
             const { client_secret, donation } = response.data.data;
 
@@ -138,7 +145,7 @@ const StripeForm = ({ amount, onSuccessfulPayment, campaign, onClose, requestTax
     );
 };
 
-const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign, allocationId }) => {
+const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign, allocationId, allocationIds }) => {
     const { user } = useAuth();
     const [isSuccess, setIsSuccess] = useState(false);
 
@@ -267,6 +274,7 @@ const CheckoutModal = ({ isOpen, onClose, amount, onSuccessfulPayment, campaign,
                                 taxIdNumber={taxIdNumber}
                                 taxAddress={taxAddress}
                                 allocationId={allocationId}
+                                allocationIds={allocationIds}
                             />
                         </Elements>
                     </div>

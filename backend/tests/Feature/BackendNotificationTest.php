@@ -6,6 +6,7 @@ use App\Models\Campaign;
 use App\Models\User;
 use App\Models\Disbursement;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Http\UploadedFile;
 use Laravel\Sanctum\Sanctum;
 use Tests\TestCase;
 
@@ -35,7 +36,8 @@ class BackendNotificationTest extends TestCase
             'role' => 'ngo',
             'org_name' => 'Charity Trust',
             'org_reg_number' => 'REG-NGO-888',
-            'org_description' => 'Disaster relief efforts.'
+            'org_description' => 'Disaster relief efforts.',
+            'permit_file' => UploadedFile::fake()->create('permit.pdf', 100),
         ]);
 
         $response->assertStatus(201);
@@ -60,6 +62,7 @@ class BackendNotificationTest extends TestCase
             'target_amount' => 1000,
             'start_date' => now()->toIso8601String(),
             'end_date' => now()->addDays(30)->toIso8601String(),
+            'use_default_image' => true,
             'allocations' => [
                 ['purpose' => 'Meals', 'amount' => 1000]
             ]
@@ -172,7 +175,9 @@ class BackendNotificationTest extends TestCase
     {
         $ngo = User::factory()->create([
             'role' => 'ngo',
-            'status' => 'active'
+            'status' => 'active',
+            'stripe_account_id' => 'acct_test',
+            'stripe_onboarding_completed' => true
         ]);
         $campaign = Campaign::create([
             'user_id' => $ngo->id,

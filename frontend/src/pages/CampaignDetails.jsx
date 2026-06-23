@@ -49,6 +49,25 @@ const CampaignDetails = () => {
         closeSuccessModal,
     } = useDonationFlow(campaign, fetchCampaign);
 
+    const [destinationType, setDestinationType] = useState('overall'); // 'overall' or 'specific'
+    const [selectedAllocationIds, setSelectedAllocationIds] = useState([]);
+
+    const handleToggleAllocation = (id) => {
+        setSelectedAllocationIds((prev) => {
+            if (prev.includes(id)) {
+                return prev.filter((item) => item !== id);
+            } else {
+                return [...prev, id];
+            }
+        });
+    };
+
+    const handleCloseSuccess = () => {
+        closeSuccessModal();
+        setSelectedAllocationIds([]);
+        setDestinationType('overall');
+    };
+
     useEffect(() => {
         fetchCampaign();
     }, [fetchCampaign]);
@@ -322,19 +341,29 @@ const CampaignDetails = () => {
                                                 </div>
                                             </div>
 
-                                            <div className="grid grid-cols-2 gap-2 max-h-40 overflow-auto pr-1 text-xs text-gray-500">
+                                            <div className="space-y-2.5 max-h-48 overflow-auto pr-1 text-xs text-gray-500">
                                                 {displayAllocationProgressData.map((item, index) => {
                                                     const color = item.isSurplus ? '#d97706' : donutColors[index % donutColors.length];
                                                     return (
-                                                        <div key={item.id} className="flex items-center gap-2">
+                                                        <div key={item.id} className="flex items-start gap-2">
                                                             <span
-                                                                className="h-2.5 w-2.5 rounded-full shrink-0"
+                                                                className="h-2.5 w-2.5 rounded-full shrink-0 mt-1"
                                                                 style={{ backgroundColor: color }}
                                                             ></span>
-                                                            <span className="truncate text-aidwise-text font-medium" title={item.purpose}>{item.purpose}</span>
-                                                            <span className="ml-auto text-[11px] text-gray-400 font-semibold">
-                                                                {item.isSurplus ? '—' : `${item.progressPercent}%`}
-                                                            </span>
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex justify-between font-medium text-aidwise-text">
+                                                                    <span className="truncate" title={item.purpose}>{item.purpose}</span>
+                                                                    <span className="font-semibold text-gray-700 shrink-0 ml-2">
+                                                                        {item.isSurplus ? '—' : `${item.progressPercent}%`}
+                                                                    </span>
+                                                                </div>
+                                                                <div className="text-[10px] text-gray-400 mt-0.5">
+                                                                    {item.isSurplus 
+                                                                        ? `Raised: RM ${item.raisedAmount.toLocaleString()}`
+                                                                        : `RM ${item.raisedAmount.toLocaleString()} / RM ${item.targetAmount.toLocaleString()}`
+                                                                    }
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     );
                                                 })}
@@ -344,7 +373,12 @@ const CampaignDetails = () => {
                                 )}
                                 
                                 <Button
-                                    onClick={() => setActiveModal('donate_form')}
+                                    onClick={() => {
+                                        setDestinationType('overall');
+                                        setSelectedAllocationIds([]);
+                                        setHasAgreedTerms(false);
+                                        setActiveModal('donate_form');
+                                    }}
                                     variant="primary"
                                     className="w-full mt-6 py-3.5 text-base font-bold shadow-lg shadow-aidwise-blue/20 hover:shadow-aidwise-blue/30 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2"
                                     disabled={!(campaign.status === 'active' && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date)))}
@@ -394,55 +428,104 @@ const CampaignDetails = () => {
                     )}
 
                     {allocations.length > 0 && (
-                        <div className="space-y-3">
+                        <div className="space-y-4">
                             <label className="block text-sm font-semibold text-aidwise-text">
                                 Fund Destination
                             </label>
-                            <select
-                                value={allocationId}
-                                onChange={(event) => setAllocationId(event.target.value)}
-                                className="w-full rounded-lg border border-gray-200 bg-gray-50 px-4 py-2.5 text-aidwise-text focus:outline-none focus:ring-2 focus:ring-aidwise-blue text-sm"
-                            >
-                                <option value="">Support Overall Campaign (Equal split across all sub-goals)</option>
-                                {allocations.map((allocation) => (
-                                    <option key={allocation.id} value={allocation.id}>
-                                        {allocation.purpose} (Sub-goal)
-                                    </option>
-                                ))}
-                            </select>
-                            {allocationId ? (
-                                <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
-                                    Your donation will go directly to: <span className="font-semibold text-aidwise-text">{selectedAllocation?.purpose}</span>.
+                            <div className="grid grid-cols-2 gap-3">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDestinationType('overall');
+                                        setSelectedAllocationIds([]);
+                                    }}
+                                    className={`p-3.5 rounded-2xl border text-left transition-all duration-200 focus:outline-none ${
+                                        destinationType === 'overall'
+                                            ? 'border-aidwise-blue bg-aidwise-blue/5 ring-1 ring-aidwise-blue shadow-sm'
+                                            : 'border-gray-200 bg-white hover:bg-gray-50/80'
+                                    }`}
+                                >
+                                    <div className="text-xs font-bold text-aidwise-text">Overall Campaign</div>
+                                    <div className="text-[10px] text-gray-400 mt-1">Split equally across all sub-goals</div>
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setDestinationType('specific');
+                                        setSelectedAllocationIds(allocations.map(a => a.id));
+                                    }}
+                                    className={`p-3.5 rounded-2xl border text-left transition-all duration-200 focus:outline-none ${
+                                        destinationType === 'specific'
+                                            ? 'border-aidwise-blue bg-aidwise-blue/5 ring-1 ring-aidwise-blue shadow-sm'
+                                            : 'border-gray-200 bg-white hover:bg-gray-50/80'
+                                    }`}
+                                >
+                                    <div className="text-xs font-bold text-aidwise-text">Specific Sub-goals</div>
+                                    <div className="text-[10px] text-gray-400 mt-1">Select one or more categories</div>
+                                </button>
+                            </div>
+
+                            {destinationType === 'specific' ? (
+                                <div className="space-y-2 border border-gray-150 rounded-2xl p-3 bg-gray-50/50 max-h-48 overflow-y-auto">
+                                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">Select sub-goals to support</p>
+                                    {allocations.map((allocation) => {
+                                        const isChecked = selectedAllocationIds.includes(allocation.id);
+                                        const allocTarget = Number(allocation.amount) || 0;
+                                        const allocRaised = Number(allocation.current_amount) || 0;
+                                        return (
+                                            <label 
+                                                key={allocation.id} 
+                                                className={`flex items-start gap-3 p-2.5 rounded-xl border cursor-pointer select-none transition-all duration-150 ${
+                                                    isChecked 
+                                                        ? 'border-aidwise-blue/30 bg-white shadow-sm' 
+                                                        : 'border-transparent hover:bg-white/50'
+                                                }`}
+                                            >
+                                                <input
+                                                    type="checkbox"
+                                                    checked={isChecked}
+                                                    onChange={() => handleToggleAllocation(allocation.id)}
+                                                    className="mt-0.5 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded cursor-pointer"
+                                                />
+                                                <div className="flex-1 min-w-0 text-xs">
+                                                    <div className="font-bold text-aidwise-text truncate">{allocation.purpose}</div>
+                                                    <div className="text-[10px] text-gray-400 mt-0.5">
+                                                        Goal: RM {allocTarget.toLocaleString()} (Raised: RM {allocRaised.toLocaleString()})
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        );
+                                    })}
                                 </div>
-                             ) : (
-                                 <div className="rounded-xl border border-aidwise-border bg-gray-50/60 p-4 space-y-3">
-                                     <p className="text-xs font-bold text-aidwise-text">
-                                         Overall Campaign Terms & Funding Rules:
-                                     </p>
-                                     <ul className="list-disc pl-4 space-y-1.5 text-[11px] text-gray-500 leading-normal">
-                                         <li>
-                                             <span className="font-medium text-gray-600">Equal Distribution:</span> Your donation is split equally across all campaign sub-goals.
-                                         </li>
-                                         <li>
-                                             <span className="font-medium text-gray-600">Surplus Waterfall:</span> Any contributions exceeding a sub-goal's target are dynamically redirected to remaining underfunded categories, with final overflows directed to the campaign's General Surplus.
-                                         </li>
-                                         <li>
-                                             <span className="font-medium text-gray-600">Escrow Hold:</span> All donated funds are securely held in platform escrow, requiring the NGO to request verified disbursements before any funds are released.
-                                         </li>
-                                     </ul>
-                                     <label className="flex items-start gap-2.5 pt-1.5 cursor-pointer select-none">
-                                         <input
-                                             type="checkbox"
-                                             checked={hasAgreedTerms}
-                                             onChange={(e) => setHasAgreedTerms(e.target.checked)}
-                                             className="mt-0.5 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded cursor-pointer"
-                                         />
-                                         <span className="text-[11px] font-semibold text-aidwise-text leading-tight">
-                                             I understand and agree to these donation distribution and escrow disbursement rules.
-                                         </span>
-                                     </label>
-                                 </div>
-                             )}
+                            ) : (
+                                <div className="rounded-xl border border-aidwise-border bg-gray-50/60 p-4 space-y-3">
+                                    <p className="text-xs font-bold text-aidwise-text">
+                                        Overall Campaign Terms & Funding Rules:
+                                    </p>
+                                    <ul className="list-disc pl-4 space-y-1.5 text-[11px] text-gray-500 leading-normal">
+                                        <li>
+                                            <span className="font-medium text-gray-600">Equal Distribution:</span> Your donation is split equally across all campaign sub-goals.
+                                        </li>
+                                        <li>
+                                            <span className="font-medium text-gray-600">Surplus Waterfall:</span> Any contributions exceeding a sub-goal's target are dynamically redirected to remaining underfunded categories, with final overflows directed to the campaign's General Surplus.
+                                        </li>
+                                        <li>
+                                            <span className="font-medium text-gray-600">Escrow Hold:</span> All donated funds are securely held in platform escrow, requiring the NGO to request verified disbursements before any funds are released.
+                                        </li>
+                                    </ul>
+                                    <label className="flex items-start gap-2.5 pt-1.5 cursor-pointer select-none">
+                                        <input
+                                            type="checkbox"
+                                            checked={hasAgreedTerms}
+                                            onChange={(e) => setHasAgreedTerms(e.target.checked)}
+                                            className="mt-0.5 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded cursor-pointer"
+                                        />
+                                        <span className="text-[11px] font-semibold text-aidwise-text leading-tight">
+                                            I understand and agree to these donation distribution and escrow disbursement rules.
+                                        </span>
+                                    </label>
+                                </div>
+                            )}
                         </div>
                     )}
 
@@ -459,11 +542,29 @@ const CampaignDetails = () => {
                             required
                             min="1"
                         />
-                        {allocations.length > 0 && !allocationId && donationAmountValue > 0 && (
-                            <p className="mt-1.5 text-xs text-gray-400">
-                                Overall campaign donations are split equally across {allocations.length} sub-goals
-                                ({allocationShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} each).
-                            </p>
+                        {allocations.length > 0 && donationAmountValue > 0 && (
+                            <div className="mt-2 text-xs">
+                                {destinationType === 'overall' ? (
+                                    <p className="text-emerald-600 bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-xl">
+                                        ✨ Your <strong>RM {donationAmountValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> donation will be split equally: <strong>RM {allocationShare.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> each to all {allocations.length} sub-goals.
+                                    </p>
+                                ) : (
+                                    selectedAllocationIds.length > 0 ? (
+                                        <p className="text-emerald-600 bg-emerald-50/50 border border-emerald-100 p-2.5 rounded-xl leading-relaxed">
+                                            ✨ Your <strong>RM {donationAmountValue.toLocaleString(undefined, { minimumFractionDigits: 2 })}</strong> donation will be split equally: <strong>RM {(donationAmountValue / selectedAllocationIds.length).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</strong> each to: {
+                                                allocations
+                                                    .filter(a => selectedAllocationIds.includes(a.id))
+                                                    .map(a => a.purpose)
+                                                    .join(', ')
+                                            }.
+                                        </p>
+                                    ) : (
+                                        <p className="text-amber-600 bg-amber-50/50 border border-amber-150 p-2.5 rounded-xl">
+                                            ⚠️ Please select at least one sub-goal to proceed.
+                                        </p>
+                                    )
+                                )}
+                            </div>
                         )}
                     </div>
 
@@ -475,7 +576,9 @@ const CampaignDetails = () => {
                             !(campaign.status === 'active' && 
                               (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && 
                               (!campaign.end_date || new Date() <= new Date(campaign.end_date))) || 
-                            (!allocationId && !hasAgreedTerms)
+                            donationAmountValue <= 0 ||
+                            (destinationType === 'overall' && !hasAgreedTerms) ||
+                            (destinationType === 'specific' && selectedAllocationIds.length === 0)
                         }
                     >
                         Proceed to Payment
@@ -492,9 +595,15 @@ const CampaignDetails = () => {
                     <p className="text-gray-600 mb-6 text-lg">
                         Are you sure you want to donate <strong className="text-aidwise-text text-xl border-b-2 border-aidwise-blue pb-1">RM {Number(donationAmount).toLocaleString()}</strong> to this campaign?
                     </p>
-                    {selectedAllocation && (
+                    {destinationType === 'specific' && selectedAllocationIds.length > 0 && (
                         <p className="mb-6 text-sm text-gray-500">
-                            Directed to: <span className="font-semibold text-aidwise-text">{selectedAllocation.purpose}</span>
+                            Split equally across: <span className="font-semibold text-aidwise-text">
+                                {allocations
+                                    .filter(a => selectedAllocationIds.includes(a.id))
+                                    .map(a => a.purpose)
+                                    .join(', ')
+                                }
+                            </span>
                         </p>
                     )}
                     <div className="flex gap-3">
@@ -510,12 +619,13 @@ const CampaignDetails = () => {
                 amount={donationAmount}
                 onSuccessfulPayment={executeDonation} 
                 campaign={campaign}
-                allocationId={allocationId}
+                allocationId={null}
+                allocationIds={destinationType === 'specific' ? selectedAllocationIds : []}
             />
 
             <Modal 
                 isOpen={activeModal === 'success'} 
-                onClose={closeSuccessModal} 
+                onClose={handleCloseSuccess} 
                 title="Donation Successful!"
             >
                 <div className="text-center">
@@ -525,7 +635,7 @@ const CampaignDetails = () => {
                         <br/><br/>
                         Your donation of <strong className="text-aidwise-blue text-xl">RM {Number(lastCompletedPayment?.amount).toLocaleString()}</strong> has been securely received and will make a real difference.
                     </p>
-                    <Button variant="primary" className="w-full" onClick={closeSuccessModal}>
+                    <Button variant="primary" className="w-full" onClick={handleCloseSuccess}>
                         Close
                     </Button>
                 </div>
