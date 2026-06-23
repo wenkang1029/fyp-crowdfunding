@@ -20,6 +20,7 @@ const CampaignDetails = () => {
     const [isLoading, setIsLoading] = useState(true);
     const [isNgoModalOpen, setIsNgoModalOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
+    const [hasAgreedTerms, setHasAgreedTerms] = useState(false);
 
     const fetchCampaign = useCallback(async () => {
         try {
@@ -388,8 +389,32 @@ const CampaignDetails = () => {
                                                     Your donation will go directly to: <span className="font-semibold text-aidwise-text">{selectedAllocation?.purpose}</span>.
                                                 </div>
                                              ) : (
-                                                 <div className="rounded-lg border border-aidwise-border bg-gray-50/60 px-3 py-2 text-xs text-gray-500">
-                                                     Choosing overall campaign splits your donation equally across all sub-goals. Any contributions exceeding a sub-goal's target are dynamically redirected to underfunded categories, with final overflows moved to the General Surplus. All donated funds are securely held in escrow, requiring the NGO to request verified disbursements before any funds are released.
+                                                 <div className="rounded-xl border border-aidwise-border bg-gray-50/60 p-4 space-y-3">
+                                                     <p className="text-xs font-bold text-aidwise-text">
+                                                         Overall Campaign Terms & Funding Rules:
+                                                     </p>
+                                                     <ul className="list-disc pl-4 space-y-1.5 text-[11px] text-gray-500 leading-normal">
+                                                         <li>
+                                                             <span className="font-medium text-gray-600">Equal Distribution:</span> Your donation is split equally across all campaign sub-goals.
+                                                         </li>
+                                                         <li>
+                                                             <span className="font-medium text-gray-600">Surplus Waterfall:</span> Any contributions exceeding a sub-goal's target are dynamically redirected to remaining underfunded categories, with final overflows directed to the campaign's General Surplus.
+                                                         </li>
+                                                         <li>
+                                                             <span className="font-medium text-gray-600">Escrow Hold:</span> All donated funds are securely held in platform escrow, requiring the NGO to request verified disbursements before any funds are released.
+                                                         </li>
+                                                     </ul>
+                                                     <label className="flex items-start gap-2.5 pt-1.5 cursor-pointer select-none">
+                                                         <input
+                                                             type="checkbox"
+                                                             checked={hasAgreedTerms}
+                                                             onChange={(e) => setHasAgreedTerms(e.target.checked)}
+                                                             className="mt-0.5 h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded cursor-pointer"
+                                                         />
+                                                         <span className="text-[11px] font-semibold text-aidwise-text leading-tight">
+                                                             I understand and agree to these donation distribution and escrow disbursement rules.
+                                                         </span>
+                                                     </label>
                                                  </div>
                                              )}
                                         </div>
@@ -416,7 +441,17 @@ const CampaignDetails = () => {
                                         )}
                                     </div>
 
-                                    <Button type="submit" variant="primary" className="w-full py-3 text-lg" disabled={!(campaign.status === 'active' && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date)))}>
+                                    <Button 
+                                        type="submit" 
+                                        variant="primary" 
+                                        className="w-full py-3 text-lg" 
+                                        disabled={
+                                            !(campaign.status === 'active' && 
+                                              (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && 
+                                              (!campaign.end_date || new Date() <= new Date(campaign.end_date))) || 
+                                            (!allocationId && !hasAgreedTerms)
+                                        }
+                                    >
                                         Donate Now
                                     </Button>
                                     <p className="text-xs text-center text-gray-400">
@@ -424,7 +459,6 @@ const CampaignDetails = () => {
                                     </p>
                                 </form>
                             </Card>
-                            {/* Show campaign date status messages */}
                             {!((campaign.status === 'active') && (!campaign.start_date || new Date() >= new Date(campaign.start_date)) && (!campaign.end_date || new Date() <= new Date(campaign.end_date))) && (
                                 <div className="mt-4 rounded-lg border border-yellow-100 bg-yellow-50 p-3 text-sm text-yellow-800">
                                     {campaign.start_date && new Date() < new Date(campaign.start_date) && (
