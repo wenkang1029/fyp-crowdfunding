@@ -27,8 +27,8 @@ Last updated: 2026-06-23
 
 ### 4. Fund Allocation & Disbursement
 - [x] Backend: AllocationService and DisbursementService added; controllers now thin/service-backed; rejection_reason migration and handling added. Added PDF campaign summary report generator streaming donations and payouts.
-- [x] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; NGO campaign details supports editing campaign info and allocations (create/edit). Added Export Campaign Report button downloading campaign summary layout.
-- Notes: Allocation deletion and listing APIs integrated.
+- [x] Frontend: disbursementService/allocationService + useNgoDisbursements hook added; NgoDisbursements/AdminDisbursements wired to service/hook; NGO campaign details page enhanced with interactive slideshow carousel, Pencil edit icon for campaign images, locked allocation amounts (only purpose/name can be edited), and Withdrawn/Available metric layouts in Funding Progress. Added Export Campaign Report button downloading campaign summary layout.
+- Notes: Allocation deletion and listing APIs integrated. Allocation amount is restricted from being modified after creation.
 
 ### 5. Live Dashboard
 - [x] Backend: DashboardService added and DashboardController now thin/service-backed.

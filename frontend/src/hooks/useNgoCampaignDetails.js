@@ -224,6 +224,81 @@ export const useNgoCampaignDetails = (campaignId) => {
         }
     };
 
+    const [isImagesModalOpen, setIsImagesModalOpen] = useState(false);
+    const [images, setSelectedImages] = useState([]);
+    const [useDefaultImage, setUseDefaultImage] = useState(false);
+    const [isSavingImages, setIsSavingImages] = useState(false);
+    const [imagesErrors, setImagesErrors] = useState({});
+
+    const openImagesModal = () => {
+        setSelectedImages([]);
+        setUseDefaultImage(false);
+        setImagesErrors({});
+        setIsImagesModalOpen(true);
+    };
+
+    const closeImagesModal = () => {
+        setIsImagesModalOpen(false);
+        setSelectedImages([]);
+        setUseDefaultImage(false);
+        setImagesErrors({});
+    };
+
+    const setImages = (imagesArray) => {
+        setSelectedImages(imagesArray);
+        setUseDefaultImage(false);
+        if (imagesErrors.images) {
+            setImagesErrors((prev) => ({ ...prev, images: null }));
+        }
+    };
+
+    const toggleUseDefaultImage = (val) => {
+        setUseDefaultImage(val);
+        if (val) {
+            setSelectedImages([]);
+        }
+        if (imagesErrors.images) {
+            setImagesErrors((prev) => ({ ...prev, images: null }));
+        }
+    };
+
+    const handleImagesSubmit = async (event) => {
+        event.preventDefault();
+        if (!campaignId) return;
+
+        if (!useDefaultImage && images.length === 0) {
+            setImagesErrors({ images: ['Please upload at least one image or use the default image.'] });
+            return;
+        }
+
+        setIsSavingImages(true);
+        setImagesErrors({});
+
+        const data = new FormData();
+        if (useDefaultImage) {
+            data.append('use_default_image', '1');
+        } else {
+            images.forEach((img) => {
+                data.append('images[]', img);
+            });
+        }
+
+        try {
+            await updateCampaign(campaignId, data);
+            await loadCampaign();
+            showToast('Campaign images updated successfully.');
+            closeImagesModal();
+        } catch (err) {
+            if (err?.response?.data?.errors) {
+                setImagesErrors(err.response.data.errors);
+            } else {
+                setImagesErrors({ global: 'Failed to update campaign images. Please try again.' });
+            }
+        } finally {
+            setIsSavingImages(false);
+        }
+    };
+
     return {
         campaign,
         isLoading,
@@ -247,5 +322,15 @@ export const useNgoCampaignDetails = (campaignId) => {
         closeAllocationModal,
         handleAllocationChange,
         handleAllocationSubmit,
+        isImagesModalOpen,
+        images,
+        useDefaultImage,
+        isSavingImages,
+        imagesErrors,
+        openImagesModal,
+        closeImagesModal,
+        setImages,
+        toggleUseDefaultImage,
+        handleImagesSubmit,
     };
 };

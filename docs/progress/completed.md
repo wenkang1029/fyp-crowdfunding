@@ -34,9 +34,9 @@
 
 ## Controllers
 - AdminUserController: index [done], destroy [done], store [done] (service-backed user creation), updateStatus [done] (suspend/activate user)
-- AllocationController: store [done], update [done] (service-backed)
+- AllocationController: store [done], update [done] (service-backed; rejects attempts to update allocation amounts after creation)
 - AuthController: register [done], login [done], logout [done], user [done] (service-backed, public registration restricted to donor/ngo and validates NGO details)
-- CampaignController: index [done], store [done], show [done], showNgo [done], update [done], destroy [done] (admin support), donate [done] (service-backed, NGO status toggle support, start/end dates support, blocks suspended organizers)
+- CampaignController: index [done], store [done], show [done], showNgo [done], update [done] (service-backed; supports updating default image or up to 5 custom campaign images), destroy [done] (admin support), donate [done] (service-backed, NGO status toggle support, start/end dates support, blocks suspended organizers)
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
@@ -70,7 +70,7 @@
 - CreateCampaign.jsx: NGO campaign creation form supporting up to 5 image uploads and "Use Default Image" testing helper [done]
 - UserProfile.jsx: user profile settings page showing active account status badges (Active/Suspended, Verified NGO / Pending Verification, Tax Exempt) and document download links, plus "Back to Dashboard" navigation link for donors [done]
 - NgoCampaigns.jsx: NGO campaigns list with status controls, payout modal (fixed typing freeze bug), and view action [done]
-- NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements, plus campaign/allocations editing [done]
+- NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements, campaign/allocations editing, interactive image slideshow carousel with Pencil edit icon, restricted allocation amount editing, and Withdrawn metrics in Funding Progress [done]
 - DonorDashboard.jsx: donor impact stats, donation history, receipt download action [done]
 - NgoDashboard.jsx: NGO overview metrics and charts, updated to use RM currency and full-row width layout [done]
 - NgoDisbursements.jsx: NGO disbursement dashboard and request modal [done]

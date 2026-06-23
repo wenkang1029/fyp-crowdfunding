@@ -154,6 +154,9 @@ class CampaignController extends Controller
                 'description' => 'sometimes|required|string',
                 'target_amount' => 'sometimes|required|numeric|min:1',
                 'status' => 'sometimes|required|in:active,completed',
+                'use_default_image' => 'sometimes',
+                'images' => 'sometimes|array|min:1|max:5',
+                'images.*' => 'image|mimes:jpeg,png,jpg,gif,webp|max:5120',
             ]);
 
             if ($request->has('status')) {
@@ -179,6 +182,29 @@ class CampaignController extends Controller
                     'message' => 'Campaign status updated successfully',
                 ]);
             }
+
+            $imagePaths = [];
+            $hasNewImages = false;
+
+            if ($request->has('use_default_image') && ($request->input('use_default_image') === '1' || $request->input('use_default_image') === 'true' || $request->input('use_default_image') === true)) {
+                $imagePaths[] = '/images/default-campaign.jpg';
+                $hasNewImages = true;
+            } else if ($request->hasFile('images')) {
+                foreach ($request->file('images') as $file) {
+                    $path = $file->store('campaigns', 'public');
+                    $imagePaths[] = '/storage/' . $path;
+                }
+                $hasNewImages = true;
+            }
+
+            if ($hasNewImages) {
+                $validatedData['image_paths'] = $imagePaths;
+                $validatedData['image_path'] = !empty($imagePaths) ? $imagePaths[0] : null;
+            }
+
+            // Remove internal validation parameters before saving
+            unset($validatedData['use_default_image']);
+            unset($validatedData['images']);
 
             $updatedCampaign = $this->campaignService->updateForNgo($campaign, $validatedData);
 

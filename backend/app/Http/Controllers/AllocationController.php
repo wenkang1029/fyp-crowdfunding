@@ -78,9 +78,16 @@ class AllocationController extends Controller
         $allocation = Allocation::where('campaign_id', $campaign_id)->findOrFail($id);
 
         $validated = $request->validate([
-            'purpose' => 'sometimes|string|max:255',
+            'purpose' => 'required|string|max:255',
             'amount' => 'sometimes|numeric|min:1',
         ]);
+
+        if (isset($validated['amount']) && (float) $validated['amount'] !== (float) $allocation->amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You cannot modify the amount of an allocation after creation. You can only edit the purpose.',
+            ], 422);
+        }
 
         try {
             $updatedAllocation = $this->allocationService->update($campaign, $allocation, $validated);

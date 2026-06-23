@@ -12,6 +12,9 @@ import { ArrowLeft, ListOrdered, Wallet, HandHeart, PieChart, Pencil, FileText }
 import { downloadCampaignReport } from '../services/campaignService';
 import DonorProfileView from '../components/ui/DonorProfileView';
 
+const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
+
 const NgoCampaignDetails = () => {
     const { id } = useParams();
     const {
@@ -36,8 +39,20 @@ const NgoCampaignDetails = () => {
         closeAllocationModal,
         handleAllocationChange,
         handleAllocationSubmit,
+        // Image edit destructs
+        isImagesModalOpen,
+        images,
+        useDefaultImage,
+        isSavingImages,
+        imagesErrors,
+        openImagesModal,
+        closeImagesModal,
+        setImages,
+        toggleUseDefaultImage,
+        handleImagesSubmit,
     } = useNgoCampaignDetails(id);
 
+    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
     const [isDownloadingReport, setIsDownloadingReport] = React.useState(false);
     const [reportError, setReportError] = React.useState('');
     const [donorModal, setDonorModal] = React.useState({ open: false, donorId: null });
@@ -184,104 +199,218 @@ const NgoCampaignDetails = () => {
                 )}
 
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-                    <Card className="border border-gray-100 lg:col-span-3">
-                        <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                            <div className="flex items-center gap-2 text-sm font-semibold text-aidwise-text">
-                                <Wallet size={17} className="text-aidwise-blue" />
-                                Funding Progress
-                            </div>
-                            <div className="grid grid-cols-3 gap-3 text-right sm:min-w-[420px]">
-                                <div>
-                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Raised</div>
-                                    <div className="text-sm font-bold text-aidwise-text">{formatRM(raisedAmount)}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Available</div>
-                                    <div className="text-sm font-bold text-emerald-600">{formatRM(availableAmount)}</div>
-                                </div>
-                                <div>
-                                    <div className="text-[11px] font-semibold uppercase text-gray-400">Target</div>
-                                    <div className="text-sm font-bold text-aidwise-text">{formatRM(campaign.target_amount)}</div>
-                                </div>
-                            </div>
-                        </div>
+                    <div className="lg:col-span-3 space-y-6">
+                        {/* Slideshow Card */}
+                        {(() => {
+                            const images = Array.isArray(campaign.image_paths) && campaign.image_paths.length > 0
+                                ? campaign.image_paths
+                                : campaign.image_path
+                                    ? [campaign.image_path]
+                                    : [];
 
-                        <div className="mt-6 space-y-5">
-                            <div>
-                                <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 text-sm">
-                                    <span className="font-semibold text-aidwise-text">Total Progress</span>
-                                    <span className="text-gray-500">{formatRM(raisedAmount)}</span>
-                                    <span className="w-12 text-right font-semibold text-aidwise-blue">{Math.round(raisedPercent)}%</span>
+                            if (images.length === 0) {
+                                return (
+                                    <div className="w-full h-80 bg-gradient-to-br from-aidwise-blue/10 to-aidwise-blue/5 rounded-3xl border border-gray-150 flex items-center justify-center relative shadow-sm overflow-hidden bg-white">
+                                        <span className="text-gray-400 font-medium">No Image Provided</span>
+                                        <button
+                                            type="button"
+                                            onClick={openImagesModal}
+                                            className="absolute top-4 right-4 z-10 p-2.5 bg-white hover:bg-gray-100 text-aidwise-text rounded-full shadow-md hover:scale-105 transition-all focus:outline-none border border-gray-100"
+                                            title="Edit Images"
+                                        >
+                                            <Pencil size={15} />
+                                        </button>
+                                    </div>
+                                );
+                            }
+
+                            if (images.length === 1) {
+                                return (
+                                    <div className="w-full h-96 rounded-3xl overflow-hidden border border-gray-100 bg-gray-50 relative shadow-sm">
+                                        <img 
+                                            src={images[0].startsWith('http') ? images[0] : `${backendUrl}${images[0]}`} 
+                                            alt={campaign.title} 
+                                            className="w-full h-full object-cover"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={openImagesModal}
+                                            className="absolute top-4 right-4 z-10 p-2.5 bg-white/95 hover:bg-white text-aidwise-text rounded-full shadow-md hover:scale-105 transition-all focus:outline-none border border-gray-100"
+                                            title="Edit Images"
+                                        >
+                                            <Pencil size={15} />
+                                        </button>
+                                    </div>
+                                );
+                            }
+
+                            return (
+                                <div className="w-full h-96 rounded-3xl overflow-hidden border border-gray-100 bg-gray-50 relative group shadow-sm">
+                                    {/* Current Image */}
+                                    <img 
+                                        src={images[currentImageIndex].startsWith('http') ? images[currentImageIndex] : `${backendUrl}${images[currentImageIndex]}`} 
+                                        alt={`${campaign.title} - ${currentImageIndex + 1}`} 
+                                        className="w-full h-full object-cover transition-all duration-300"
+                                    />
+
+                                    {/* Edit Images Button */}
+                                    <button
+                                        type="button"
+                                        onClick={openImagesModal}
+                                        className="absolute top-4 right-4 z-10 p-2.5 bg-white/95 hover:bg-white text-aidwise-text rounded-full shadow-md hover:scale-105 transition-all focus:outline-none border border-gray-100"
+                                        title="Edit Images"
+                                    >
+                                        <Pencil size={15} />
+                                    </button>
+
+                                    {/* Prev Navigation Arrow */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1))}
+                                        className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-aidwise-text flex items-center justify-center shadow-md hover:scale-105 transition-all focus:outline-none opacity-0 group-hover:opacity-100 duration-300 font-bold text-xl select-none"
+                                        title="Previous Image"
+                                    >
+                                        ‹
+                                    </button>
+
+                                    {/* Next Navigation Arrow */}
+                                    <button 
+                                        type="button"
+                                        onClick={() => setCurrentImageIndex((prev) => (prev === images.length - 1 ? 0 : prev + 1))}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-white/90 hover:bg-white text-aidwise-text flex items-center justify-center shadow-md hover:scale-105 transition-all focus:outline-none opacity-0 group-hover:opacity-100 duration-300 font-bold text-xl select-none"
+                                        title="Next Image"
+                                    >
+                                        ›
+                                    </button>
+
+                                    {/* Indicators (Dots) */}
+                                    <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-1.5 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
+                                        {images.map((_, i) => (
+                                            <button
+                                                type="button"
+                                                key={i}
+                                                onClick={() => setCurrentImageIndex(i)}
+                                                className={`w-2 h-2 rounded-full transition-all duration-300 ${
+                                                    i === currentImageIndex ? 'bg-white scale-125' : 'bg-white/50 hover:bg-white/80'
+                                                }`}
+                                            />
+                                        ))}
+                                    </div>
+
+                                    {/* Image Counter Badge */}
+                                    <div className="absolute top-4 left-4 px-2.5 py-1 rounded-lg bg-black/40 backdrop-blur-sm text-white text-[10px] font-bold tracking-wider">
+                                        {currentImageIndex + 1} / {images.length}
+                                    </div>
                                 </div>
-                                <div className="h-4 rounded-full bg-gray-100 overflow-hidden">
-                                    <div className="h-full flex">
-                                        <div className="h-full bg-emerald-500" style={{ width: `${disbursedPercent}%` }}></div>
-                                        <div className="h-full bg-aidwise-blue" style={{ width: `${Math.max(raisedPercent - disbursedPercent, 0)}%` }}></div>
+                            );
+                        })()}
+
+                        {/* Funding Progress Card */}
+                        <Card className="border border-gray-100">
+                            <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                                <div className="flex items-center gap-2 text-sm font-semibold text-aidwise-text pt-1">
+                                    <Wallet size={17} className="text-aidwise-blue" />
+                                    Funding Progress
+                                </div>
+                                <div className="grid grid-cols-4 gap-3 text-right sm:min-w-[550px]">
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Raised</div>
+                                        <div className="text-sm font-bold text-aidwise-text">{formatRM(raisedAmount)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Withdrawn</div>
+                                        <div className="text-sm font-bold text-amber-600">{formatRM(disbursedAmount)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Available</div>
+                                        <div className="text-sm font-bold text-emerald-600">{formatRM(availableAmount)}</div>
+                                    </div>
+                                    <div>
+                                        <div className="text-[11px] font-semibold uppercase text-gray-400">Target</div>
+                                        <div className="text-sm font-bold text-aidwise-text">{formatRM(campaign.target_amount)}</div>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-3">
-                                {allocationProgressItems.length === 0 ? (
-                                    <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-400">
-                                        No allocations recorded.
+                            <div className="mt-6 space-y-5">
+                                <div>
+                                    <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto] items-center gap-3 text-sm">
+                                        <span className="font-semibold text-aidwise-text">Total Progress</span>
+                                        <span className="text-gray-500">{formatRM(raisedAmount)}</span>
+                                        <span className="w-12 text-right font-semibold text-aidwise-blue">{Math.round(raisedPercent)}%</span>
                                     </div>
-                                ) : (
-                                    allocationProgressItems.map((allocation) => (
-                                        <div key={allocation.id}>
-                                            <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 text-sm">
-                                                <span className="truncate font-medium text-aidwise-text" title={allocation.purpose}>
-                                                    {allocation.purpose}
-                                                </span>
-                                                <span className="hidden text-gray-500 sm:inline">
-                                                    {formatRM(allocation.allocationRaised)} / {formatRM(allocation.allocationTarget)}
-                                                </span>
-                                                <span className="w-12 text-right font-semibold text-aidwise-blue">
-                                                    {Math.round(allocation.allocationPercent)}%
-                                                </span>
-                                                <Button
-                                                    variant="secondary"
-                                                    className="px-2.5 py-2 text-xs flex items-center shadow-none"
-                                                    onClick={() => openAllocationEditModal(allocation)}
-                                                    title="Edit allocation"
-                                                    aria-label="Edit allocation"
-                                                >
-                                                    <Pencil size={13} />
-                                                </Button>
-                                            </div>
-                                            <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
-                                                <div className="h-full bg-aidwise-blue" style={{ width: `${allocation.allocationPercent}%` }}></div>
-                                            </div>
+                                    <div className="h-4 rounded-full bg-gray-100 overflow-hidden">
+                                        <div className="h-full flex">
+                                            <div className="h-full bg-emerald-500" style={{ width: `${disbursedPercent}%` }}></div>
+                                            <div className="h-full bg-aidwise-blue" style={{ width: `${Math.max(raisedPercent - disbursedPercent, 0)}%` }}></div>
                                         </div>
-                                    ))
-                                )}
-                            </div>
-                        </div>
-                    </Card>
+                                    </div>
+                                </div>
 
-                    <Card className="border border-gray-100">
-                        <div className="text-sm text-gray-500">Activity summary</div>
-                        <div className="mt-4 space-y-3 text-sm text-gray-600">
-                            <div className="flex items-center justify-between">
-                                <span className="inline-flex items-center gap-2">
-                                    <HandHeart size={14} className="text-aidwise-blue" /> Donations
-                                </span>
-                                <span className="font-semibold text-aidwise-text">{donations.length}</span>
+                                <div className="space-y-3">
+                                    {allocationProgressItems.length === 0 ? (
+                                        <div className="rounded-xl border border-dashed border-gray-200 bg-gray-50 px-4 py-8 text-center text-sm text-gray-400">
+                                            No allocations recorded.
+                                        </div>
+                                    ) : (
+                                        allocationProgressItems.map((allocation) => (
+                                            <div key={allocation.id}>
+                                                <div className="mb-2 grid grid-cols-[minmax(0,1fr)_auto_auto_auto] items-center gap-3 text-sm">
+                                                    <span className="truncate font-medium text-aidwise-text" title={allocation.purpose}>
+                                                        {allocation.purpose}
+                                                    </span>
+                                                    <span className="hidden text-gray-500 sm:inline">
+                                                        {formatRM(allocation.allocationRaised)} / {formatRM(allocation.allocationTarget)}
+                                                    </span>
+                                                    <span className="w-12 text-right font-semibold text-aidwise-blue">
+                                                        {Math.round(allocation.allocationPercent)}%
+                                                    </span>
+                                                    <Button
+                                                        variant="secondary"
+                                                        className="px-2.5 py-2 text-xs flex items-center shadow-none"
+                                                        onClick={() => openAllocationEditModal(allocation)}
+                                                        title="Edit allocation"
+                                                        aria-label="Edit allocation"
+                                                    >
+                                                        <Pencil size={13} />
+                                                    </Button>
+                                                </div>
+                                                <div className="h-3 rounded-full bg-gray-100 overflow-hidden">
+                                                    <div className="h-full bg-aidwise-blue" style={{ width: `${allocation.allocationPercent}%` }}></div>
+                                                </div>
+                                            </div>
+                                        ))
+                                    )}
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="inline-flex items-center gap-2">
-                                    <PieChart size={14} className="text-aidwise-blue" /> Allocations
-                                </span>
-                                <span className="font-semibold text-aidwise-text">{allocations.length}</span>
+                        </Card>
+                    </div>
+
+                    <div className="space-y-6">
+                        <Card className="border border-gray-100">
+                            <div className="text-sm text-gray-500">Activity summary</div>
+                            <div className="mt-4 space-y-3 text-sm text-gray-600">
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-2">
+                                        <HandHeart size={14} className="text-aidwise-blue" /> Donations
+                                    </span>
+                                    <span className="font-semibold text-aidwise-text">{donations.length}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-2">
+                                        <PieChart size={14} className="text-aidwise-blue" /> Allocations
+                                    </span>
+                                    <span className="font-semibold text-aidwise-text">{allocations.length}</span>
+                                </div>
+                                <div className="flex items-center justify-between">
+                                    <span className="inline-flex items-center gap-2">
+                                        <ListOrdered size={14} className="text-aidwise-blue" /> Payouts
+                                    </span>
+                                    <span className="font-semibold text-aidwise-text">{disbursements.length}</span>
+                                </div>
                             </div>
-                            <div className="flex items-center justify-between">
-                                <span className="inline-flex items-center gap-2">
-                                    <ListOrdered size={14} className="text-aidwise-blue" /> Payouts
-                                </span>
-                                <span className="font-semibold text-aidwise-text">{disbursements.length}</span>
-                            </div>
-                        </div>
-                    </Card>
+                        </Card>
+                    </div>
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 mb-8">
@@ -448,10 +577,75 @@ const NgoCampaignDetails = () => {
                         min="1"
                         step="0.01"
                         required
+                        disabled={!!activeAllocation}
                         error={resolveError(allocationErrors.amount)}
                     />
+                    {activeAllocation && (
+                        <p className="text-xs text-gray-400 mt-1 mb-2">
+                            The allocation amount is locked and cannot be changed after creation.
+                        </p>
+                    )}
                     <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSavingAllocation}>
                         {isSavingAllocation ? 'Saving...' : activeAllocation ? 'Update Allocation' : 'Create Allocation'}
+                    </Button>
+                </form>
+            </Modal>
+
+            <Modal isOpen={isImagesModalOpen} onClose={closeImagesModal} title="Edit Campaign Images">
+                <form onSubmit={handleImagesSubmit} className="space-y-4">
+                    {imagesErrors.global && (
+                        <div className="mb-4 p-3 bg-red-50 text-red-600 text-sm rounded-xl border border-red-100">
+                            {imagesErrors.global}
+                        </div>
+                    )}
+
+                    <div className="flex items-center gap-2 p-3 bg-gray-50 border border-gray-150 rounded-xl">
+                         <input 
+                             type="checkbox"
+                             id="useDefaultImageUpdate"
+                             checked={useDefaultImage}
+                             onChange={(e) => toggleUseDefaultImage(e.target.checked)}
+                             className="h-4 w-4 text-aidwise-blue focus:ring-aidwise-blue border-gray-300 rounded"
+                         />
+                         <label htmlFor="useDefaultImageUpdate" className="text-sm font-semibold text-aidwise-text cursor-pointer select-none">
+                             Use Default Campaign Image
+                         </label>
+                    </div>
+
+                    {!useDefaultImage && (
+                        <div className="space-y-2">
+                            <label className="block text-xs font-semibold uppercase tracking-wider text-gray-500">
+                                Upload New Images (Max 5)
+                            </label>
+                            <input 
+                                type="file"
+                                multiple
+                                accept="image/*"
+                                onChange={(e) => {
+                                    const filesArray = Array.from(e.target.files);
+                                    if (filesArray.length > 5) {
+                                        alert("You can select up to 5 images.");
+                                        return;
+                                    }
+                                    setImages(filesArray);
+                                }}
+                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-aidwise-blue/5 file:text-aidwise-blue hover:file:bg-aidwise-blue/10 transition-all border border-gray-200 rounded-xl p-2 bg-white"
+                            />
+                            {images.length > 0 && (
+                                <div className="text-xs text-gray-500 pt-1">
+                                    Selected: {images.map(f => f.name).join(', ')}
+                                </div>
+                            )}
+                            {imagesErrors.images && (
+                                <div className="text-xs text-red-500 font-medium">
+                                    {resolveError(imagesErrors.images)}
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSavingImages}>
+                        {isSavingImages ? 'Saving...' : 'Update Images'}
                     </Button>
                 </form>
             </Modal>
