@@ -95,6 +95,9 @@ Route::middleware(['auth:sanctum', 'active'])->group(function () {
     Route::patch('/campaigns/{campaign_id}/allocations/{id}', [\App\Http\Controllers\AllocationController::class, 'update']);
     Route::post('/campaigns/{campaign_id}/disbursements', [\App\Http\Controllers\DisbursementController::class, 'store']);
     Route::post('/ngo/disbursements/{id}/proof', [\App\Http\Controllers\DisbursementController::class, 'uploadProof']);
+    Route::post('/ngo/disbursements/{id}/proof/add', [\App\Http\Controllers\DisbursementController::class, 'addProof']);
+    Route::post('/ngo/disbursements/{id}/proof/delete', [\App\Http\Controllers\DisbursementController::class, 'deleteProof']);
+    Route::post('/ngo/disbursements/{id}/proof/edit', [\App\Http\Controllers\DisbursementController::class, 'editProof']);
 
     // Dashboard Routes
     Route::get('/dashboard/ngo', [\App\Http\Controllers\DashboardController::class, 'ngoDashboard']);

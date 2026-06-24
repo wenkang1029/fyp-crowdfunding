@@ -7,8 +7,16 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
 import { useNgoDisbursements } from '../hooks/useNgoDisbursements';
-import { uploadDisbursementProof } from '../services/disbursementService';
-import { Wallet, ArrowDownRight, ArrowUpRight, ListOrdered, Plus, Upload, FileText, Clock } from 'lucide-react';
+import { 
+    uploadDisbursementProof,
+    addDisbursementProof,
+    deleteDisbursementProof,
+    editDisbursementProof 
+} from '../services/disbursementService';
+import { 
+    Wallet, ArrowDownRight, ArrowUpRight, ListOrdered, Plus, Upload, FileText, Clock, 
+    Trash2, Edit, PlusCircle, ChevronLeft, ChevronRight 
+} from 'lucide-react';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
@@ -39,7 +47,73 @@ const NgoDisbursements = () => {
     const [proofFiles, setProofFiles] = React.useState([]);
     const [isUploadingProof, setIsUploadingProof] = React.useState(false);
     const [proofFormError, setProofFormError] = React.useState('');
-    const [activeNgoProofImages, setActiveNgoProofImages] = React.useState(null);
+    const [activeDisbursement, setActiveDisbursement] = React.useState(null);
+    const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
+    const [isManagingProof, setIsManagingProof] = React.useState(false);
+    const [manageProofError, setManageProofError] = React.useState('');
+
+    const handleAddProofImage = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setIsManagingProof(true);
+        setManageProofError('');
+        try {
+            const payload = new FormData();
+            payload.append('proof_file', file);
+            const response = await addDisbursementProof(activeDisbursement.id, payload);
+            await fetchDisbursementData();
+            const updatedDisbursement = response.data || response;
+            setActiveDisbursement(updatedDisbursement);
+            setCurrentImageIndex((updatedDisbursement.proof_images || []).length - 1);
+        } catch (err) {
+            setManageProofError(err.response?.data?.message || 'Failed to add image.');
+        } finally {
+            setIsManagingProof(false);
+            e.target.value = '';
+        }
+    };
+
+    const handleDeleteProofImage = async (imagePath) => {
+        if (!window.confirm('Are you sure you want to delete this proof image?')) return;
+        setIsManagingProof(true);
+        setManageProofError('');
+        try {
+            const response = await deleteDisbursementProof(activeDisbursement.id, { image_path: imagePath });
+            await fetchDisbursementData();
+            const updatedDisbursement = response.data || response;
+            
+            const newImages = updatedDisbursement.proof_images || [];
+            if (newImages.length === 0) {
+                setActiveDisbursement(null);
+            } else {
+                setActiveDisbursement(updatedDisbursement);
+                setCurrentImageIndex((prev) => Math.min(prev, newImages.length - 1));
+            }
+        } catch (err) {
+            setManageProofError(err.response?.data?.message || 'Failed to delete image.');
+        } finally {
+            setIsManagingProof(false);
+        }
+    };
+
+    const handleEditProofImage = async (oldImagePath, file) => {
+        if (!file) return;
+        setIsManagingProof(true);
+        setManageProofError('');
+        try {
+            const payload = new FormData();
+            payload.append('old_image_path', oldImagePath);
+            payload.append('proof_file', file);
+            const response = await editDisbursementProof(activeDisbursement.id, payload);
+            await fetchDisbursementData();
+            const updatedDisbursement = response.data || response;
+            setActiveDisbursement(updatedDisbursement);
+        } catch (err) {
+            setManageProofError(err.response?.data?.message || 'Failed to replace image.');
+        } finally {
+            setIsManagingProof(false);
+        }
+    };
 
     const handleOpenProofModal = (id) => {
         setUploadingDisbursementId(id);
@@ -194,7 +268,11 @@ const NgoDisbursements = () => {
                                                             ) : (
                                                                 <button
                                                                     type="button"
-                                                                    onClick={() => setActiveNgoProofImages(activity.proof_images)}
+                                                                    onClick={() => {
+                                                                        setActiveDisbursement(activity);
+                                                                        setCurrentImageIndex(0);
+                                                                        setManageProofError('');
+                                                                    }}
                                                                     className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-600 font-extrabold text-xs px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition-all shadow-apple-xs cursor-pointer"
                                                                     title="Click to View Uploaded Proof Images"
                                                                 >
@@ -371,38 +449,129 @@ const NgoDisbursements = () => {
 
             {/* View Payout Proof Images Modal */}
             <Modal 
-                isOpen={activeNgoProofImages !== null} 
-                onClose={() => setActiveNgoProofImages(null)} 
+                isOpen={activeDisbursement !== null} 
+                onClose={() => setActiveDisbursement(null)} 
                 title="Uploaded Payout Proof Images"
                 size="lg"
             >
-                <div className="space-y-4">
+                <div className="space-y-5">
                     <p className="text-xs text-gray-500 font-semibold leading-relaxed">
                         Here are the real-world proof photos you uploaded for this verified payout. Donors can view these photos to track their impact.
                     </p>
-                    {activeNgoProofImages && activeNgoProofImages.length === 0 ? (
-                        <div className="text-center py-6 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-xs text-gray-400 font-semibold">
-                            No proof images uploaded.
-                        </div>
-                    ) : (
-                        <div className="grid grid-cols-3 gap-3">
-                            {activeNgoProofImages?.map((path, idx) => (
-                                <a 
-                                    key={idx} 
-                                    href={path.startsWith('http') ? path : `${backendUrl}${path}`} 
-                                    target="_blank" 
-                                    rel="noopener noreferrer" 
-                                    className="aspect-video rounded-xl overflow-hidden border border-gray-200 shadow-apple-sm relative group hover:border-aidwise-blue transition-all"
-                                >
-                                    <img 
-                                        src={path.startsWith('http') ? path : `${backendUrl}${path}`} 
-                                        alt={`Proof Photo ${idx + 1}`} 
-                                        className="w-full h-full object-cover group-hover:scale-105 transition-all animate-in fade-in duration-200"
-                                    />
-                                </a>
-                            ))}
+                    
+                    {manageProofError && (
+                        <div className="p-3 bg-red-50 text-red-655 text-xs rounded-xl border border-red-100 font-bold animate-in fade-in">
+                            {manageProofError}
                         </div>
                     )}
+
+                    {activeDisbursement && (() => {
+                        const images = activeDisbursement.proof_images || [];
+                        const currentImagePath = images[currentImageIndex];
+                        
+                        return (
+                            <div className="space-y-4">
+                                {images.length === 0 ? (
+                                    <div className="text-center py-10 bg-gray-50 border border-dashed border-gray-200 rounded-2xl text-xs text-gray-400 font-semibold">
+                                        No proof images uploaded.
+                                    </div>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {/* Slideshow Container */}
+                                        <div className="bg-gray-950 rounded-2xl relative overflow-hidden h-80 flex items-center justify-center group shadow-apple-md">
+                                            <img 
+                                                src={currentImagePath.startsWith('http') ? currentImagePath : `${backendUrl}${currentImagePath}`} 
+                                                alt={`Proof Slide ${currentImageIndex + 1}`} 
+                                                className="max-h-full max-w-full object-contain mx-auto transition-all duration-300"
+                                            />
+                                            
+                                            {/* Previous Button */}
+                                            {currentImageIndex > 0 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCurrentImageIndex(prev => prev - 1)}
+                                                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
+                                                    title="Previous Image"
+                                                >
+                                                    <ChevronLeft size={20} />
+                                                </button>
+                                            )}
+                                            
+                                            {/* Next Button */}
+                                            {currentImageIndex < images.length - 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setCurrentImageIndex(prev => prev + 1)}
+                                                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/80 text-white p-2 rounded-full transition-all focus:outline-none focus:ring-2 focus:ring-aidwise-blue"
+                                                    title="Next Image"
+                                                >
+                                                    <ChevronRight size={20} />
+                                                </button>
+                                            )}
+                                            
+                                            {/* Slide Counter Overlay */}
+                                            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 bg-black/60 text-white text-[11px] font-bold px-3 py-1 rounded-full backdrop-blur-xs">
+                                                {currentImageIndex + 1} / {images.length}
+                                            </div>
+                                        </div>
+
+                                        {/* Slide Management Controls */}
+                                        <div className="flex items-center justify-between gap-3 bg-gray-50 p-3 rounded-xl border border-gray-100">
+                                            <span className="text-xs text-gray-500 font-bold">
+                                                Manage This Photo:
+                                            </span>
+                                            <div className="flex items-center gap-2">
+                                                {/* Edit / Replace Action */}
+                                                <label className="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-gray-50 border border-gray-200 text-gray-700 rounded-lg text-xs font-bold shadow-apple-xs transition-colors hover:text-aidwise-blue">
+                                                    <Edit size={13} />
+                                                    <span>Replace</span>
+                                                    <input 
+                                                        type="file" 
+                                                        accept="image/*" 
+                                                        className="hidden" 
+                                                        disabled={isManagingProof}
+                                                        onChange={(e) => {
+                                                            if (e.target.files?.[0]) {
+                                                                handleEditProofImage(currentImagePath, e.target.files[0]);
+                                                            }
+                                                        }} 
+                                                    />
+                                                </label>
+                                                
+                                                {/* Delete Action */}
+                                                <button
+                                                    type="button"
+                                                    disabled={isManagingProof}
+                                                    onClick={() => handleDeleteProofImage(currentImagePath)}
+                                                    className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 hover:bg-red-100 border border-red-150 text-red-650 rounded-lg text-xs font-bold shadow-apple-xs transition-colors disabled:opacity-50"
+                                                >
+                                                    <Trash2 size={13} />
+                                                    <span>Delete</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Add Proof Image Action */}
+                                {images.length < 3 && (
+                                    <div className="pt-2">
+                                        <label className="cursor-pointer inline-flex items-center gap-1.5 px-4 py-2.5 bg-emerald-50 hover:bg-emerald-100 border border-emerald-150 text-emerald-600 rounded-xl text-xs font-extrabold shadow-apple-xs transition-all w-full justify-center disabled:opacity-50">
+                                            <PlusCircle size={15} />
+                                            <span>Upload New Proof ({3 - images.length} remaining)</span>
+                                            <input 
+                                                type="file" 
+                                                accept="image/*" 
+                                                className="hidden" 
+                                                disabled={isManagingProof}
+                                                onChange={handleAddProofImage} 
+                                            />
+                                        </label>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
                 </div>
             </Modal>
         </DashboardLayout>

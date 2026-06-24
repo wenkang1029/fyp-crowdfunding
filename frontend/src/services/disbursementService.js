@@ -34,3 +34,20 @@ export const uploadDisbursementProof = async (disbursementId, payload) => {
     const response = await axiosInstance.post(`/ngo/disbursements/${disbursementId}/proof`, payload, { headers });
     return extractData(response);
 };
+
+export const addDisbursementProof = async (disbursementId, payload) => {
+    const headers = payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+    const response = await axiosInstance.post(`/ngo/disbursements/${disbursementId}/proof/add`, payload, { headers });
+    return extractData(response);
+};
+
+export const deleteDisbursementProof = async (disbursementId, payload) => {
+    const response = await axiosInstance.post(`/ngo/disbursements/${disbursementId}/proof/delete`, payload);
+    return extractData(response);
+};
+
+export const editDisbursementProof = async (disbursementId, payload) => {
+    const headers = payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+    const response = await axiosInstance.post(`/ngo/disbursements/${disbursementId}/proof/edit`, payload, { headers });
+    return extractData(response);
+};
