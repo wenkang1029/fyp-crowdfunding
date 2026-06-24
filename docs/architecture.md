@@ -197,10 +197,10 @@ User Interaction
 
 ---
 
-## Open Technical Decisions
+## Technical Decisions Status
 
 | Decision | Status | Notes |
 |---|---|---|
 | Firebase Cloud Messaging | ⏳ Deferred | Implement after core modules are complete |
-| Services layer (Laravel) | ⏳ Progressive | Create `app/Services/` files as each module is worked on |
-| hooks/ + services/ (React) | ⏳ Progressive | Create files as each module is worked on |
+| Services layer (Laravel) | ✅ Resolved | app/Services layer is fully implemented and active across all modules |
+| hooks/ + services/ (React) | ✅ Resolved | hooks/ and services/ folders are fully implemented and active across all modules |

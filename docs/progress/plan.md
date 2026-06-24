@@ -55,9 +55,11 @@ Last updated: 2026-06-23
 ### L3. Budget-to-Allocation Generator (Re-targeted L3)
 - [x] Backend: Implemented `generate` method in `AllocationController` and `generateAllocationsFromDocument` in `GeminiService` using Gemini 2.5 Flash to parse budget files.
 - [x] Frontend: Implemented `generateAllocations` service and built the AI Budget Document Upload and allocations preview UI directly inside Step 3 of the `CreateCampaign.jsx` wizard.
-## Open Decisions & Infrastructure Status
+## Infrastructure Status
 - Payment gateway: Stripe Payment Intents and Stripe Connect Express onboarding are fully implemented and verified.
 - Database migration: DigitalOcean Production Database Migration has been successfully executed and resolved.
 - Notifications delivery: Firebase Cloud Messaging is deferred.
-- Services layer structure: app/Services initialized and active across core modules.
-- React hooks/services folders: hooks/ and services/ initialized and active across core modules.
+
+## Closed Architectural Decisions
+- Services layer structure: app/Services layer is fully implemented and active, separating business logic from thin controllers.
+- React hooks/services folders: hooks/ and services/ structure is fully implemented and active, decoupling UI components from API and state side-effects.
