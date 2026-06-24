@@ -7,6 +7,7 @@ import Input from '../components/ui/Input';
 import Modal from '../components/ui/Modal';
 import Badge from '../components/ui/Badge';
 import { useNgoDisbursements } from '../hooks/useNgoDisbursements';
+import { uploadDisbursementProof } from '../services/disbursementService';
 import { Wallet, ArrowDownRight, ArrowUpRight, ListOrdered, Plus, Upload, FileText, Clock } from 'lucide-react';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
@@ -30,7 +31,65 @@ const NgoDisbursements = () => {
         closeModal,
         handleFieldChange,
         handleSubmitRequest,
+        fetchDisbursementData,
     } = useNgoDisbursements();
+
+    const [isProofModalOpen, setIsProofModalOpen] = React.useState(false);
+    const [uploadingDisbursementId, setUploadingDisbursementId] = React.useState(null);
+    const [proofFiles, setProofFiles] = React.useState([]);
+    const [isUploadingProof, setIsUploadingProof] = React.useState(false);
+    const [proofFormError, setProofFormError] = React.useState('');
+
+    const handleOpenProofModal = (id) => {
+        setUploadingDisbursementId(id);
+        setProofFiles([]);
+        setProofFormError('');
+        setIsProofModalOpen(true);
+    };
+
+    const handleCloseProofModal = () => {
+        setIsProofModalOpen(false);
+        setUploadingDisbursementId(null);
+        setProofFiles([]);
+        setProofFormError('');
+    };
+
+    const handleProofFileChange = (e) => {
+        const files = Array.from(e.target.files);
+        if (files.length > 3) {
+            setProofFormError('You can upload a maximum of 3 images.');
+            return;
+        }
+        setProofFiles(files);
+        setProofFormError('');
+    };
+
+    const handleUploadProofSubmit = async (e) => {
+        e.preventDefault();
+        if (proofFiles.length === 0) {
+            setProofFormError('Please select at least 1 image.');
+            return;
+        }
+        setIsUploadingProof(true);
+        setProofFormError('');
+
+        try {
+            const payload = new FormData();
+            proofFiles.forEach((file) => {
+                payload.append('proof_files[]', file);
+            });
+
+            await uploadDisbursementProof(uploadingDisbursementId, payload);
+            setIsProofModalOpen(false);
+            setUploadingDisbursementId(null);
+            setProofFiles([]);
+            await fetchDisbursementData();
+        } catch (err) {
+            setProofFormError(err.response?.data?.message || 'Failed to upload proof images.');
+        } finally {
+            setIsUploadingProof(false);
+        }
+    };
 
     if (isLoading) {
         return (
@@ -78,19 +137,20 @@ const NgoDisbursements = () => {
                         </div>
                         <div className="overflow-x-auto">
                             <table className="w-full text-left text-sm text-aidwise-text">
-                                <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-100">
+                                 <thead className="bg-gray-50 text-xs uppercase text-gray-500 font-semibold border-b border-gray-100">
                                     <tr>
                                         <th className="px-5 py-3">Date</th>
                                         <th className="px-5 py-3">Campaign</th>
                                         <th className="px-5 py-3">Purpose</th>
                                         <th className="px-5 py-3 text-right">Amount</th>
                                         <th className="px-5 py-3 text-center">Status</th>
+                                        <th className="px-5 py-3 text-right">Actions</th>
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-gray-100">
                                     {recent_activity.length === 0 ? (
                                         <tr>
-                                            <td colSpan="5" className="px-5 py-8 text-center text-gray-400 font-medium">No disbursements recorded yet.</td>
+                                            <td colSpan="6" className="px-5 py-8 text-center text-gray-400 font-medium">No disbursements recorded yet.</td>
                                         </tr>
                                     ) : (
                                         recent_activity.map((activity) => (
@@ -116,6 +176,27 @@ const NgoDisbursements = () => {
                                                 </td>
                                                 <td className="px-5 py-4 text-center">
                                                     <Badge status={activity.status || 'pending'} />
+                                                </td>
+                                                <td className="px-5 py-4 text-right">
+                                                    {activity.status === 'approved' && (
+                                                        <div className="flex items-center justify-end gap-2">
+                                                            {(!activity.proof_images || activity.proof_images.length === 0) ? (
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => handleOpenProofModal(activity.id)}
+                                                                    className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-600 font-extrabold text-xs px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition-all shadow-apple-xs"
+                                                                    title="Upload Activity Proof Photos"
+                                                                >
+                                                                    <Upload size={12} />
+                                                                    <span>Add Proof</span>
+                                                                </button>
+                                                            ) : (
+                                                                <span className="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg">
+                                                                    ✓ Proof Added ({activity.proof_images.length})
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                 </td>
                                             </tr>
                                         ))
@@ -236,6 +317,47 @@ const NgoDisbursements = () => {
 
                     <Button type="submit" variant="primary" className="w-full mt-4" disabled={isSubmitting}>
                         {isSubmitting ? 'Submitting Request...' : 'Submit Payout Request'}
+                    </Button>
+                </form>
+            </Modal>
+
+            {/* Upload Impact Proof Modal */}
+            <Modal isOpen={isProofModalOpen} onClose={handleCloseProofModal} title="Upload Field Impact Proof">
+                <form onSubmit={handleUploadProofSubmit} className="space-y-4">
+                    {proofFormError && (
+                        <div className="p-3 bg-red-50 text-red-650 text-xs rounded-xl border border-red-100 font-bold">
+                            {proofFormError}
+                        </div>
+                    )}
+                    
+                    <div>
+                        <label className="block mb-1.5 text-sm font-semibold text-aidwise-text">
+                            Select Impact Proof Images (Max 3)
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2 leading-relaxed">
+                            Upload photos of the goods distributed, volunteers in action, or activities proving the items reached the beneficiaries. Donors will see these photos directly.
+                        </p>
+                        <input 
+                            type="file" 
+                            accept="image/*"
+                            multiple
+                            onChange={handleProofFileChange}
+                            className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-50 file:text-aidwise-blue hover:file:bg-blue-100 border border-gray-200 rounded-xl p-1.5 bg-white focus:outline-none"
+                        />
+                        {proofFiles.length > 0 && (
+                            <div className="mt-3 space-y-1">
+                                <span className="text-xs font-bold text-aidwise-blue">Selected Files:</span>
+                                <ul className="list-disc pl-4 text-xs text-gray-600 font-semibold space-y-0.5">
+                                    {proofFiles.map((file, idx) => (
+                                        <li key={idx}>{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+
+                    <Button type="submit" variant="primary" className="w-full mt-4" disabled={isUploadingProof}>
+                        {isUploadingProof ? 'Uploading Proof...' : 'Submit Impact Proof'}
                     </Button>
                 </form>
             </Modal>

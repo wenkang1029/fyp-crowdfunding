@@ -9,6 +9,7 @@ import Modal from '../components/ui/Modal';
 import Navbar from '../components/layout/Navbar';
 import CheckoutModal from '../components/ui/CheckoutModal';
 import NgoProfileView from '../components/ui/NgoProfileView';
+import { FileText, X } from 'lucide-react';
 
 const apiBase = import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
 const backendUrl = apiBase.endsWith('/api') ? apiBase.slice(0, -4) : apiBase;
@@ -21,6 +22,8 @@ const CampaignDetails = () => {
     const [isNgoModalOpen, setIsNgoModalOpen] = useState(false);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [hasAgreedTerms, setHasAgreedTerms] = useState(false);
+    const [activeTab, setActiveTab] = useState('story');
+    const [activeLightboxImage, setActiveLightboxImage] = useState(null);
 
     const fetchCampaign = useCallback(async () => {
         try {
@@ -264,12 +267,163 @@ const CampaignDetails = () => {
                             );
                         })()}
 
-                        <div>
-                            <h2 className="text-2xl font-bold text-aidwise-text mb-4">About this campaign</h2>
-                            <p className="text-gray-600 leading-relaxed whitespace-pre-wrap text-lg">
-                                {campaign.description}
-                            </p>
+                        {/* Tab Navigation */}
+                        <div className="border-b border-gray-200">
+                            <nav className="flex gap-6" aria-label="Tabs">
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('story')}
+                                    className={`pb-4 text-sm font-bold border-b-2 transition-all focus:outline-none ${
+                                        activeTab === 'story'
+                                            ? 'border-aidwise-blue text-aidwise-blue'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    📖 Story
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setActiveTab('transparency')}
+                                    className={`pb-4 text-sm font-bold border-b-2 transition-all focus:outline-none flex items-center gap-1.5 ${
+                                        activeTab === 'transparency'
+                                            ? 'border-aidwise-blue text-aidwise-blue'
+                                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                    }`}
+                                >
+                                    🛡️ Transparency & Payouts
+                                    {disbursements.length > 0 && (
+                                        <span className="ml-1 px-1.5 py-0.5 bg-blue-50 text-aidwise-blue font-extrabold rounded-md text-[10px]">
+                                            {disbursements.length}
+                                        </span>
+                                    )}
+                                </button>
+                            </nav>
                         </div>
+
+                        {/* Tab Contents */}
+                        {activeTab === 'story' ? (
+                            <div className="animate-in fade-in duration-300">
+                                <h2 className="text-2xl font-bold text-aidwise-text mb-4">About this campaign</h2>
+                                <p className="text-gray-600 leading-relaxed whitespace-pre-wrap text-lg">
+                                    {campaign.description}
+                                </p>
+                            </div>
+                        ) : (() => {
+                            const campaignDisbursed = disbursedAmount;
+                            const campaignRaised = raised;
+                            const utilizationPercent = campaignRaised > 0 ? Math.min(Math.round((campaignDisbursed / campaignRaised) * 100), 100) : 0;
+                            const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+                            const formatDate = (dateString) => new Date(dateString).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+
+                            return (
+                                <div className="space-y-6 animate-in fade-in duration-300">
+                                    <div>
+                                        <h2 className="text-2xl font-bold text-aidwise-text mb-2">Escrow Release & Payout Verification</h2>
+                                        <p className="text-gray-500 text-sm leading-relaxed">
+                                            All donations are held in secure escrow. Payouts are only approved by the SJAM KMT board upon reviewing supplier invoices and real-world impact evidence.
+                                        </p>
+                                    </div>
+
+                                    {/* Utilization rate breakdown */}
+                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-gray-50 p-4 border border-gray-150 rounded-2xl">
+                                        <div className="space-y-1">
+                                            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">Fund Utilization Rate</span>
+                                            <div className="text-2xl font-black text-aidwise-text">
+                                                {utilizationPercent}% <span className="text-xs font-semibold text-gray-500">of raised funds used</span>
+                                            </div>
+                                        </div>
+                                        <div className="space-y-2">
+                                            <div className="w-full bg-gray-200 rounded-full h-2.5 overflow-hidden mt-2">
+                                                <div className="bg-emerald-500 h-full" style={{ width: `${utilizationPercent}%` }}></div>
+                                            </div>
+                                            <div className="flex justify-between text-[10px] text-gray-400 font-bold">
+                                                <span>USED: {formatRM(campaignDisbursed)}</span>
+                                                <span>ESCROW: {formatRM(campaignRaised - campaignDisbursed)}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Ledger */}
+                                    <div className="space-y-4">
+                                        <h3 className="text-sm font-bold text-aidwise-text uppercase tracking-wider text-gray-400">Verified Payout Ledger</h3>
+                                        {disbursements.length === 0 ? (
+                                            <div className="text-center py-10 bg-gray-50/50 border border-dashed border-gray-200 rounded-3xl text-sm text-gray-400 font-medium">
+                                                No disbursements recorded yet. All raised funds remain securely in the escrow account.
+                                            </div>
+                                        ) : (
+                                            <div className="space-y-4">
+                                                {disbursements.map((d) => {
+                                                    const proofImages = Array.isArray(d.proof_images) ? d.proof_images : [];
+                                                    return (
+                                                        <div key={d.id} className="p-5 bg-white border border-gray-150 rounded-2xl shadow-apple-xs hover:shadow-apple-sm transition-all flex flex-col gap-4">
+                                                            <div className="flex justify-between items-start flex-wrap gap-2">
+                                                                <div>
+                                                                    <span className="text-[10px] text-gray-400 font-bold">{formatDate(d.created_at)}</span>
+                                                                    <h4 className="text-base font-extrabold text-aidwise-text mt-0.5">{d.purpose}</h4>
+                                                                </div>
+                                                                <div className="text-right">
+                                                                    <span className="text-sm font-black text-emerald-600 block">{formatRM(d.amount)}</span>
+                                                                    <span className="inline-flex items-center gap-1.5 text-[9px] uppercase font-bold text-emerald-600 mt-1 bg-emerald-50 border border-emerald-100 px-2 py-0.5 rounded-lg">
+                                                                        ✓ Verified Payout
+                                                                    </span>
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            <p className="text-xs text-gray-600 leading-relaxed font-semibold">
+                                                                {d.details || 'Disbursement breakdown and logistics details.'}
+                                                            </p>
+
+                                                            {/* Physical Proof Gallery */}
+                                                            <div className="border-t border-gray-50 pt-3">
+                                                                <span className="text-[10px] font-bold uppercase tracking-wider text-gray-400 block mb-2">
+                                                                    Impact Proof Gallery:
+                                                                </span>
+                                                                {proofImages.length === 0 ? (
+                                                                    <div className="text-xs text-amber-600 font-semibold italic bg-amber-50 px-3 py-2 rounded-xl border border-amber-100/50">
+                                                                        ⚠️ Payout released to NGO. Verification photos of distribution on the ground are pending upload by the NGO.
+                                                                    </div>
+                                                                ) : (
+                                                                    <div className="flex items-center gap-3 flex-wrap">
+                                                                        {proofImages.map((path, idx) => (
+                                                                            <div 
+                                                                                key={idx} 
+                                                                                onClick={() => setActiveLightboxImage(path.startsWith('http') ? path : `${backendUrl}${path}`)}
+                                                                                className="h-16 w-24 rounded-xl overflow-hidden border border-gray-200 bg-gray-50 hover:scale-105 hover:border-aidwise-blue transition-all cursor-pointer shadow-apple-sm relative group"
+                                                                            >
+                                                                                <img 
+                                                                                    src={path.startsWith('http') ? path : `${backendUrl}${path}`} 
+                                                                                    alt={`Proof Photo ${idx + 1}`} 
+                                                                                    className="h-full w-full object-cover" 
+                                                                                />
+                                                                                <div className="absolute inset-0 bg-black/10 group-hover:bg-black/0 transition-colors"></div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+
+                                                            {d.receipt_path && (
+                                                                <div className="flex items-center gap-2 pt-2 border-t border-gray-50">
+                                                                    <a 
+                                                                        href={d.receipt_path.startsWith('http') ? d.receipt_path : `${backendUrl}${d.receipt_path}`} 
+                                                                        target="_blank" 
+                                                                        rel="noopener noreferrer" 
+                                                                        className="inline-flex items-center gap-1.5 text-xs font-bold text-aidwise-blue hover:underline bg-blue-50/50 px-2.5 py-1.5 rounded-lg border border-blue-100/50"
+                                                                    >
+                                                                        <FileText size={12} />
+                                                                        <span>View Official Receipt/Invoice</span>
+                                                                    </a>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    );
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            );
+                        })()}
 
                     </div>
 
@@ -646,6 +800,27 @@ const CampaignDetails = () => {
                 onClose={() => setIsNgoModalOpen(false)}
                 ngoId={campaign.user_id}
             />
+
+            {/* Lightbox Modal for Proof Images */}
+            {activeLightboxImage && (
+                <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[9999] flex items-center justify-center p-4 animate-in fade-in duration-200">
+                    <button 
+                        type="button"
+                        onClick={() => setActiveLightboxImage(null)}
+                        className="absolute top-4 right-4 text-white hover:text-gray-300 p-2 bg-white/10 hover:bg-white/20 rounded-full transition-all"
+                        title="Close Image"
+                    >
+                        <X size={20} />
+                    </button>
+                    <div className="max-w-full max-h-[85vh] rounded-2xl overflow-hidden shadow-2xl">
+                        <img 
+                            src={activeLightboxImage} 
+                            alt="Proof Large View" 
+                            className="object-contain max-w-full max-h-[85vh]"
+                        />
+                    </div>
+                </div>
+            )}
 
         </div>
     );

@@ -5,12 +5,16 @@ import StatCard from '../components/ui/StatCard';
 import Badge from '../components/ui/Badge';
 import { getDonations } from '../services/donationService';
 import { useDonationReceipt } from '../hooks/useDonationReceipt';
-import { Heart, History, Award } from 'lucide-react';
+import { Heart, History, Award, Search } from 'lucide-react';
+import DonorImpactModal from '../components/ui/DonorImpactModal';
 
 const DonorDashboard = () => {
     const [donations, setDonations] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [selectedDonation, setSelectedDonation] = useState(null);
+    const [isImpactModalOpen, setIsImpactModalOpen] = useState(false);
+    
     const {
         isDownloadingId,
         error: receiptError,
@@ -108,7 +112,7 @@ const DonorDashboard = () => {
                                     <th className="px-6 py-4">Sub-goal</th>
                                     <th className="px-6 py-4">Amount</th>
                                     <th className="px-6 py-4 text-right">Status</th>
-                                    <th className="px-6 py-4 text-right">Receipt</th>
+                                    <th className="px-6 py-4 text-right">Actions</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-gray-100">
@@ -137,24 +141,34 @@ const DonorDashboard = () => {
                                                 <Badge status={donation.status} />
                                             </td>
                                             <td className="px-6 py-4 text-right">
-                                                <button
-                                                    type="button"
-                                                    onClick={() => requestReceipt(donation.id)}
-                                                    disabled={isDownloadingId !== null}
-                                                    className="inline-flex items-center gap-1.5 text-aidwise-blue font-bold text-sm hover:text-blue-700 disabled:opacity-60 disabled:cursor-not-allowed transition-all"
-                                                >
-                                                    {isDownloadingId === donation.id ? (
-                                                        <>
-                                                            <svg className="animate-spin h-3.5 w-3.5 text-aidwise-blue" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                                <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                                                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                                            </svg>
-                                                            <span>Generating PDF...</span>
-                                                        </>
-                                                    ) : (
-                                                        'Download'
+                                                <div className="flex justify-end items-center gap-3">
+                                                    {donation.status === 'success' && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                setSelectedDonation(donation);
+                                                                setIsImpactModalOpen(true);
+                                                            }}
+                                                            className="inline-flex items-center gap-1 text-aidwise-blue font-bold text-xs hover:text-blue-705 bg-blue-50 border border-blue-100 px-2 py-1 rounded-lg hover:bg-blue-100 transition-all shadow-apple-xs"
+                                                            title="Track Fund Usage"
+                                                        >
+                                                            <Search size={12} />
+                                                            <span>Track Impact</span>
+                                                        </button>
                                                     )}
-                                                </button>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => requestReceipt(donation.id)}
+                                                        disabled={isDownloadingId !== null}
+                                                        className="inline-flex items-center gap-1 text-gray-550 hover:text-aidwise-blue font-bold text-xs border border-gray-200 px-2 py-1 rounded-lg bg-white hover:bg-gray-50 disabled:opacity-60 disabled:cursor-not-allowed transition-all shadow-apple-xs"
+                                                    >
+                                                        {isDownloadingId === donation.id ? (
+                                                            <span>Generating...</span>
+                                                        ) : (
+                                                            'Receipt'
+                                                        )}
+                                                    </button>
+                                                </div>
                                             </td>
                                         </tr>
                                     ))
@@ -164,6 +178,15 @@ const DonorDashboard = () => {
                     </div>
                 </Card>
             </main>
+
+            <DonorImpactModal 
+                isOpen={isImpactModalOpen} 
+                onClose={() => {
+                    setIsImpactModalOpen(false);
+                    setSelectedDonation(null);
+                }} 
+                donation={selectedDonation} 
+            />
         </div>
     );
 };

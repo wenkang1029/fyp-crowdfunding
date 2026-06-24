@@ -28,3 +28,9 @@ export const updateDisbursementStatus = async (disbursementId, payload) => {
     const response = await axiosInstance.patch(`/admin/disbursements/${disbursementId}/status`, payload);
     return extractData(response);
 };
+
+export const uploadDisbursementProof = async (disbursementId, payload) => {
+    const headers = payload instanceof FormData ? { 'Content-Type': 'multipart/form-data' } : {};
+    const response = await axiosInstance.post(`/ngo/disbursements/${disbursementId}/proof`, payload, { headers });
+    return extractData(response);
+};

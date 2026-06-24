@@ -115,7 +115,13 @@ class CampaignService
 
     public function getById(int $id): Campaign
     {
-        return Campaign::with(['user', 'allocations', 'disbursements'])->findOrFail($id);
+        return Campaign::with([
+            'user',
+            'allocations',
+            'disbursements' => function ($query) {
+                $query->where('status', 'approved')->orderBy('created_at', 'desc');
+            }
+        ])->findOrFail($id);
     }
 
     public function getNgoDetails(User $user, int $id): Campaign

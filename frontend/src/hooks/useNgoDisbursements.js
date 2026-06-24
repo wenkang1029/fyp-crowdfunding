@@ -133,5 +133,6 @@ export const useNgoDisbursements = () => {
         closeModal,
         handleFieldChange,
         handleSubmitRequest,
+        fetchDisbursementData,
     };
 };

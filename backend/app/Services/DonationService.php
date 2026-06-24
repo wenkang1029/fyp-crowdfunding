@@ -218,7 +218,13 @@ class DonationService
     public function listByRole(User $user)
     {
         if ($user->role === 'donor') {
-            return Donation::with(['campaign:id,title,status', 'allocation:id,purpose'])
+            return Donation::with([
+                'campaign:id,title,status,target_amount,current_amount',
+                'campaign.disbursements' => function ($query) {
+                    $query->where('status', 'approved')->orderBy('created_at', 'desc');
+                },
+                'allocation:id,purpose'
+            ])
                 ->where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();

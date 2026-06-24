@@ -120,4 +120,55 @@ class DisbursementController extends Controller
             ], $e->getStatusCode());
         }
     }
+
+    // Upload real-world proof photos for an approved payout (NGO only)
+    public function uploadProof(Request $request, $id)
+    {
+        if ($request->user()->role !== 'ngo') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Only NGOs can upload impact proof.',
+            ], 403);
+        }
+
+        $disbursement = Disbursement::findOrFail($id);
+        $campaign = $disbursement->campaign;
+
+        if (!$campaign || $campaign->user_id !== $request->user()->id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'You do not own this campaign.',
+            ], 403);
+        }
+
+        if ($disbursement->status !== 'approved') {
+            return response()->json([
+                'success' => false,
+                'message' => 'You can only upload proof for approved payouts.',
+            ], 400);
+        }
+
+        $request->validate([
+            'proof_files' => 'required|array|min:1|max:3',
+            'proof_files.*' => 'image|mimes:jpeg,png,jpg|max:5120',
+        ]);
+
+        $uploadedPaths = [];
+        if ($request->hasFile('proof_files')) {
+            foreach ($request->file('proof_files') as $file) {
+                $path = $file->store('proofs', 'public');
+                $uploadedPaths[] = '/storage/' . $path;
+            }
+        }
+
+        $disbursement->update([
+            'proof_images' => $uploadedPaths,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'data' => $disbursement,
+            'message' => 'Proof images uploaded successfully!',
+        ], 200);
+    }
 }
