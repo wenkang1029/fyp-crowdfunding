@@ -133,8 +133,14 @@
 	- useNotifications
 	- useAuth (existing in AuthContext.jsx)
 
+## LLM-Powered Modules (Phase 2)
+- L3 Budget-to-Allocation Generator:
+	- GeminiService: Connects to Gemini 2.5 Flash API via base64 encoding, sending PDF/Images with audit prompts and JSON Schema configuration to parse raw budget items.
+	- AllocationController@generate: Gated endpoint verifying file size/types and calling Gemini.
+	- CreateCampaign.jsx: Renders the step 3 upload UI, manages progress message cycles, and populates the allocations state on success.
+
 ## Missing — Not Started Yet
-- L3 Budget-to-Allocation Generator (AI Module)
+- None (All core features and re-targeted Phase 2 LLM modules are fully completed)
 
 ## Deferred to Future Scope
 - L1 Disbursement Approval Assistant with Quotation-Receipt Reconciliation (Moved to Future Scope)

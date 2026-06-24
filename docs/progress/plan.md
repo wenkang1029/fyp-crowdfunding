@@ -48,15 +48,13 @@ Last updated: 2026-06-23
 ## Phase 2 — LLM Modules
 
 ### L1. Disbursement Reconciliation
-- [x] Deferred (Moved to Future Scope / Out of Phase 2 Scope)
+- [!] Deferred (Moved to Future Scope / Out of Phase 2 Scope)
 
 ### L2. NGO Verification Pre-Check
-- [x] Deferred (Moved to Future Scope / Out of Phase 2 Scope)
-
+- [!] Deferred (Moved to Future Scope / Out of Phase 2 Scope)
 ### L3. Budget-to-Allocation Generator (Re-targeted L3)
-- [ ] Backend: No routes/services
-- [ ] Frontend: No upload/review UI
-
+- [x] Backend: Implemented `generate` method in `AllocationController` and `generateAllocationsFromDocument` in `GeminiService` using Gemini 2.5 Flash to parse budget files.
+- [x] Frontend: Implemented `generateAllocations` service and built the AI Budget Document Upload and allocations preview UI directly inside Step 3 of the `CreateCampaign.jsx` wizard.
 ## Open Decisions & Infrastructure Status
 - Payment gateway: Stripe Payment Intents and Stripe Connect Express onboarding are fully implemented and verified.
 - Database migration: DigitalOcean Production Database Migration has been successfully executed and resolved.
