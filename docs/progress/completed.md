@@ -18,6 +18,7 @@
 - 2026_06_22_103710_add_document_paths_to_users_table.php: adds permit_path and tax_certificate_path to store uploaded NGO verification documents
 - 2026_06_22_155500_add_image_paths_to_campaigns_table.php: adds image_paths JSON column to store up to 5 campaign image links
 - 2026_06_23_032432_add_details_to_disbursements_table.php: adds nullable details text column to disbursements table
+- 2026_06_24_084805_add_proof_images_to_disbursements_table.php: adds proof_images JSON column to store real-world payout proof images
 - EnsureUserIsActive.php: request-interception middleware to enforce status-based account suspension
 
 ## Models
@@ -42,7 +43,7 @@
 - ChatbotController: handleWebhook [done]
 - Controller: no custom methods
 - DashboardController: ngoDashboard [done], adminDashboard [done], ngoDisbursementDashboard [done] (service-backed)
-- DisbursementController: store [done], indexAdmin [done], updateStatus [done] (service-backed, rejection_reason and details validation handled)
+- DisbursementController: store [done], indexAdmin [done], updateStatus [done] (service-backed, rejection_reason and details validation handled), uploadProof [done], addProof [done], deleteProof [done], editProof [done] (handles NGO activity impact photo submissions and storage cleanups)
 - DonationController: store [done], index [done], receipt download [done] (service-backed)
 - NotificationController: index [done], markAsRead [done], markAllAsRead [done]
 - ProfileController: update [done] (service-backed)
@@ -55,7 +56,7 @@
 - Campaigns: GET /campaigns, GET /campaigns/{id}, POST /campaigns, PUT /campaigns/{id}, PATCH /campaigns/{id}, DELETE /campaigns/{id}, GET /ngo/campaigns/{id}
 - Donations: POST /campaigns/{id}/donate, POST /donations, GET /donations, GET /donations/{id}/receipt
 - Allocations: POST /campaigns/{campaign_id}/allocations, PATCH /campaigns/{campaign_id}/allocations/{id}
-- Disbursements: POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status
+- Disbursements: POST /campaigns/{campaign_id}/disbursements, GET /admin/disbursements, PATCH /admin/disbursements/{id}/status, POST /ngo/disbursements/{id}/proof, POST /ngo/disbursements/{id}/proof/add, POST /ngo/disbursements/{id}/proof/delete, POST /ngo/disbursements/{id}/proof/edit
 - Dashboards: GET /dashboard/ngo, GET /dashboard/admin, GET /dashboard/ngo/disbursements
 - Admin Users: GET /admin/users, POST /admin/users, PATCH /admin/users/{id}/status, DELETE /admin/users/{id}
 - Settings: GET /admin/settings, POST /admin/settings
@@ -75,7 +76,7 @@
 - NgoCampaignDetails.jsx: NGO campaign details with donations, allocations, disbursements, campaign/allocations editing, interactive image slideshow carousel with Pencil edit icon, restricted allocation amount editing, and consolidated Withdrawn/Available/Target/Raised metric layouts with dual-color progress bar [done]
 - DonorDashboard.jsx: donor impact stats, donation history, receipt download action [done]
 - NgoDashboard.jsx: NGO overview metrics and charts, updated to use RM currency and full-row width layout [done]
-- NgoDisbursements.jsx: NGO disbursement dashboard and request modal with checklist allocations selection and details notes field [done]
+- NgoDisbursements.jsx: NGO disbursement dashboard, stats cards showing requested/pending payouts, record payout requests (allocations checklist + details), and payout proof photos manager (centered slideshow/carousel, photo uploading, replacing/editing active slide, and deleting active slide) [done]
 - AdminDashboard.jsx: admin campaign moderation table [done]
 - AdminDisbursements.jsx: admin disbursement moderation table [done]
 - StripeCallback.jsx: NGO onboarding redirect verification handler [done]
@@ -93,7 +94,8 @@
 - ui/CheckoutModal.jsx: Stripe Elements payment validation & LHDN tax exemption details modal [done]
 - ui/DonationLedger.jsx: donation ledger table
 - ui/Input.jsx: styled input
-- ui/Modal.jsx: generic modal
+- ui/DonorImpactModal.jsx: private donor impact visualizer showing flat-tracking proportional utilization metrics on the left column, and chronological payout proof/photo slideshows on the right column (removed invoice PDF link, supports xl width size) [done]
+- ui/Modal.jsx: generic modal (updated to support size options 'sm', 'md', 'lg', 'xl', '2xl' dynamically) [done]
 - ui/NgoProfileView.jsx: NGO profile detail viewer updated with status, verification, and tax exempt badges [done]
 - ui/NotificationDropdown.jsx: bell trigger with unread badge, relative times, click-outside auto close, and optimistic card clear actions [done]
 - ui/StatCard.jsx: metric card

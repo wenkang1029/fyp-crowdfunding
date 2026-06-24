@@ -107,7 +107,7 @@ Upload quotation PDF(s) + receipt PDF(s)
 ## Key Design Principles
 
 
-- Transparency-first: every donation is traceable from payment to disbursement
+- Transparency-first: every donation is traceable from payment to disbursement using proportional flat-tracking and real-world proof photo verification
 - LLM outputs are always advisory — a human confirms before any data is persisted
 - Quotation-receipt reconciliation creates an auditable paper trail for every disbursement
 - Receipt auto-generated as PDF on successful donation
