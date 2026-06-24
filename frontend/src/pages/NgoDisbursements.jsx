@@ -39,6 +39,7 @@ const NgoDisbursements = () => {
     const [proofFiles, setProofFiles] = React.useState([]);
     const [isUploadingProof, setIsUploadingProof] = React.useState(false);
     const [proofFormError, setProofFormError] = React.useState('');
+    const [activeNgoProofImages, setActiveNgoProofImages] = React.useState(null);
 
     const handleOpenProofModal = (id) => {
         setUploadingDisbursementId(id);
@@ -191,9 +192,15 @@ const NgoDisbursements = () => {
                                                                     <span>Add Proof</span>
                                                                 </button>
                                                             ) : (
-                                                                <span className="text-[10px] text-emerald-600 font-extrabold bg-emerald-50 border border-emerald-100 px-2 py-1 rounded-lg">
-                                                                    ✓ Proof Added ({activity.proof_images.length})
-                                                                </span>
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setActiveNgoProofImages(activity.proof_images)}
+                                                                    className="inline-flex items-center gap-1 bg-emerald-50 border border-emerald-100 text-emerald-600 font-extrabold text-xs px-2.5 py-1.5 rounded-lg hover:bg-emerald-100 transition-all shadow-apple-xs cursor-pointer"
+                                                                    title="Click to View Uploaded Proof Images"
+                                                                >
+                                                                    <FileText size={12} />
+                                                                    <span>View Proof ({activity.proof_images.length})</span>
+                                                                </button>
                                                             )}
                                                         </div>
                                                     )}
@@ -360,6 +367,43 @@ const NgoDisbursements = () => {
                         {isUploadingProof ? 'Uploading Proof...' : 'Submit Impact Proof'}
                     </Button>
                 </form>
+            </Modal>
+
+            {/* View Payout Proof Images Modal */}
+            <Modal 
+                isOpen={activeNgoProofImages !== null} 
+                onClose={() => setActiveNgoProofImages(null)} 
+                title="Uploaded Payout Proof Images"
+                size="lg"
+            >
+                <div className="space-y-4">
+                    <p className="text-xs text-gray-500 font-semibold leading-relaxed">
+                        Here are the real-world proof photos you uploaded for this verified payout. Donors can view these photos to track their impact.
+                    </p>
+                    {activeNgoProofImages && activeNgoProofImages.length === 0 ? (
+                        <div className="text-center py-6 bg-gray-50 border border-dashed border-gray-200 rounded-xl text-xs text-gray-400 font-semibold">
+                            No proof images uploaded.
+                        </div>
+                    ) : (
+                        <div className="grid grid-cols-3 gap-3">
+                            {activeNgoProofImages?.map((path, idx) => (
+                                <a 
+                                    key={idx} 
+                                    href={path.startsWith('http') ? path : `${backendUrl}${path}`} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer" 
+                                    className="aspect-video rounded-xl overflow-hidden border border-gray-200 shadow-apple-sm relative group hover:border-aidwise-blue transition-all"
+                                >
+                                    <img 
+                                        src={path.startsWith('http') ? path : `${backendUrl}${path}`} 
+                                        alt={`Proof Photo ${idx + 1}`} 
+                                        className="w-full h-full object-cover group-hover:scale-105 transition-all animate-in fade-in duration-200"
+                                    />
+                                </a>
+                            ))}
+                        </div>
+                    )}
+                </div>
             </Modal>
         </DashboardLayout>
     );
