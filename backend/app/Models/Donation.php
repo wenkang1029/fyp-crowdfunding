@@ -13,6 +13,7 @@ class Donation extends Model
         'user_id',
         'campaign_id',
         'allocation_id',
+        'donation_group_id',
         'donor_name',
         'amount',
         'status',

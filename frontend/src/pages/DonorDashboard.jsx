@@ -48,7 +48,7 @@ const DonorDashboard = () => {
         );
     }
 
-    const totalDonated = donations.reduce((sum, donation) => sum + Number(donation.amount), 0);
+    const totalDonated = donations.reduce((sum, donation) => sum + Number(donation.total_amount ?? donation.amount), 0);
     const uniqueCampaigns = new Set(donations.map(d => d.campaign_id)).size;
 
     const formatRM = (amount) => `RM ${Number(amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -109,7 +109,7 @@ const DonorDashboard = () => {
                                 <tr>
                                     <th className="px-6 py-4">Date & Time</th>
                                     <th className="px-6 py-4">Campaign Title</th>
-                                    <th className="px-6 py-4">Sub-goal</th>
+                                    <th className="px-6 py-4">Sub-goal(s)</th>
                                     <th className="px-6 py-4">Amount</th>
                                     <th className="px-6 py-4 text-right">Status</th>
                                     <th className="px-6 py-4 text-right">Actions</th>
@@ -124,18 +124,31 @@ const DonorDashboard = () => {
                                     </tr>
                                 ) : (
                                     donations.map((donation) => (
-                                        <tr key={donation.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <tr key={donation.donation_group_id ?? donation.id} className="hover:bg-gray-50/50 transition-colors">
                                             <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                                                 {formatDate(donation.created_at)}
                                             </td>
                                             <td className="px-6 py-4 font-semibold text-aidwise-text">
                                                 {donation.campaign?.title || 'Unknown Campaign'}
                                             </td>
-                                            <td className="px-6 py-4 text-gray-500">
-                                                {donation.allocation?.purpose || 'Overall campaign'}
+                                            <td className="px-6 py-4">
+                                                {donation.allocations && donation.allocations.length > 0 ? (
+                                                    <div className="flex flex-wrap gap-1">
+                                                        {donation.allocations.map((alloc) => (
+                                                            <span
+                                                                key={alloc.id}
+                                                                className="inline-block bg-blue-50 text-aidwise-blue text-xs font-medium px-2 py-0.5 rounded-full border border-blue-100"
+                                                            >
+                                                                {alloc.purpose}
+                                                            </span>
+                                                        ))}
+                                                    </div>
+                                                ) : (
+                                                    <span className="text-gray-400 text-xs">Overall campaign</span>
+                                                )}
                                             </td>
                                             <td className="px-6 py-4 font-bold text-green-600 whitespace-nowrap">
-                                                {formatRM(donation.amount)}
+                                                {formatRM(donation.total_amount ?? donation.amount)}
                                             </td>
                                             <td className="px-6 py-4 text-right">
                                                 <Badge status={donation.status} />

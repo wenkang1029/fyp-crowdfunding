@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Helpers\NumberToWordsHelper;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 class DonationService
@@ -89,9 +90,12 @@ class DonationService
         $count = count($allocationIds) ?: 1;
         $amountPerAllocation = round($totalAmount / $count, 2);
 
+        // Generate a shared group ID for all Donation rows created in this action
+        $donationGroupId = (string) Str::uuid();
+
         $donationRecords = [];
 
-        $donation = DB::transaction(function () use ($data, $campaign, $user, $allocationIds, $count, $amountPerAllocation, &$donationRecords) {
+        $donation = DB::transaction(function () use ($data, $campaign, $user, $allocationIds, $count, $amountPerAllocation, $donationGroupId, &$donationRecords) {
             $requestTaxReceipt = filter_var($data['request_tax_receipt'] ?? false, FILTER_VALIDATE_BOOLEAN);
             $isNgoTaxExempt = $campaign->user && $campaign->user->is_tax_exempt;
             $shouldGenerateTax = $requestTaxReceipt && $isNgoTaxExempt;
@@ -99,11 +103,12 @@ class DonationService
             $totalRecords = count($allocationIds);
 
             if ($totalRecords === 0) {
-                // Overall campaign split
+                // Overall campaign donation
                 $donation = Donation::create([
                     'user_id' => $user?->id,
                     'campaign_id' => $campaign->id,
                     'allocation_id' => null,
+                    'donation_group_id' => $donationGroupId,
                     'donor_name' => $data['donor_name'] ?? ($user?->name ?? 'Anonymous'),
                     'amount' => $data['amount'],
                     'status' => 'pending',
@@ -122,10 +127,10 @@ class DonationService
 
                 $donationRecords[] = $donation;
             } else {
-                // Custom split across selected sub-goals
+                // Custom split across selected sub-goals — all share the same donation_group_id
                 $runningTotal = 0.0;
                 foreach ($allocationIds as $index => $allocId) {
-                    // Handle cents rounding margins on last item
+                    // Handle cents rounding on last item
                     $recordAmount = $amountPerAllocation;
                     if ($index === $totalRecords - 1) {
                         $recordAmount = round(floatval($data['amount']) - $runningTotal, 2);
@@ -136,6 +141,7 @@ class DonationService
                         'user_id' => $user?->id,
                         'campaign_id' => $campaign->id,
                         'allocation_id' => $allocId,
+                        'donation_group_id' => $donationGroupId,
                         'donor_name' => $data['donor_name'] ?? ($user?->name ?? 'Anonymous'),
                         'amount' => $recordAmount,
                         'status' => 'pending',
@@ -218,7 +224,7 @@ class DonationService
     public function listByRole(User $user)
     {
         if ($user->role === 'donor') {
-            return Donation::with([
+            $rows = Donation::with([
                 'campaign:id,title,status,target_amount,current_amount',
                 'campaign.disbursements' => function ($query) {
                     $query->where('status', 'approved')->orderBy('created_at', 'desc');
@@ -228,6 +234,42 @@ class DonationService
                 ->where('user_id', $user->id)
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            // Group rows that belong to the same donation action together.
+            // Rows share a donation_group_id when created in the same action;
+            // legacy rows without one are treated as their own individual group.
+            $grouped = $rows->groupBy(function ($donation) {
+                return $donation->donation_group_id ?? ('solo_' . $donation->id);
+            });
+
+            return $grouped->map(function ($group) {
+                $first = $group->first();
+                return [
+                    'id'                => $first->id,
+                    'donation_group_id' => $first->donation_group_id,
+                    'campaign_id'       => $first->campaign_id,
+                    'campaign'          => $first->campaign,
+                    'donor_name'        => $first->donor_name,
+                    'total_amount'      => $group->sum('amount'),
+                    'status'            => $first->status,
+                    'transaction_id'    => $first->transaction_id,
+                    'payment_method'    => $first->payment_method,
+                    'created_at'        => $first->created_at,
+                    'updated_at'        => $first->updated_at,
+                    'request_tax_receipt' => $first->request_tax_receipt,
+                    'tax_receipt_number'  => $first->tax_receipt_number,
+                    // Array of sub-goals involved in this donation action
+                    'allocations' => $group
+                        ->filter(fn ($d) => $d->allocation !== null)
+                        ->map(fn ($d) => [
+                            'id'      => $d->allocation->id,
+                            'purpose' => $d->allocation->purpose,
+                            'amount'  => $d->amount,
+                        ])
+                        ->values()
+                        ->toArray(),
+                ];
+            })->values();
         }
 
         if ($user->role === 'ngo') {
