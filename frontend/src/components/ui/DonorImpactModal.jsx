@@ -15,7 +15,7 @@ const DonorImpactModal = ({ isOpen, onClose, donation }) => {
     const disbursements = Array.isArray(campaign.disbursements) ? campaign.disbursements : [];
     
     // Calculations
-    const donationAmount = Number(donation.amount || 0);
+    const donationAmount = Number(donation.total_amount ?? donation.amount ?? 0);
     const campaignRaised = Number(campaign.current_amount || 0);
     const campaignDisbursed = disbursements.reduce((sum, d) => sum + Number(d.amount || 0), 0);
     
