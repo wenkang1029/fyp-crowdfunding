@@ -99,10 +99,18 @@
         </div>
         <div class="signature-box">
             @php
-                $sigPath = public_path('images/signature.png');
-                $sigSrc  = file_exists($sigPath)
-                    ? 'data:image/png;base64,' . base64_encode(file_get_contents($sigPath))
-                    : null;
+                $sigSrc = null;
+                try {
+                    $sigPath = public_path('images/signature.png');
+                    if (file_exists($sigPath) && is_readable($sigPath)) {
+                        $sigData = file_get_contents($sigPath);
+                        if ($sigData !== false) {
+                            $sigSrc = 'data:image/png;base64,' . base64_encode($sigData);
+                        }
+                    }
+                } catch (\Exception $e) {
+                    $sigSrc = null;
+                }
             @endphp
             @if($sigSrc)
                 <img src="{{ $sigSrc }}" alt="Authorized Signature" />

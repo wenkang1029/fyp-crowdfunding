@@ -296,7 +296,7 @@ class DonationService
 
         $donation = Donation::with([
             'campaign:id,title,user_id',
-            'campaign.user:id,name,org_name,mailing_address,lhdn_reference',
+            'campaign.user:id,name,org_name,org_reg_number,mailing_address,lhdn_reference',
             'allocation:id,purpose',
             'user:id,name,email,identification_number,mailing_address',
         ])->findOrFail($donationId);
