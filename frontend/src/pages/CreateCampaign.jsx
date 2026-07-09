@@ -470,9 +470,9 @@ const CreateCampaign = () => {
                                             return (
                                                 <div
                                                     key={`allocation-${allocationIndex}`}
-                                                    className="flex flex-col gap-4 rounded-2xl border border-gray-150 p-4 sm:flex-row sm:items-end bg-gray-50/20 animate-fade-in"
+                                                    className="flex flex-col gap-3 rounded-2xl border border-gray-150 p-4 sm:flex-row sm:flex-wrap sm:items-end bg-gray-50/20 animate-fade-in"
                                                 >
-                                                    <div className="flex-1">
+                                                    <div className="flex-1 min-w-0">
                                                         <Input
                                                             label={`Purpose ${allocationIndex + 1}`}
                                                             type="text"
@@ -483,7 +483,7 @@ const CreateCampaign = () => {
                                                             placeholder="e.g., Medical supplies"
                                                         />
                                                     </div>
-                                                    <div className="w-full sm:w-48">
+                                                    <div className="w-full sm:w-40 shrink-0">
                                                         <Input
                                                             label="Amount (RM)"
                                                             type="number"
@@ -495,7 +495,7 @@ const CreateCampaign = () => {
                                                             placeholder="e.g., 2500"
                                                         />
                                                     </div>
-                                                    <div className="sm:pb-1">
+                                                    <div className="shrink-0 sm:pb-1">
                                                         <Button
                                                             type="button"
                                                             variant="danger"
