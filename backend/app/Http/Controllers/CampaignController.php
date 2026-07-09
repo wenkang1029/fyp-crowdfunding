@@ -16,10 +16,11 @@ class CampaignController extends Controller
     {
     }
 
-    // 1. View all active campaigns (Public)
+    // 1. View all active/past campaigns (Public)
     public function index(Request $request)
     {
-        $campaigns = $this->campaignService->listByRole($request->user('sanctum'));
+        $tab = $request->query('tab', 'active');
+        $campaigns = $this->campaignService->listByRole($request->user('sanctum'), $tab);
 
         return response()->json([
             'success' => true,

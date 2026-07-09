@@ -14,7 +14,7 @@ class CampaignService
     ) {
     }
 
-    public function listByRole(?User $user)
+    public function listByRole(?User $user, string $tab = 'active')
     {
         if ($user && $user->role === 'admin') {
             return Campaign::with('user')->orderBy('created_at', 'desc')->get();
@@ -32,8 +32,25 @@ class CampaignService
                 ->get();
         }
 
+        // Public: past campaigns (status=active but end_date is in the past)
+        if ($tab === 'past') {
+            return Campaign::with('user')
+                ->where('status', 'active')
+                ->whereNotNull('end_date')
+                ->where('end_date', '<', now())
+                ->whereHas('user', function ($query) {
+                    $query->where('status', '!=', 'suspended');
+                })
+                ->orderBy('end_date', 'desc')
+                ->get();
+        }
+
+        // Public: active campaigns (status=active and within date window)
         return Campaign::with('user')
             ->where('status', 'active')
+            ->where(function ($query) {
+                $query->whereNull('end_date')->orWhere('end_date', '>=', now());
+            })
             ->whereHas('user', function ($query) {
                 $query->where('status', '!=', 'suspended');
             })

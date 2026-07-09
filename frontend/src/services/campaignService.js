@@ -8,8 +8,8 @@ const extractData = (response) => {
     return response?.data;
 };
 
-export const getCampaigns = async () => {
-    const response = await axiosInstance.get('/campaigns');
+export const getCampaigns = async (tab = 'active') => {
+    const response = await axiosInstance.get('/campaigns', { params: { tab } });
     return extractData(response);
 };
 
