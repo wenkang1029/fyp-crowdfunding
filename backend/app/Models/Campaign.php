@@ -9,6 +9,16 @@ class Campaign extends Model
 {
     use HasFactory;
 
+    protected static function booted()
+    {
+        static::retrieved(function ($campaign) {
+            if ($campaign->status === 'active' && $campaign->end_date && $campaign->end_date->isPast()) {
+                $campaign->status = 'completed';
+                $campaign->saveQuietly();
+            }
+        });
+    }
+
     // Tell Laravel these columns are safe to insert data into
     protected $fillable = [
         'user_id',

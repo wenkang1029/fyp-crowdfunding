@@ -1,11 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import DashboardLayout from '../components/layout/DashboardLayout';
 import StatCard from '../components/ui/StatCard';
 import Card from '../components/ui/Card';
 import Badge from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
-import { Target, DollarSign, Users, TrendingUp, Calendar, ShieldAlert, Plus, Wallet, ArrowRight } from 'lucide-react';
+import { Target, DollarSign, Users, TrendingUp, Calendar, ShieldAlert, Plus, Wallet, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import DonationLedger from '../components/ui/DonationLedger';
 import { useNgoDashboardData } from '../hooks/useNgoDashboardData';
 
@@ -21,7 +21,16 @@ const NgoDashboard = () => {
         completionRate,
     } = useNgoDashboardData();
 
+    const [campaignPage, setCampaignPage] = useState(1);
+    const CAMPAIGNS_PER_PAGE = 4;
+
     const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+
+    const totalCampaignPages = Math.ceil(campaigns.length / CAMPAIGNS_PER_PAGE);
+    const paginatedCampaigns = campaigns.slice(
+        (campaignPage - 1) * CAMPAIGNS_PER_PAGE,
+        campaignPage * CAMPAIGNS_PER_PAGE
+    );
 
     // HCI: Loading State
     if (isLoading) {
@@ -154,80 +163,122 @@ const NgoDashboard = () => {
                             </Link>
                         </div>
                     ) : (
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            {campaigns.map((campaign) => {
-                                const raisedAmount = Number(campaign.current_amount || 0);
-                                const goalAmount = Math.max(Number(campaign.target_amount || 0), 1);
-                                const disbursedAmount = Number(campaign.disbursed_amount || 0);
-                                const raisedPercent = Math.min((raisedAmount / goalAmount) * 100, 100);
-                                const disbursedPercent = Math.min((disbursedAmount / goalAmount) * 100, 100);
-                                const availablePercent = Math.max(raisedPercent - disbursedPercent, 0);
-                                const availableAmount = Math.max(raisedAmount - disbursedAmount, 0);
-                                const remainingAmount = Math.max(goalAmount - raisedAmount, 0);
+                        <>
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                {paginatedCampaigns.map((campaign) => {
+                                    const raisedAmount = Number(campaign.current_amount || 0);
+                                    const goalAmount = Math.max(Number(campaign.target_amount || 0), 1);
+                                    const disbursedAmount = Number(campaign.disbursed_amount || 0);
+                                    const raisedPercent = Math.min((raisedAmount / goalAmount) * 100, 100);
+                                    const disbursedPercent = Math.min((disbursedAmount / goalAmount) * 100, 100);
+                                    const availablePercent = Math.max(raisedPercent - disbursedPercent, 0);
+                                    const availableAmount = Math.max(raisedAmount - disbursedAmount, 0);
+                                    const remainingAmount = Math.max(goalAmount - raisedAmount, 0);
 
-                                return (
-                                    <div key={campaign.id} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/30 hover:bg-gray-50/70 transition-colors flex flex-col justify-between">
-                                        <div className="mb-4">
-                                            <div className="flex items-start justify-between gap-3 mb-1">
-                                                <h4 className="font-bold text-aidwise-text text-sm line-clamp-1" title={campaign.title}>
-                                                    {campaign.title}
-                                                </h4>
-                                                <Badge status={campaign.status} />
+                                    return (
+                                        <div key={campaign.id} className="p-5 border border-gray-100 rounded-2xl bg-gray-50/30 hover:bg-gray-50/70 transition-colors flex flex-col justify-between">
+                                            <div className="mb-4">
+                                                <div className="flex items-start justify-between gap-3 mb-1">
+                                                    <h4 className="font-bold text-aidwise-text text-sm line-clamp-1" title={campaign.title}>
+                                                        {campaign.title}
+                                                    </h4>
+                                                    <Badge status={campaign.status} />
+                                                </div>
+                                                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
+                                                    Goal: {formatRM(campaign.target_amount)}
+                                                </p>
                                             </div>
-                                            <p className="text-xs text-gray-400 font-semibold uppercase tracking-wider">
-                                                Goal: {formatRM(campaign.target_amount)}
-                                            </p>
+
+                                            <div>
+                                                <div className="flex items-center justify-between text-xs mb-2">
+                                                    <span className="font-bold text-aidwise-blue">{Math.round(raisedPercent)}% Funded</span>
+                                                    <span className="text-gray-500 font-medium">{formatRM(raisedAmount)} raised</span>
+                                                </div>
+
+                                                {/* Stacked Progress Bar */}
+                                                <div className="h-3.5 rounded-full bg-gray-200/60 overflow-hidden flex mb-4">
+                                                    <div 
+                                                        className="h-full bg-emerald-500 transition-all duration-500" 
+                                                        style={{ width: `${disbursedPercent}%` }}
+                                                        title={`Withdrawn: ${formatRM(disbursedAmount)}`}
+                                                    ></div>
+                                                    <div 
+                                                        className="h-full bg-aidwise-blue transition-all duration-500" 
+                                                        style={{ width: `${availablePercent}%` }}
+                                                        title={`Available Escrow: ${formatRM(availableAmount)}`}
+                                                    ></div>
+                                                </div>
+
+                                                {/* Legend breakdown values */}
+                                                <div className="grid grid-cols-3 gap-2 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-t border-gray-100/80 pt-3">
+                                                    <div>
+                                                        <span className="block text-gray-400 mb-0.5">Withdrawn</span>
+                                                        <span className="text-emerald-600 font-bold text-xs">{formatRM(disbursedAmount)}</span>
+                                                    </div>
+                                                    <div>
+                                                        <span className="block text-gray-400 mb-0.5">Escrow Balance</span>
+                                                        <span className="text-aidwise-blue font-bold text-xs">{formatRM(availableAmount)}</span>
+                                                    </div>
+                                                    <div className="text-right">
+                                                        <span className="block text-gray-400 mb-0.5">Remaining</span>
+                                                        <span className="text-gray-700 font-bold text-xs">{formatRM(remainingAmount)}</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <div className="mt-4 pt-3 border-t border-gray-100/50 flex justify-end">
+                                                <Link 
+                                                    to={`/ngo/campaigns/${campaign.id}`} 
+                                                    className="inline-flex items-center gap-1 text-xs font-bold text-aidwise-blue hover:text-blue-700 transition-colors"
+                                                >
+                                                    View Detailed Ledger <ArrowRight size={13} />
+                                                </Link>
+                                            </div>
                                         </div>
+                                    );
+                                })}
+                            </div>
 
-                                        <div>
-                                            <div className="flex items-center justify-between text-xs mb-2">
-                                                <span className="font-bold text-aidwise-blue">{Math.round(raisedPercent)}% Funded</span>
-                                                <span className="text-gray-500 font-medium">{formatRM(raisedAmount)} raised</span>
-                                            </div>
-
-                                            {/* Stacked Progress Bar */}
-                                            <div className="h-3.5 rounded-full bg-gray-200/60 overflow-hidden flex mb-4">
-                                                <div 
-                                                    className="h-full bg-emerald-500 transition-all duration-500" 
-                                                    style={{ width: `${disbursedPercent}%` }}
-                                                    title={`Withdrawn: ${formatRM(disbursedAmount)}`}
-                                                ></div>
-                                                <div 
-                                                    className="h-full bg-aidwise-blue transition-all duration-500" 
-                                                    style={{ width: `${availablePercent}%` }}
-                                                    title={`Available Escrow: ${formatRM(availableAmount)}`}
-                                                ></div>
-                                            </div>
-
-                                            {/* Legend breakdown values */}
-                                            <div className="grid grid-cols-3 gap-2 text-[10px] text-gray-500 font-semibold uppercase tracking-wider border-t border-gray-100/80 pt-3">
-                                                <div>
-                                                    <span className="block text-gray-400 mb-0.5">Withdrawn</span>
-                                                    <span className="text-emerald-600 font-bold text-xs">{formatRM(disbursedAmount)}</span>
-                                                </div>
-                                                <div>
-                                                    <span className="block text-gray-400 mb-0.5">Escrow Balance</span>
-                                                    <span className="text-aidwise-blue font-bold text-xs">{formatRM(availableAmount)}</span>
-                                                </div>
-                                                <div className="text-right">
-                                                    <span className="block text-gray-400 mb-0.5">Remaining</span>
-                                                    <span className="text-gray-700 font-bold text-xs">{formatRM(remainingAmount)}</span>
-                                                </div>
-                                            </div>
-                                        </div>
-
-                                        <div className="mt-4 pt-3 border-t border-gray-100/50 flex justify-end">
-                                            <Link 
-                                                to={`/ngo/campaigns/${campaign.id}`} 
-                                                className="inline-flex items-center gap-1 text-xs font-bold text-aidwise-blue hover:text-blue-700 transition-colors"
+                            {/* Pagination Controls */}
+                            {totalCampaignPages > 1 && (
+                                <div className="flex items-center justify-between border-t border-gray-100 pt-5 mt-6">
+                                    <p className="text-xs text-gray-400 font-semibold">
+                                        Showing {(campaignPage - 1) * CAMPAIGNS_PER_PAGE + 1}–{Math.min(campaignPage * CAMPAIGNS_PER_PAGE, campaigns.length)} of {campaigns.length} campaigns
+                                    </p>
+                                    <div className="flex items-center gap-1.5">
+                                        <button
+                                            onClick={() => setCampaignPage(prev => Math.max(1, prev - 1))}
+                                            disabled={campaignPage === 1}
+                                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-500 hover:text-aidwise-blue hover:bg-blue-50/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 border border-gray-200"
+                                        >
+                                            <ChevronLeft size={14} /> Prev
+                                        </button>
+                                        
+                                        {Array.from({ length: totalCampaignPages }, (_, i) => i + 1).map((page) => (
+                                            <button
+                                                key={page}
+                                                onClick={() => setCampaignPage(page)}
+                                                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all duration-150 ${
+                                                    campaignPage === page
+                                                        ? 'bg-aidwise-blue text-white shadow-sm'
+                                                        : 'text-gray-500 hover:bg-blue-50/50 hover:text-aidwise-blue border border-gray-150'
+                                                }`}
                                             >
-                                                View Detailed Ledger <ArrowRight size={13} />
-                                            </Link>
-                                        </div>
+                                                {page}
+                                            </button>
+                                        ))}
+                                        
+                                        <button
+                                            onClick={() => setCampaignPage(prev => Math.min(totalCampaignPages, prev + 1))}
+                                            disabled={campaignPage === totalCampaignPages}
+                                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-500 hover:text-aidwise-blue hover:bg-blue-50/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 border border-gray-200"
+                                        >
+                                            Next <ChevronRight size={14} />
+                                        </button>
                                     </div>
-                                );
-                            })}
-                        </div>
+                                </div>
+                            )}
+                        </>
                     )}
                 </Card>
 

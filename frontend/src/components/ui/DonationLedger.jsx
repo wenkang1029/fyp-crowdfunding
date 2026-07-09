@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { getDonations } from '../../services/donationService';
 import Card from './Card';
 import Badge from './Badge'; // Reusing the badge we built earlier!
-import { Receipt } from 'lucide-react';
+import { Receipt, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const DonationLedger = () => {
     const [donations, setDonations] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState('');
+    const [donationPage, setDonationPage] = useState(1);
+    const DONATIONS_PER_PAGE = 5;
 
     useEffect(() => {
         const fetchDonations = async () => {
@@ -24,6 +26,12 @@ const DonationLedger = () => {
 
         fetchDonations();
     }, []);
+
+    const totalDonationPages = Math.ceil(donations.length / DONATIONS_PER_PAGE);
+    const paginatedDonations = donations.slice(
+        (donationPage - 1) * DONATIONS_PER_PAGE,
+        donationPage * DONATIONS_PER_PAGE
+    );
 
     // Helper function to format the database timestamp into a readable date
     const formatDate = (dateString) => {
@@ -64,8 +72,8 @@ const DonationLedger = () => {
                                     No donations received yet. Share your campaigns to get started!
                                 </td>
                             </tr>
-                        ) : (
-                            donations.map((donation) => (
+                         ) : (
+                            paginatedDonations.map((donation) => (
                                 <tr key={donation.id} className="hover:bg-gray-50/50 transition-colors">
                                     <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
                                         {formatDate(donation.created_at)}
@@ -92,6 +100,46 @@ const DonationLedger = () => {
                     </tbody>
                 </table>
             </div>
+
+            {/* Pagination Controls */}
+            {!isLoading && totalDonationPages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-150 px-6 py-4 bg-gray-50/30">
+                    <p className="text-xs text-gray-400 font-semibold">
+                        Showing {(donationPage - 1) * DONATIONS_PER_PAGE + 1}–{Math.min(donationPage * DONATIONS_PER_PAGE, donations.length)} of {donations.length} donations
+                    </p>
+                    <div className="flex items-center gap-1.5">
+                        <button
+                            onClick={() => setDonationPage(prev => Math.max(1, prev - 1))}
+                            disabled={donationPage === 1}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-500 hover:text-aidwise-blue hover:bg-blue-50/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 border border-gray-200"
+                        >
+                            <ChevronLeft size={14} /> Prev
+                        </button>
+                        
+                        {Array.from({ length: totalDonationPages }, (_, i) => i + 1).map((page) => (
+                            <button
+                                key={page}
+                                onClick={() => setDonationPage(page)}
+                                className={`w-7 h-7 rounded-lg text-xs font-bold transition-all duration-150 ${
+                                    donationPage === page
+                                        ? 'bg-aidwise-blue text-white shadow-sm'
+                                        : 'text-gray-500 hover:bg-blue-50/50 hover:text-aidwise-blue border border-gray-150'
+                                }`}
+                            >
+                                {page}
+                            </button>
+                        ))}
+                        
+                        <button
+                            onClick={() => setDonationPage(prev => Math.min(totalDonationPages, prev + 1))}
+                            disabled={donationPage === totalDonationPages}
+                            className="flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold text-gray-500 hover:text-aidwise-blue hover:bg-blue-50/50 disabled:opacity-30 disabled:cursor-not-allowed transition-all duration-150 border border-gray-200"
+                        >
+                            Next <ChevronRight size={14} />
+                        </button>
+                    </div>
+                </div>
+            )}
         </Card>
     );
 };
