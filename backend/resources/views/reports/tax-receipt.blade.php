@@ -24,8 +24,9 @@
         .words-container { margin-top: 15px; padding: 10px; background-color: #f9fafb; border-left: 3px solid #2563eb; font-style: italic; }
 
         .footer-sig { margin-top: 50px; }
-        .signature-box { float: right; width: 220px; text-align: center; border-top: 1px solid #9ca3af; padding-top: 8px; margin-top: 30px; }
-        .signature-box img { max-width: 180px; max-height: 70px; display: block; margin: 0 auto 6px auto; }
+        .signature-box { float: right; width: 220px; text-align: center; margin-top: 30px; }
+        .signature-box img { max-width: 180px; max-height: 70px; display: block; margin: 0 auto 4px auto; }
+        .sig-line { border-top: 1px solid #9ca3af; padding-top: 6px; margin-top: 4px; }
     </style>
 </head>
 <body>
@@ -116,11 +117,12 @@
             @endphp
             @if($sigSrc)
                 <img src="{{ $sigSrc }}" alt="Authorized Signature" />
-            @else
-                <p style="font-size: 10px; color: #9ca3af; margin: 0 0 40px 0;">[Digitally Authorized Stamp / Signature]</p>
             @endif
-            <strong>Authorized Officer Signature</strong>
-            <p style="font-size: 10px; margin: 2px 0 0 0; color: #6b7280;">{{ $donation->campaign->user->org_name ?? $donation->campaign->user->name }}</p>
+            <div class="sig-line">
+                <p style="font-size: 10px; color: #9ca3af; margin: 0 0 4px 0;">[Digitally Authorized Stamp / Signature]</p>
+                <strong>Authorized Officer Signature</strong>
+                <p style="font-size: 10px; margin: 2px 0 0 0; color: #6b7280;">{{ $donation->campaign->user->org_name ?? $donation->campaign->user->name }}</p>
+            </div>
         </div>
         <div class="clear"></div>
     </div>
