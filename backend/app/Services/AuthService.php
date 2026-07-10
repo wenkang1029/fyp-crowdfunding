@@ -33,6 +33,7 @@ class AuthService
             'is_tax_exempt' => ($data['role'] ?? 'donor') === 'ngo' ? filter_var($data['is_tax_exempt'] ?? false, FILTER_VALIDATE_BOOLEAN) : false,
             'permit_path' => $permitPath,
             'tax_certificate_path' => $taxCertificatePath,
+            'mailing_address' => ($data['role'] ?? 'donor') === 'ngo' ? ($data['mailing_address'] ?? null) : null,
         ]);
 
         $token = $user->createToken('auth_token')->plainTextToken;

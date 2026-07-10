@@ -50,7 +50,7 @@ class RegistrationTest extends TestCase
         ]);
 
         $response->assertStatus(422)
-            ->assertJsonValidationErrors(['org_name', 'org_reg_number']);
+            ->assertJsonValidationErrors(['org_name', 'org_reg_number', 'mailing_address']);
 
         // Succeed when org details are provided
         $response = $this->postJson('/api/register', [
@@ -62,6 +62,7 @@ class RegistrationTest extends TestCase
             'org_name' => 'Aid NGO',
             'org_reg_number' => 'NGO-999',
             'org_description' => 'Helping kids.',
+            'mailing_address' => '123 Charity Lane, Melaka',
             'permit_file' => UploadedFile::fake()->create('permit.pdf', 100),
         ]);
 
@@ -72,6 +73,7 @@ class RegistrationTest extends TestCase
             'org_name' => 'Aid NGO',
             'org_reg_number' => 'NGO-999',
             'org_description' => 'Helping kids.',
+            'mailing_address' => '123 Charity Lane, Melaka',
         ]);
     }
 

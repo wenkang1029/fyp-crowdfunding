@@ -17,6 +17,7 @@ const Register = () => {
         orgName,
         orgRegNumber,
         orgDescription,
+        mailingAddress,
         isTaxExempt,
         permitFile,
         taxCertificateFile,
@@ -31,6 +32,7 @@ const Register = () => {
         setOrgName,
         setOrgRegNumber,
         setOrgDescription,
+        setMailingAddress,
         setIsTaxExempt,
         setPermitFile,
         setTaxCertificateFile,
@@ -181,6 +183,17 @@ const Register = () => {
                                     placeholder="Briefly describe your organization's mission and purpose..."
                                     rows={3}
                                     error={fieldErrors.org_description?.[0]}
+                                />
+
+                                <Textarea
+                                    id="mailing_address"
+                                    label="Mailing & Billing Address"
+                                    value={mailingAddress}
+                                    onChange={(e) => setMailingAddress(e.target.value)}
+                                    placeholder="Enter your organization's physical mailing & billing address..."
+                                    rows={3}
+                                    required={role === 'ngo'}
+                                    error={fieldErrors.mailing_address?.[0]}
                                 />
 
                                 <div className="space-y-2">

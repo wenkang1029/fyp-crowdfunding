@@ -10,8 +10,14 @@ import {
     Plus, Calendar, Sparkles, Image as ImageIcon, Trash2, 
     ArrowLeft, ArrowRight, ShieldAlert, CheckCircle, Info 
 } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import Modal from '../components/ui/Modal';
 
 const CreateCampaign = () => {
+    const { user } = useAuth();
+    const navigate = useNavigate();
+
     const {
         formData,
         isLoading,
@@ -38,6 +44,58 @@ const CreateCampaign = () => {
     const [aiError, setAiError] = useState(null);
     const [aiSuccess, setAiSuccess] = useState(null);
     const [loadingStep, setLoadingStep] = useState(0);
+
+    if (user && !user.stripe_onboarding_completed) {
+        return (
+            <DashboardLayout>
+                <div className="max-w-3xl mx-auto py-12">
+                    <Modal 
+                        isOpen={true} 
+                        onClose={() => navigate('/ngo/dashboard')} 
+                        title="Stripe Connection Required"
+                    >
+                        <div className="text-center p-4">
+                            <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-5 shadow-sm">
+                                <ShieldAlert size={32} />
+                            </div>
+                            <h3 className="text-lg font-bold text-gray-900 mb-2">Stripe Account Setup Needed</h3>
+                            <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                                To accept direct public contributions securely via credit card, you must link your organisation's financial account with Stripe first.
+                            </p>
+                            <div className="flex flex-col gap-3">
+                                <Button 
+                                    onClick={async () => {
+                                        try {
+                                            const { getStripeConnectUrl } = await import('../services/authService');
+                                            const response = await getStripeConnectUrl();
+                                            if (response.success && response.url) {
+                                                window.location.href = response.url;
+                                            } else {
+                                                alert(response.message || 'Failed to retrieve connection link.');
+                                            }
+                                        } catch (err) {
+                                            alert('Failed to connect to Stripe service. Please try again.');
+                                        }
+                                    }}
+                                    variant="primary"
+                                    className="w-full justify-center py-2.5"
+                                >
+                                    💳 Set Up Stripe Account
+                                </Button>
+                                <Button 
+                                    onClick={() => navigate('/ngo/dashboard')}
+                                    variant="secondary"
+                                    className="w-full justify-center py-2.5"
+                                >
+                                    Back to Dashboard
+                                </Button>
+                            </div>
+                        </div>
+                    </Modal>
+                </div>
+            </DashboardLayout>
+        );
+    }
 
     const loadingMessages = [
         "Reading and optimizing document layout...",

@@ -15,6 +15,7 @@ export const useRegisterForm = () => {
     const [orgName, setOrgName] = useState('');
     const [orgRegNumber, setOrgRegNumber] = useState('');
     const [orgDescription, setOrgDescription] = useState('');
+    const [mailingAddress, setMailingAddress] = useState('');
     
     // NGO Documents
     const [isTaxExempt, setIsTaxExempt] = useState(false);
@@ -50,6 +51,7 @@ export const useRegisterForm = () => {
                 payload.append('org_name', orgName);
                 payload.append('org_reg_number', orgRegNumber);
                 payload.append('org_description', orgDescription);
+                payload.append('mailing_address', mailingAddress);
                 payload.append('is_tax_exempt', isTaxExempt ? '1' : '0');
                 if (permitFile) {
                     payload.append('permit_file', permitFile);
@@ -87,6 +89,7 @@ export const useRegisterForm = () => {
                     org_name: 'org_name',
                     org_reg_number: 'org_reg_number',
                     org_description: 'org_description',
+                    mailing_address: 'mailing_address',
                     permit_file: 'permit_file',
                     tax_exemption_file: 'tax_exemption_file'
                 };
@@ -118,6 +121,7 @@ export const useRegisterForm = () => {
         orgName,
         orgRegNumber,
         orgDescription,
+        mailingAddress,
         isTaxExempt,
         permitFile,
         taxCertificateFile,
@@ -132,6 +136,7 @@ export const useRegisterForm = () => {
         setOrgName,
         setOrgRegNumber,
         setOrgDescription,
+        setMailingAddress,
         setIsTaxExempt,
         setPermitFile,
         setTaxCertificateFile,

@@ -7,6 +7,7 @@ import Badge from '../components/ui/Badge';
 import { useAuth } from '../context/AuthContext';
 import { Target, DollarSign, Users, TrendingUp, Calendar, ShieldAlert, Plus, Wallet, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 import DonationLedger from '../components/ui/DonationLedger';
+import Modal from '../components/ui/Modal';
 import { useNgoDashboardData } from '../hooks/useNgoDashboardData';
 
 const NgoDashboard = () => {
@@ -22,6 +23,7 @@ const NgoDashboard = () => {
     } = useNgoDashboardData();
 
     const [campaignPage, setCampaignPage] = useState(1);
+    const [isStripeBlockerOpen, setIsStripeBlockerOpen] = useState(false);
     const CAMPAIGNS_PER_PAGE = 4;
 
     const formatRM = (amount) => `RM ${Number(amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
@@ -96,7 +98,16 @@ const NgoDashboard = () => {
 
                 {/* Quick Actions Panel */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-8">
-                    <Link to="/ngo/campaigns/create" className="group p-5 bg-white border border-gray-100 rounded-2xl shadow-apple-sm hover:shadow-apple transition-all duration-300 flex items-center gap-4 hover:scale-[1.01]">
+                    <Link 
+                        to="/ngo/campaigns/create" 
+                        onClick={(e) => {
+                            if (!user?.stripe_onboarding_completed) {
+                                e.preventDefault();
+                                setIsStripeBlockerOpen(true);
+                            }
+                        }}
+                        className="group p-5 bg-white border border-gray-100 rounded-2xl shadow-apple-sm hover:shadow-apple transition-all duration-300 flex items-center gap-4 hover:scale-[1.01]"
+                    >
                         <div className="p-3 bg-blue-50 text-aidwise-blue rounded-xl group-hover:bg-aidwise-blue group-hover:text-white transition-all duration-300">
                             <Plus size={20} />
                         </div>
@@ -129,10 +140,10 @@ const NgoDashboard = () => {
 
                 {/* Dynamic Metric Cards */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <StatCard title="Total Raised" value={`RM ${totalRaised.toLocaleString()}`} icon={DollarSign} trend={14.8} />
+                    <StatCard title="Total Raised" value={`RM ${totalRaised.toLocaleString()}`} icon={DollarSign} />
                     <StatCard title="Total Campaigns" value={activeCampaigns} icon={Target} />
-                    <StatCard title="Total Donors" value={donorCount.toString()} icon={Users} trend={8.3} />
-                    <StatCard title="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} trend={2.5} />
+                    <StatCard title="Total Donors" value={donorCount.toString()} icon={Users} />
+                    <StatCard title="Completion Rate" value={`${completionRate}%`} icon={TrendingUp} />
                 </div>
 
                 {/* Campaign Funding Progress: Option B (Horizontal stacked cards) */}
@@ -158,7 +169,16 @@ const NgoDashboard = () => {
                         <div className="flex flex-col items-center justify-center py-16 text-gray-400">
                             <Target size={48} className="mb-4 opacity-20" />
                             <p className="text-sm font-medium">No campaigns created yet.</p>
-                            <Link to="/ngo/campaigns/create" className="mt-3 text-xs font-bold text-aidwise-blue hover:underline">
+                            <Link 
+                                to="/ngo/campaigns/create" 
+                                onClick={(e) => {
+                                    if (!user?.stripe_onboarding_completed) {
+                                        e.preventDefault();
+                                        setIsStripeBlockerOpen(true);
+                                    }
+                                }}
+                                className="mt-3 text-xs font-bold text-aidwise-blue hover:underline"
+                            >
                                 Launch your first campaign now &rarr;
                             </Link>
                         </div>
@@ -285,6 +305,49 @@ const NgoDashboard = () => {
                 {/* Donation Ledger */}
                 <DonationLedger />
             </div>
+
+            {/* Stripe Blocker Modal */}
+            <Modal 
+                isOpen={isStripeBlockerOpen} 
+                onClose={() => setIsStripeBlockerOpen(false)} 
+                title="Stripe Connection Required"
+            >
+                <div className="text-center p-4">
+                    <div className="w-16 h-16 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mx-auto mb-5 shadow-sm">
+                        <ShieldAlert size={32} />
+                    </div>
+                    <h3 className="text-lg font-bold text-gray-900 mb-2">Stripe Account Setup Needed</h3>
+                    <p className="text-sm text-gray-500 mb-6 leading-relaxed">
+                        To accept direct public contributions securely via credit card, you must link your organisation's financial account with Stripe first.
+                    </p>
+                    <div className="flex flex-col gap-3">
+                        <button
+                            onClick={async () => {
+                                try {
+                                    const { getStripeConnectUrl } = await import('../services/authService');
+                                    const response = await getStripeConnectUrl();
+                                    if (response.success && response.url) {
+                                        window.location.href = response.url;
+                                    } else {
+                                        alert(response.message || 'Failed to retrieve connection link.');
+                                    }
+                                } catch (err) {
+                                    alert('Failed to connect to Stripe service. Please try again.');
+                                }
+                            }}
+                            className="bg-aidwise-blue hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-xl transition-all shadow-md hover:shadow-lg text-sm cursor-pointer"
+                        >
+                            💳 Set Up Stripe Account
+                        </button>
+                        <button 
+                            onClick={() => setIsStripeBlockerOpen(false)}
+                            className="bg-gray-100 hover:bg-gray-200 text-gray-700 font-bold py-2.5 px-6 rounded-xl transition-all text-sm border border-gray-200 cursor-pointer"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            </Modal>
         </DashboardLayout>
     );
 };
