@@ -73,29 +73,36 @@ const DonationLedger = () => {
                                 </td>
                             </tr>
                          ) : (
-                            paginatedDonations.map((donation) => (
-                                <tr key={donation.id} className="hover:bg-gray-50/50 transition-colors">
-                                    <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
-                                        {formatDate(donation.created_at)}
-                                    </td>
-                                    <td className="px-6 py-4 font-semibold text-aidwise-text">
-                                        {donation.campaign?.title || 'Unknown Campaign'}
-                                    </td>
-                                    <td className="px-6 py-4 text-gray-500">
-                                        {donation.allocation?.purpose || 'Overall campaign'}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        {/* Fallback chain: Registered User -> Guest Name -> Anonymous */}
-                                        {donation.user?.name || donation.donor_name || 'Anonymous'}
-                                    </td>
-                                    <td className="px-6 py-4 font-bold text-green-600">
-                                        RM {Number(donation.amount).toLocaleString()}
-                                    </td>
-                                    <td className="px-6 py-4 text-right">
-                                        <Badge status={donation.status} />
-                                    </td>
-                                </tr>
-                            ))
+                            paginatedDonations.map((donation) => {
+                                const subgoalText = donation.allocations && donation.allocations.length > 0
+                                    ? donation.allocations.map(a => a.purpose).join(', ')
+                                    : 'Overall campaign';
+                                const amountDisplay = Number(donation.total_amount || donation.amount || 0).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                                
+                                return (
+                                    <tr key={donation.id} className="hover:bg-gray-50/50 transition-colors">
+                                        <td className="px-6 py-4 text-gray-500 whitespace-nowrap">
+                                            {formatDate(donation.created_at)}
+                                        </td>
+                                        <td className="px-6 py-4 font-semibold text-aidwise-text">
+                                            {donation.campaign?.title || 'Unknown Campaign'}
+                                        </td>
+                                        <td className="px-6 py-4 text-gray-500 max-w-[200px] truncate" title={subgoalText}>
+                                            {subgoalText}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {/* Fallback chain: Registered User -> Guest Name -> Anonymous */}
+                                            {donation.user?.name || donation.donor_name || 'Anonymous'}
+                                        </td>
+                                        <td className="px-6 py-4 font-bold text-green-600 whitespace-nowrap">
+                                            RM {amountDisplay}
+                                        </td>
+                                        <td className="px-6 py-4 text-right">
+                                            <Badge status={donation.status} />
+                                        </td>
+                                    </tr>
+                                );
+                            })
                         )}
                     </tbody>
                 </table>

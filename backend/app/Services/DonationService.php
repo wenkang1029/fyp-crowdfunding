@@ -273,8 +273,9 @@ class DonationService
         }
 
         if ($user->role === 'ngo') {
-            return Donation::with([
-                'campaign:id,title',
+            $rows = Donation::with([
+                'campaign:id,title,status,target_amount,current_amount',
+                'campaign.user:id,name,org_name,org_reg_number',
                 'user:id,name,email,identification_number,mailing_address',
                 'allocation:id,purpose',
             ])
@@ -283,6 +284,40 @@ class DonationService
                 })
                 ->orderBy('created_at', 'desc')
                 ->get();
+
+            $grouped = $rows->groupBy(function ($donation) {
+                return $donation->donation_group_id ?? ('solo_' . $donation->id);
+            });
+
+            return $grouped->map(function ($group) {
+                $first = $group->first();
+                return [
+                    'id'                => $first->id,
+                    'user_id'           => $first->user_id,
+                    'donation_group_id' => $first->donation_group_id,
+                    'campaign_id'       => $first->campaign_id,
+                    'campaign'          => $first->campaign,
+                    'donor_name'        => $first->donor_name,
+                    'user'              => $first->user,
+                    'total_amount'      => $group->sum('amount'),
+                    'status'            => $first->status,
+                    'transaction_id'    => $first->transaction_id,
+                    'payment_method'    => $first->payment_method,
+                    'created_at'        => $first->created_at,
+                    'updated_at'        => $first->updated_at,
+                    'request_tax_receipt' => $first->request_tax_receipt,
+                    'tax_receipt_number'  => $first->tax_receipt_number,
+                    'allocations' => $group
+                        ->filter(fn ($d) => $d->allocation !== null)
+                        ->map(fn ($d) => [
+                            'id'      => $d->allocation->id,
+                            'purpose' => $d->allocation->purpose,
+                            'amount'  => $d->amount,
+                        ])
+                        ->values()
+                        ->toArray(),
+                ];
+            })->values();
         }
 
         throw new HttpException(403, 'Unauthorized to view this ledger.');
