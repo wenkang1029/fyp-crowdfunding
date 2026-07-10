@@ -37,6 +37,7 @@ class BackendNotificationTest extends TestCase
             'org_name' => 'Charity Trust',
             'org_reg_number' => 'REG-NGO-888',
             'org_description' => 'Disaster relief efforts.',
+            'mailing_address' => '456 Relief Blvd, Kuala Lumpur',
             'permit_file' => UploadedFile::fake()->create('permit.pdf', 100),
         ]);
 
