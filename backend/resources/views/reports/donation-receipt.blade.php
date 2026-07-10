@@ -28,7 +28,11 @@
         <p><strong>Donor Email:</strong> {{ $donation->user?->email ?? 'N/A' }}</p>
         <p><strong>Campaign:</strong> {{ $donation->campaign?->title ?? 'Unknown Campaign' }}</p>
         <p><strong>Organized By:</strong> {{ $donation->campaign?->user?->name ?? 'Verified NGO' }}</p>
-        <p><strong>Allocated To:</strong> {{ $donation->allocation?->purpose ?? 'Overall campaign goal' }}</p>
+        @if(isset($donationGroup) && count($donationGroup) > 1)
+            <p><strong>Allocated To:</strong> Split across multiple sub-goals</p>
+        @else
+            <p><strong>Allocated To:</strong> {{ $donation->allocation?->purpose ?? 'Overall campaign goal' }}</p>
+        @endif
         <p><strong>Payment Method:</strong> {{ $donation->payment_method ? strtoupper($donation->payment_method) : 'N/A' }}</p>
     </div>
 
@@ -36,14 +40,27 @@
         <thead>
             <tr>
                 <th>Description</th>
-                <th>Amount (RM)</th>
+                <th style="text-align: right;">Amount (RM)</th>
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Donation Amount</td>
-                <td>{{ number_format($donation->amount, 2) }}</td>
-            </tr>
+            @if(isset($donationGroup) && count($donationGroup) > 1)
+                @foreach($donationGroup as $item)
+                    <tr>
+                        <td>Allocation: {{ $item->allocation ? $item->allocation->purpose : 'Overall campaign goal' }}</td>
+                        <td style="text-align: right;">{{ number_format($item->amount, 2) }}</td>
+                    </tr>
+                @endforeach
+                <tr style="font-weight: bold; background: #f8fafc;">
+                    <td>Total Donation Amount</td>
+                    <td style="text-align: right;">{{ number_format($totalAmount, 2) }}</td>
+                </tr>
+            @else
+                <tr>
+                    <td>Donation Amount</td>
+                    <td style="text-align: right;">{{ number_format($totalAmount, 2) }}</td>
+                </tr>
+            @endif
         </tbody>
     </table>
 

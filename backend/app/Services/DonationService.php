@@ -305,11 +305,23 @@ class DonationService
             throw new HttpException(403, 'You can only download your own donation receipts.');
         }
 
+        $donationGroup = collect([$donation]);
+        $totalAmount = $donation->amount;
+
+        if ($donation->donation_group_id) {
+            $donationGroup = Donation::with('allocation:id,purpose')
+                ->where('donation_group_id', $donation->donation_group_id)
+                ->get();
+            $totalAmount = $donationGroup->sum('amount');
+        }
+
         $viewName = $donation->request_tax_receipt ? 'reports.tax-receipt' : 'reports.donation-receipt';
-        $amountInWords = NumberToWordsHelper::convert($donation->amount);
+        $amountInWords = NumberToWordsHelper::convert($totalAmount);
 
         $pdf = Pdf::loadView($viewName, [
             'donation' => $donation,
+            'donationGroup' => $donationGroup,
+            'totalAmount' => $totalAmount,
             'amountInWords' => $amountInWords,
         ]);
 

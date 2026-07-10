@@ -80,12 +80,31 @@
             </tr>
         </thead>
         <tbody>
-            <tr>
-                <td>Charitable Donation to campaign: <strong>{{ $donation->campaign->title }}</strong></td>
-                <td style="text-align: right; font-weight: bold; font-size: 14px;">
-                    {{ number_format($donation->amount, 2) }}
-                </td>
-            </tr>
+            @if(isset($donationGroup) && count($donationGroup) > 1)
+                @foreach($donationGroup as $item)
+                    <tr>
+                        <td>
+                            Donation allocation: <strong>{{ $item->allocation ? $item->allocation->purpose : 'Overall campaign goal' }}</strong>
+                        </td>
+                        <td style="text-align: right; font-size: 12px; color: #475569;">
+                            {{ number_format($item->amount, 2) }}
+                        </td>
+                    </tr>
+                @endforeach
+                <tr style="background-color: #f8fafc; border-top: 2px solid #e2e8f0;">
+                    <td style="font-weight: bold; color: #1e293b;">Total Donation to: {{ $donation->campaign->title }}</td>
+                    <td style="text-align: right; font-weight: bold; font-size: 14px; color: #1e293b;">
+                        {{ number_format($totalAmount, 2) }}
+                    </td>
+                </tr>
+            @else
+                <tr>
+                    <td>Charitable Donation to campaign: <strong>{{ $donation->campaign->title }}</strong> ({{ $donation->allocation ? $donation->allocation->purpose : 'Overall goal' }})</td>
+                    <td style="text-align: right; font-weight: bold; font-size: 14px;">
+                        {{ number_format($totalAmount, 2) }}
+                    </td>
+                </tr>
+            @endif
         </tbody>
     </table>
 
