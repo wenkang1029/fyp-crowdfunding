@@ -49,6 +49,11 @@ const CampaignCard = ({ campaign }) => {
                                         Tax Exempt
                                     </span>
                                 )}
+                                {campaign.status === 'completed' && (
+                                    <span className="px-1.5 py-0.5 text-[9px] font-extrabold uppercase tracking-wide rounded-md border bg-gray-150 text-gray-700 border-gray-200">
+                                        Completed
+                                    </span>
+                                )}
                             </div>
                         )}
                     </div>

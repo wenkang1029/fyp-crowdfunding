@@ -32,12 +32,17 @@ class CampaignService
                 ->get();
         }
 
-        // Public: past campaigns (status=active but end_date is in the past)
+        // Public: past campaigns (status=completed OR (status=active and end_date in past))
         if ($tab === 'past') {
             return Campaign::with('user')
-                ->where('status', 'active')
-                ->whereNotNull('end_date')
-                ->where('end_date', '<', now())
+                ->where(function ($query) {
+                    $query->where('status', 'completed')
+                        ->orWhere(function ($q) {
+                            $q->where('status', 'active')
+                                ->whereNotNull('end_date')
+                                ->where('end_date', '<', now());
+                        });
+                })
                 ->whereHas('user', function ($query) {
                     $query->where('status', '!=', 'suspended');
                 })
